@@ -74,6 +74,16 @@
                 </div>
             </div>
 
+            <div class="landing-divider"><span>Materials Quotation</span></div>
+            <div class="category-grid" style="grid-template-columns:1fr;">
+                <div class="category-card" onclick="selectMaterials()" style="max-width:400px;">
+                    <div class="card-icon mat-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+                    <h3>Electrical Materials Supply</h3>
+                    <p>Wires, switches, MCBs, lights, fans, conduit pipes — generate materials BOQ with profit & discount tracking.</p>
+                    <span class="card-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                </div>
+            </div>
+
             <div class="landing-footer">
                 <p>&copy; 2026 AMPEdge Solution | Powering the Edge of Tomorrow.</p>
             </div>
@@ -360,6 +370,219 @@
                         </div>
                     </div>
                     <div class="pdf-page-footer"><span>AMPEdge Solution | Powering the Edge of Tomorrow.</span><span>Page 3 of 3</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== STEP 2M: MATERIALS CONFIGURATION ===== -->
+    <div id="step-2m" class="step">
+        <div class="config-container">
+            <div class="config-topbar">
+                <button class="back-btn" onclick="goToStep(1)"><i class="fa-solid fa-arrow-left"></i> Back to Home</button>
+                <div class="topbar-logo"><img src="logo.png" alt="AMPEdge" class="topbar-logo-img"></div>
+                <div class="selected-category-badge" style="background:rgba(34,197,94,.15);color:#22c55e;">
+                    <i class="fa-solid fa-boxes-stacked"></i> <span>Electrical Materials Supply</span>
+                </div>
+            </div>
+
+            <div class="config-scroll-area">
+                <!-- Client Details -->
+                <div class="config-section">
+                    <h2 class="config-section-title"><i class="fa-solid fa-user-tie"></i> Client Details</h2>
+                    <div class="client-form-grid">
+                        <div class="form-field"><label>Client Name</label><input type="text" id="mat-inp-client" placeholder="Enter client name"></div>
+                        <div class="form-field"><label>Project Name</label><input type="text" id="mat-inp-project" placeholder="Enter project name"></div>
+                        <div class="form-field"><label>Site Address</label><input type="text" id="mat-inp-address" placeholder="Enter address"></div>
+                        <div class="form-field"><label>Quotation No.</label><input type="text" id="mat-inp-quoteno" placeholder="AME-MAT-001"></div>
+                        <div class="form-field"><label>Date</label><input type="date" id="mat-inp-date"></div>
+                    </div>
+                </div>
+
+                <!-- Materials Table -->
+                <div class="config-section">
+                    <h2 class="config-section-title"><i class="fa-solid fa-boxes-stacked" style="color:#22c55e"></i> Materials Schedule <span class="hint">(Cost & Profit are internal — not shown in customer PDF)</span></h2>
+                    <div class="points-table-wrapper">
+                        <table class="config-points-table" id="mat-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:35px">#</th>
+                                    <th>Material</th>
+                                    <th style="width:100px">Brand</th>
+                                    <th style="width:100px">Size/Spec</th>
+                                    <th style="width:60px">Unit</th>
+                                    <th style="width:90px">Cost (₹) <span class="internal-badge">INTERNAL</span></th>
+                                    <th style="width:65px">Profit % <span class="internal-badge">INTERNAL</span></th>
+                                    <th style="width:95px">Sell Price (₹)</th>
+                                    <th style="width:70px">Qty</th>
+                                    <th style="width:80px">Discount (₹)</th>
+                                    <th style="width:100px">Amount (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mat-tbody"></tbody>
+                            <tfoot>
+                                <tr class="total-row">
+                                    <td colspan="9"></td>
+                                    <td class="text-right font-bold">TOTAL:</td>
+                                    <td class="text-right font-bold font-mono" id="mat-config-total">₹0.00</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <div class="add-row-section">
+                        <button class="add-row-btn" onclick="addCustomMaterialRow()"><i class="fa-solid fa-plus"></i> Add More</button>
+                    </div>
+                </div>
+
+                <!-- Discount Summary -->
+                <div class="config-section">
+                    <h2 class="config-section-title"><i class="fa-solid fa-tags" style="color:#f59e0b"></i> Discount Summary</h2>
+                    <div class="client-form-grid" style="grid-template-columns:1fr auto 1fr 1fr 1fr;align-items:end;">
+                        <div class="form-field">
+                            <label>Set Discount for ALL (₹)</label>
+                            <input type="number" id="mat-inp-discount" value="0" min="0">
+                        </div>
+                        <div class="form-field">
+                            <button class="apply-all-btn" onclick="applyGlobalMaterialDiscount()"><i class="fa-solid fa-check-double"></i> Apply to All</button>
+                        </div>
+                        <div class="form-field">
+                            <label>Total Discount (₹)</label>
+                            <input type="text" id="mat-total-discount" value="₹0.00" readonly style="color:var(--amber);font-weight:700;">
+                        </div>
+                        <div class="form-field">
+                            <label>Discount %</label>
+                            <input type="text" id="mat-discount-pct" value="0%" readonly style="color:var(--amber);font-weight:700;">
+                        </div>
+                        <div class="form-field">
+                            <label>Net Total (₹)</label>
+                            <input type="text" id="mat-net-total" value="₹0.00" readonly style="color:var(--green);font-weight:700;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generate Button -->
+                <div class="generate-section">
+                    <button class="generate-btn" onclick="generateMaterialsQuotation()">
+                        <i class="fa-solid fa-file-pdf"></i> Generate Materials Quotation
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== STEP 3M: MATERIALS PDF PREVIEW ===== -->
+    <div id="step-3m" class="step">
+        <div class="preview-topbar">
+            <button class="back-btn" onclick="goToStep('2m')"><i class="fa-solid fa-arrow-left"></i> Back to Materials</button>
+            <div class="topbar-logo"><img src="logo.png" alt="AMPEdge" class="topbar-logo-img"></div>
+            <div class="preview-actions">
+                <button class="action-btn edit-btn" onclick="goToStep('2m')"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+                <button class="action-btn print-btn" onclick="window.print()"><i class="fa-solid fa-print"></i> Print</button>
+                <button class="action-btn download-btn" id="mat-download-btn" onclick="downloadMaterialsPDF()"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
+            </div>
+        </div>
+
+        <div class="preview-scroll-area">
+            <div id="mat-pdf-document" class="pdf-document">
+
+                <!-- MAT PAGE 1: COVER -->
+                <div class="pdf-page page-cover">
+                    <div class="pdf-brand-header">
+                        <div class="pdf-brand-left">
+                            <img src="logo.png" alt="AMPEdge" class="pdf-logo-img">
+                            <div>
+                                <div class="pdf-brand-title">AMPEdge Solution</div>
+                                <div class="pdf-brand-tagline">Powering the Edge of Tomorrow.</div>
+                            </div>
+                        </div>
+                        <span class="pdf-doc-badge">MATERIALS PROPOSAL</span>
+                    </div>
+                    <div class="pdf-cover-body">
+                        <div class="pdf-cover-title-block">
+                            <h2>Electrical Materials Supply<br>& BOQ Proposal</h2>
+                            <p>Comprehensive materials list with pricing for your electrical project requirements.</p>
+                        </div>
+                        <div class="pdf-meta-grid">
+                            <div class="pdf-meta-card"><span class="pdf-meta-label">PREPARED FOR</span><span class="pdf-meta-value highlight" id="mat-pdf-client">Client</span></div>
+                            <div class="pdf-meta-card"><span class="pdf-meta-label">PROJECT</span><span class="pdf-meta-value" id="mat-pdf-project">Project</span></div>
+                            <div class="pdf-meta-card"><span class="pdf-meta-label">SITE ADDRESS</span><span class="pdf-meta-value" id="mat-pdf-address">—</span></div>
+                            <div class="pdf-meta-card"><span class="pdf-meta-label">QUOTATION NO.</span><span class="pdf-meta-value mono" id="mat-pdf-quoteno">—</span></div>
+                            <div class="pdf-meta-card"><span class="pdf-meta-label">DATE</span><span class="pdf-meta-value" id="mat-pdf-date">—</span></div>
+                            <div class="pdf-meta-card"><span class="pdf-meta-label">VALID UNTIL</span><span class="pdf-meta-value highlight" id="mat-pdf-validity">—</span></div>
+                        </div>
+                    </div>
+                    <div class="pdf-page-footer"><span>AMPEdge Solution | Powering the Edge of Tomorrow.</span><span>Page 1</span></div>
+                </div>
+
+                <!-- MAT PAGE 2: MATERIALS BOQ TABLE -->
+                <div class="pdf-page">
+                    <div class="pdf-page-header-repeat">
+                        <img src="logo.png" alt="AMPEdge" class="pdf-logo-sm">
+                        <span class="pdf-header-company">AMPEdge Solution</span>
+                        <span class="pdf-header-tag">Powering the Edge of Tomorrow.</span>
+                    </div>
+                    <div class="pdf-section-strip"><h2><i class="fa-solid fa-boxes-stacked"></i> Materials Bill of Quantities (BOQ)</h2></div>
+                    <table class="pdf-boq-table">
+                        <thead>
+                            <tr>
+                                <th style="width:30px">ITEM</th>
+                                <th>MATERIAL</th>
+                                <th class="text-center" style="width:65px">BRAND</th>
+                                <th class="text-center" style="width:65px">SIZE/SPEC</th>
+                                <th class="text-center" style="width:40px">UNIT</th>
+                                <th class="text-right" style="width:65px">RATE (₹)</th>
+                                <th class="text-center" style="width:35px">QTY</th>
+                                <th class="text-right" style="width:60px">DISC (₹)</th>
+                                <th class="text-right" style="width:75px">AMOUNT (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mat-pdf-boq-tbody"></tbody>
+                    </table>
+                    <div id="mat-pdf-discount-box" class="pdf-discount-summary" style="display:none;">
+                        <div class="discount-row"><span>Gross Total</span><span id="mat-pdf-gross-total">₹0</span></div>
+                        <div class="discount-row"><span>Discount (<span id="mat-pdf-disc-pct">0</span>%)</span><span id="mat-pdf-disc-amt">-₹0</span></div>
+                    </div>
+                    <div class="pdf-grand-total-banner">
+                        <span>GRAND TOTAL (Materials)</span>
+                        <span class="pdf-grand-value" id="mat-pdf-grand-total">₹0.00</span>
+                    </div>
+                    <div class="pdf-page-footer"><span>AMPEdge Solution | Powering the Edge of Tomorrow.</span><span>Page 2</span></div>
+                </div>
+
+                <!-- MAT PAGE 3: SIGNATURES -->
+                <div class="pdf-page">
+                    <div class="pdf-page-header-repeat">
+                        <img src="logo.png" alt="AMPEdge" class="pdf-logo-sm">
+                        <span class="pdf-header-company">AMPEdge Solution</span>
+                        <span class="pdf-header-tag">Powering the Edge of Tomorrow.</span>
+                    </div>
+                    <div class="pdf-section-strip"><h2><i class="fa-solid fa-file-signature"></i> Acceptance & Authorization</h2></div>
+                    <div class="pdf-validity-box"><i class="fa-solid fa-clock"></i> This materials quotation is valid until <strong id="mat-pdf-validity-2">—</strong></div>
+                    <div class="sig-strip" style="margin-top:auto;">
+                        <div class="pdf-sig-grid">
+                            <div class="pdf-sig-card">
+                                <h4>FOR: AMPEdge Solution</h4>
+                                <div class="sig-images-row">
+                                    <img src="sig1.png" alt="Signature" class="sig-img">
+                                    <img src="sig2.png" alt="Signature" class="sig-img">
+                                </div>
+                                <p class="sig-company">AMPEdge Solution</p>
+                                <p class="sig-dept">Materials Supply Division</p>
+                                <div class="sig-stamp">✓ AUTHORISED SIGNATORY</div>
+                                <div class="sig-line"></div>
+                                <p class="sig-detail">Sayantam Pal — Director<br>Rittick Das — Director</p>
+                            </div>
+                            <div class="pdf-sig-card">
+                                <h4>CLIENT ACCEPTANCE</h4>
+                                <div class="sig-stamp empty"></div>
+                                <p class="sig-company" id="mat-pdf-sig-client">Client</p>
+                                <p class="sig-dept">Authorised Representative</p>
+                                <div class="sig-line"></div>
+                                <p class="sig-detail">Name: _______________________<br>Date: _________ Stamp/Seal:</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pdf-page-footer"><span>AMPEdge Solution | Powering the Edge of Tomorrow.</span><span>Page 3</span></div>
                 </div>
             </div>
         </div>

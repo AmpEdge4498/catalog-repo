@@ -649,6 +649,7 @@ function downloadPDF() {
     btn.disabled = true;
     
     const client = document.getElementById('inp-client').value || 'Client';
+    el.classList.add('pdf-rendering');
     
     html2pdf().set({
         margin: 0,
@@ -656,14 +657,16 @@ function downloadPDF() {
         image: { type:'jpeg', quality:0.98 },
         html2canvas: { scale:2, useCORS:true, letterRendering:true },
         jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'], before: '.pdf-page' }
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'], after: '.pdf-page:not(:last-child)' }
     }).from(el).save().then(() => {
         btn.innerHTML = orig;
         btn.disabled = false;
+        el.classList.remove('pdf-rendering');
     }).catch(err => {
         console.error(err);
         btn.innerHTML = orig;
         btn.disabled = false;
+        el.classList.remove('pdf-rendering');
         alert("PDF generation failed. Try Ctrl+P and select 'Save as PDF'.");
     });
 }
@@ -682,3 +685,284 @@ document.addEventListener('keydown', (e) => {
         }
     }
 });
+
+// ====== MATERIALS MODULE ======
+const MATERIALS_CATALOG = [
+    { name: 'FR PVC Insulated Copper Wire 1.0 sq mm', brand: 'Havells/Polycab', spec: '1.0 sq mm, 90m coil', unit: 'Coil', cost: 850 },
+    { name: 'FR PVC Insulated Copper Wire 1.5 sq mm', brand: 'Havells/Polycab', spec: '1.5 sq mm, 90m coil', unit: 'Coil', cost: 1250 },
+    { name: 'FR PVC Insulated Copper Wire 2.5 sq mm', brand: 'Havells/Polycab', spec: '2.5 sq mm, 90m coil', unit: 'Coil', cost: 2100 },
+    { name: 'FR PVC Insulated Copper Wire 4.0 sq mm', brand: 'Havells/Polycab', spec: '4.0 sq mm, 90m coil', unit: 'Coil', cost: 3200 },
+    { name: 'FR PVC Insulated Copper Wire 6.0 sq mm', brand: 'Havells/Polycab', spec: '6.0 sq mm, 90m coil', unit: 'Coil', cost: 4800 },
+    { name: 'PVC Conduit Pipe 20mm (3/4")', brand: 'Supreme/Sudhakar', spec: '20mm, 3 meter length', unit: 'Pcs', cost: 38 },
+    { name: 'PVC Conduit Pipe 25mm (1")', brand: 'Supreme/Sudhakar', spec: '25mm, 3 meter length', unit: 'Pcs', cost: 52 },
+    { name: 'PVC Concealer Casing-Capping', brand: 'Supreme/MK', spec: '25x16mm, 3m length', unit: 'Pcs', cost: 45 },
+    { name: 'Modular Switch Plate 2M', brand: 'Anchor/Havells', spec: '2 Module, White', unit: 'Pcs', cost: 35 },
+    { name: 'Modular Switch Plate 4M', brand: 'Anchor/Havells', spec: '4 Module, White', unit: 'Pcs', cost: 55 },
+    { name: 'Modular Switch Plate 6M', brand: 'Anchor/Havells', spec: '6 Module, White', unit: 'Pcs', cost: 75 },
+    { name: 'Modular Switch Plate 8M', brand: 'Anchor/Havells', spec: '8 Module, White', unit: 'Pcs', cost: 95 },
+    { name: 'Modular Switch 6A (One-Way)', brand: 'Anchor/Havells', spec: '6 Amp, ISI Marked', unit: 'Pcs', cost: 28 },
+    { name: 'Modular Switch 16A (One-Way)', brand: 'Anchor/Havells', spec: '16 Amp, ISI Marked', unit: 'Pcs', cost: 42 },
+    { name: 'Modular Switch 2-Way (6A)', brand: 'Anchor/Havells', spec: '6 Amp, 2-Way', unit: 'Pcs', cost: 45 },
+    { name: '5A Socket Outlet', brand: 'Anchor/Havells', spec: '5 Pin, Modular', unit: 'Pcs', cost: 38 },
+    { name: '16A Socket Outlet (3 Pin)', brand: 'Anchor/Havells', spec: '16 Amp, Heavy Duty', unit: 'Pcs', cost: 65 },
+    { name: 'Fan Regulator (Step Type)', brand: 'Anchor/Havells', spec: '5 Step, Modular', unit: 'Pcs', cost: 85 },
+    { name: 'Fan Regulator (Electronic)', brand: 'Havells/Crompton', spec: 'Stepless Electronic', unit: 'Pcs', cost: 180 },
+    { name: 'MCB Single Pole 6A/10A/16A/20A', brand: 'Havells/Schneider', spec: 'SP, C-Curve, 10kA', unit: 'Pcs', cost: 95 },
+    { name: 'MCB Double Pole 32A/40A', brand: 'Havells/Schneider', spec: 'DP, C-Curve, 10kA', unit: 'Pcs', cost: 220 },
+    { name: 'RCCB 25A/40A 30mA (2 Pole)', brand: 'Havells/Schneider', spec: '30mA sensitivity, DP', unit: 'Pcs', cost: 850 },
+    { name: 'RCCB 40A 30mA (4 Pole)', brand: 'Havells/Schneider', spec: '30mA sensitivity, FP', unit: 'Pcs', cost: 1800 },
+    { name: 'Distribution Board 4-Way SPN', brand: 'Havells/Schneider', spec: '4 Way, Single Phase', unit: 'Pcs', cost: 350 },
+    { name: 'Distribution Board 8-Way SPN', brand: 'Havells/Schneider', spec: '8 Way, Single Phase', unit: 'Pcs', cost: 550 },
+    { name: 'Distribution Board 12-Way TPN', brand: 'Havells/Schneider', spec: '12 Way, Three Phase', unit: 'Pcs', cost: 1200 },
+    { name: 'Ceiling Fan (Standard 1200mm)', brand: 'Havells/Crompton', spec: '1200mm, 75W', unit: 'Pcs', cost: 1200 },
+    { name: 'Ceiling Fan (BLDC Energy Saver)', brand: 'Atomberg/Havells', spec: '1200mm, 28W BLDC', unit: 'Pcs', cost: 2800 },
+    { name: 'LED Bulb 9W/12W', brand: 'Philips/Havells', spec: 'B22, Cool Daylight', unit: 'Pcs', cost: 75 },
+    { name: 'LED Panel Light 12W (Round)', brand: 'Philips/Havells', spec: '12W, Recessed, 6"', unit: 'Pcs', cost: 180 },
+    { name: 'LED Tube Light 20W (4ft)', brand: 'Philips/Havells', spec: '20W, T5/T8, 4 feet', unit: 'Pcs', cost: 150 },
+    { name: 'LED Batten 20W (4ft)', brand: 'Philips/Havells', spec: '20W, Surface Mount', unit: 'Pcs', cost: 220 },
+    { name: 'Exhaust Fan 6" (150mm)', brand: 'Havells/Crompton', spec: '150mm, Wall Mount', unit: 'Pcs', cost: 550 },
+    { name: 'Exhaust Fan 8" (200mm)', brand: 'Havells/Crompton', spec: '200mm, Wall Mount', unit: 'Pcs', cost: 750 },
+    { name: 'Calling Bell (Ding Dong)', brand: 'Anchor/Havells', spec: '220V, Surface Mount', unit: 'Pcs', cost: 120 },
+    { name: 'Junction Box (Deep/Concealed)', brand: 'National/Supreme', spec: '3x3 / 4x4 Concealed', unit: 'Pcs', cost: 12 },
+    { name: 'PVC Bend / Elbow 20mm', brand: 'Supreme/Sudhakar', spec: '20mm, 90 degree', unit: 'Pcs', cost: 5 },
+    { name: 'PVC Bend / Elbow 25mm', brand: 'Supreme/Sudhakar', spec: '25mm, 90 degree', unit: 'Pcs', cost: 7 },
+    { name: 'GI Earth Wire 8 SWG', brand: 'Standard', spec: '8 SWG, per meter', unit: 'Mtr', cost: 18 },
+    { name: 'Copper Earth Wire 4 sq mm', brand: 'Havells/Polycab', spec: 'Green, per meter', unit: 'Mtr', cost: 22 },
+    { name: 'Earth Rod (Copper Bonded)', brand: 'Standard', spec: '17.2mm x 3m, Copper Bonded', unit: 'Pcs', cost: 1200 },
+    { name: 'Electrical Tape (PVC)', brand: 'Supreme/3M', spec: '18mm x 8m', unit: 'Roll', cost: 15 },
+    { name: 'Cable Clip / Nail Clip', brand: 'National', spec: 'For 1.5/2.5 sq mm wire', unit: 'Pkt(100)', cost: 25 },
+    { name: 'Cable Tie 150mm', brand: 'National/Fivestar', spec: '150mm x 3.6mm', unit: 'Pkt(100)', cost: 30 },
+    { name: 'Geyser / Water Heater 15L', brand: 'Havells/Bajaj', spec: '15 Litre, 2kW', unit: 'Pcs', cost: 4500 },
+    { name: 'Stabilizer (Voltage) 4KVA', brand: 'V-Guard/Microtek', spec: '4 KVA, Wall Mount', unit: 'Pcs', cost: 2800 },
+];
+
+let materialItems = [];
+
+function selectMaterials() {
+    // Set date
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2,'0');
+    const mm = String(today.getMonth()+1).padStart(2,'0');
+    document.getElementById('mat-inp-date').value = `${today.getFullYear()}-${mm}-${dd}`;
+    
+    // Clone catalog items
+    materialItems = MATERIALS_CATALOG.map(item => ({
+        name: item.name,
+        brand: item.brand,
+        spec: item.spec,
+        unit: item.unit,
+        cost: item.cost,
+        profit: 20, // Default 20% profit
+        qty: 0,
+        discount: 0,
+        isCustom: false
+    }));
+    
+    renderMaterialsTable();
+    goToStep('2m');
+}
+
+function renderMaterialsTable() {
+    const tbody = document.getElementById('mat-tbody');
+    tbody.innerHTML = '';
+    
+    materialItems.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        const sellingPrice = Math.round(item.cost * (1 + item.profit / 100));
+        const effectivePrice = Math.max(0, sellingPrice - item.discount);
+        const amount = item.qty * effectivePrice;
+        
+        const nameCell = item.isCustom
+            ? `<input type="text" class="name-input" value="${item.name}" data-idx="${idx}" data-field="name" onchange="updateMaterialItem(this)" placeholder="Material name...">`
+            : item.name;
+        const brandCell = item.isCustom
+            ? `<input type="text" class="unit-input" value="${item.brand}" data-idx="${idx}" data-field="brand" onchange="updateMaterialItem(this)" placeholder="Brand">`
+            : item.brand;
+        const specCell = item.isCustom
+            ? `<input type="text" class="unit-input" value="${item.spec}" data-idx="${idx}" data-field="spec" onchange="updateMaterialItem(this)" placeholder="Size/Spec">`
+            : item.spec;
+        const unitCell = item.isCustom
+            ? `<input type="text" class="unit-input" value="${item.unit}" data-idx="${idx}" data-field="unit" onchange="updateMaterialItem(this)" placeholder="Unit">`
+            : item.unit;
+        
+        tr.innerHTML = `
+            <td class="text-center" style="color:var(--text-muted)">${idx + 1}</td>
+            <td>${nameCell}</td>
+            <td class="text-center" style="font-size:.72rem">${brandCell}</td>
+            <td class="text-center" style="font-size:.72rem">${specCell}</td>
+            <td class="text-center">${unitCell}</td>
+            <td><input type="number" class="cost-input" value="${item.cost}" min="0" data-idx="${idx}" data-field="cost" onchange="updateMaterialItem(this)"></td>
+            <td><input type="number" class="profit-input" value="${item.profit}" min="0" data-idx="${idx}" data-field="profit" onchange="updateMaterialItem(this)" style="width:55px"></td>
+            <td class="text-center auto-price" id="mat-sell-${idx}">${formatCurrency(sellingPrice)}</td>
+            <td><input type="number" value="${item.qty}" min="0" data-idx="${idx}" data-field="qty" onchange="updateMaterialItem(this)"></td>
+            <td><input type="number" class="disc-input" value="${item.discount}" min="0" data-idx="${idx}" data-field="discount" onchange="updateMaterialItem(this)"></td>
+            <td class="amount-cell" id="mat-amt-${idx}">${amount > 0 ? formatCurrency(amount) : '\u2014'}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+    
+    recalcMaterialsTotal();
+}
+
+function updateMaterialItem(el) {
+    const idx = parseInt(el.dataset.idx);
+    const field = el.dataset.field;
+    
+    if (field === 'name' || field === 'brand' || field === 'spec' || field === 'unit') {
+        materialItems[idx][field] = el.value;
+    } else {
+        materialItems[idx][field] = parseFloat(el.value) || 0;
+    }
+    
+    const item = materialItems[idx];
+    const sellingPrice = Math.round(item.cost * (1 + item.profit / 100));
+    const effectivePrice = Math.max(0, sellingPrice - item.discount);
+    const amount = item.qty * effectivePrice;
+    
+    document.getElementById(`mat-sell-${idx}`).textContent = formatCurrency(sellingPrice);
+    document.getElementById(`mat-amt-${idx}`).textContent = amount > 0 ? formatCurrency(amount) : '\u2014';
+    recalcMaterialsTotal();
+}
+
+function recalcMaterialsTotal() {
+    let grossTotal = 0;
+    let totalDiscount = 0;
+    materialItems.forEach(item => {
+        const sellingPrice = Math.round(item.cost * (1 + item.profit / 100));
+        grossTotal += item.qty * sellingPrice;
+        totalDiscount += item.qty * item.discount;
+    });
+    const netTotal = grossTotal - totalDiscount;
+    document.getElementById('mat-config-total').textContent = formatCurrency(Math.max(0, netTotal));
+    
+    const discPct = grossTotal > 0 ? ((totalDiscount / grossTotal) * 100).toFixed(1) : 0;
+    document.getElementById('mat-total-discount').value = formatCurrency(totalDiscount);
+    document.getElementById('mat-discount-pct').value = discPct + '%';
+    document.getElementById('mat-net-total').value = formatCurrency(Math.max(0, netTotal));
+}
+
+function applyGlobalMaterialDiscount() {
+    const discVal = parseFloat(document.getElementById('mat-inp-discount').value) || 0;
+    materialItems.forEach(item => { item.discount = discVal; });
+    renderMaterialsTable();
+}
+
+function addCustomMaterialRow() {
+    materialItems.push({
+        name: '', brand: '', spec: '', unit: 'Pcs',
+        cost: 0, profit: 20, qty: 0, discount: 0, isCustom: true
+    });
+    renderMaterialsTable();
+    const tbody = document.getElementById('mat-tbody');
+    const lastRow = tbody.lastElementChild;
+    if (lastRow) {
+        lastRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const nameInput = lastRow.querySelector('.name-input');
+        if (nameInput) setTimeout(() => nameInput.focus(), 300);
+    }
+}
+
+function generateMaterialsQuotation() {
+    const client = document.getElementById('mat-inp-client').value || 'Client';
+    const project = document.getElementById('mat-inp-project').value || 'Project';
+    const address = document.getElementById('mat-inp-address').value || '\u2014';
+    const quoteno = document.getElementById('mat-inp-quoteno').value || '\u2014';
+    const dateVal = document.getElementById('mat-inp-date').value;
+    
+    const activeItems = materialItems.filter(i => i.qty > 0);
+    if (activeItems.length === 0) {
+        alert('Please enter quantity for at least one material before generating the quotation.');
+        return;
+    }
+    
+    // Fill Cover Page
+    document.getElementById('mat-pdf-client').textContent = client;
+    document.getElementById('mat-pdf-project').textContent = project;
+    document.getElementById('mat-pdf-address').textContent = address;
+    document.getElementById('mat-pdf-quoteno').textContent = quoteno;
+    document.getElementById('mat-pdf-sig-client').textContent = client;
+    
+    const dateObj = new Date(dateVal);
+    const opts = { year:'numeric', month:'long', day:'numeric' };
+    document.getElementById('mat-pdf-date').textContent = dateObj.toLocaleDateString('en-US', opts);
+    const validityDate = new Date(dateObj);
+    validityDate.setDate(validityDate.getDate() + 30);
+    document.getElementById('mat-pdf-validity').textContent = validityDate.toLocaleDateString('en-US', opts);
+    
+    // Fill BOQ Table — Customer PDF (NO cost price, NO profit %)
+    const boqTbody = document.getElementById('mat-pdf-boq-tbody');
+    boqTbody.innerHTML = '';
+    
+    let grossTotal = 0;
+    let totalDiscount = 0;
+    
+    activeItems.forEach((item, idx) => {
+        const sellingPrice = Math.round(item.cost * (1 + item.profit / 100));
+        const effectivePrice = Math.max(0, sellingPrice - item.discount);
+        const amount = item.qty * effectivePrice;
+        grossTotal += item.qty * sellingPrice;
+        totalDiscount += item.qty * item.discount;
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="text-center font-bold">${idx + 1}</td>
+            <td>${item.name}</td>
+            <td class="text-center" style="font-size:.6rem">${item.brand}</td>
+            <td class="text-center" style="font-size:.6rem">${item.spec}</td>
+            <td class="text-center">${item.unit}</td>
+            <td class="text-right">\u20b9${sellingPrice.toLocaleString('en-IN')}</td>
+            <td class="text-center font-bold">${item.qty}</td>
+            <td class="text-right" style="color:#d97706;">${item.discount > 0 ? '\u20b9' + item.discount.toLocaleString('en-IN') : '\u2014'}</td>
+            <td class="text-right font-mono font-bold">${formatCurrency(amount)}</td>
+        `;
+        boqTbody.appendChild(tr);
+    });
+    
+    const grandTotal = Math.max(0, grossTotal - totalDiscount);
+    const discPct = grossTotal > 0 ? ((totalDiscount / grossTotal) * 100).toFixed(1) : 0;
+    
+    const discBox = document.getElementById('mat-pdf-discount-box');
+    if (totalDiscount > 0) {
+        discBox.style.display = 'block';
+        document.getElementById('mat-pdf-gross-total').textContent = formatCurrency(grossTotal);
+        document.getElementById('mat-pdf-disc-pct').textContent = discPct;
+        document.getElementById('mat-pdf-disc-amt').textContent = '-' + formatCurrency(totalDiscount);
+    } else {
+        discBox.style.display = 'none';
+    }
+    
+    document.getElementById('mat-pdf-grand-total').textContent = formatCurrency(grandTotal);
+    document.getElementById('mat-pdf-validity').textContent = validityDate.toLocaleDateString('en-US', opts);
+    
+    goToStep('3m');
+}
+
+function downloadMaterialsPDF() {
+    const el = document.getElementById('mat-pdf-document');
+    const btn = document.getElementById('mat-download-btn');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Generating...';
+    btn.disabled = true;
+    
+    const client = document.getElementById('mat-inp-client').value || 'Client';
+    el.classList.add('pdf-rendering');
+    
+    html2pdf().set({
+        margin: 0,
+        filename: `AMPEdge_Materials_${client.replace(/\s+/g,'_')}.pdf`,
+        image: { type:'jpeg', quality:0.98 },
+        html2canvas: { scale:2, useCORS:true, letterRendering:true },
+        jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'], after: '.pdf-page:not(:last-child)' }
+    }).from(el).save().then(() => {
+        btn.innerHTML = orig;
+        btn.disabled = false;
+        el.classList.remove('pdf-rendering');
+    }).catch(err => {
+        console.error(err);
+        btn.innerHTML = orig;
+        btn.disabled = false;
+        el.classList.remove('pdf-rendering');
+        alert("PDF generation failed. Try Ctrl+P and select 'Save as PDF'.");
+    });
+}
