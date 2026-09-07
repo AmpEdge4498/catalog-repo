@@ -657,7 +657,7 @@ function downloadPDF() {
         image: { type:'jpeg', quality:0.98 },
         html2canvas: { scale:2, useCORS:true, letterRendering:true },
         jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'], after: '.pdf-page:not(:last-child)' }
+        pagebreak: { mode: ['css'] }
     }).from(el).save().then(() => {
         btn.innerHTML = orig;
         btn.disabled = false;
@@ -1051,7 +1051,7 @@ function downloadMaterialsPDF() {
         image: { type:'jpeg', quality:0.98 },
         html2canvas: { scale:2, useCORS:true, letterRendering:true },
         jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'], after: '.pdf-page:not(:last-child)' }
+        pagebreak: { mode: ['css'] }
     }).from(el).save().then(() => {
         btn.innerHTML = orig;
         btn.disabled = false;
