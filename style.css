@@ -125,7 +125,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg-dark);color:var(--text);
 
 .preview-scroll-area{flex:1;overflow-y:auto;background:#1e293b;padding:40px 0;display:flex;flex-direction:column;align-items:center;gap:30px;}
 .pdf-document.pdf-rendering{gap:0!important;padding:0!important;margin:0!important;overflow:hidden!important;}
-.pdf-document.pdf-rendering .pdf-page{box-shadow:none!important;margin:0!important;padding:15mm!important;page-break-after:always!important;page-break-inside:avoid!important;}
+.pdf-document.pdf-rendering .pdf-page{box-shadow:none!important;margin:0!important;padding:15mm!important;height:297mm!important;min-height:297mm!important;max-height:297mm!important;overflow:hidden!important;page-break-after:always!important;page-break-inside:avoid!important;}
 .pdf-document.pdf-rendering .pdf-page:last-child{page-break-after:auto!important;}
 
 /* ===========================================
