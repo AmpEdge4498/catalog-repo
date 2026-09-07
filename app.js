@@ -1,5 +1,5 @@
 /**
- * AmpEdge BOM & Quotation System â€” Full Wizard Logic
+ * AmpEdge BOM & Quotation System \u2014 Full Wizard Logic
  * Research-backed comprehensive electrical point data for Indian installations
  */
 
@@ -18,45 +18,45 @@ const CATALOG = {
             { name: "Copper Plate Chemical Earthing Pit (IS 3043)", unit: "Pit", rate: 3500 },
             { name: "GI Pipe Earthing (IS 3043 compliant)", unit: "Pit", rate: 2500 },
             // Living Room
-            { name: "Living Room â€“ Ceiling Light Point", unit: "Point", rate: 250 },
-            { name: "Living Room â€“ Wall Light / Profile Light Point", unit: "Point", rate: 250 },
-            { name: "Living Room â€“ Ceiling Fan Point", unit: "Point", rate: 250 },
-            { name: "Living Room â€“ 5A Socket Outlet (TV/Set-top/Router)", unit: "Point", rate: 200 },
-            { name: "Living Room â€“ AC Power Point (16A dedicated circuit)", unit: "Point", rate: 350 },
-            { name: "Living Room â€“ Decorative Chandelier / Hanging Lamp", unit: "Point", rate: 300 },
+            { name: "Living Room \u2014 Ceiling Light Point", unit: "Point", rate: 250 },
+            { name: "Living Room \u2014 Wall Light / Profile Light Point", unit: "Point", rate: 250 },
+            { name: "Living Room \u2014 Ceiling Fan Point", unit: "Point", rate: 250 },
+            { name: "Living Room \u2014 5A Socket Outlet (TV/Set-top/Router)", unit: "Point", rate: 200 },
+            { name: "Living Room \u2014 AC Power Point (16A dedicated circuit)", unit: "Point", rate: 350 },
+            { name: "Living Room \u2014 Decorative Chandelier / Hanging Lamp", unit: "Point", rate: 300 },
             // Bedrooms
-            { name: "Bedroom â€“ Ceiling Light Point", unit: "Point", rate: 250 },
-            { name: "Bedroom â€“ Night Lamp / Foot Light Point", unit: "Point", rate: 200 },
-            { name: "Bedroom â€“ Ceiling Fan Point", unit: "Point", rate: 250 },
-            { name: "Bedroom â€“ Bedside 5A Charging Socket", unit: "Point", rate: 200 },
-            { name: "Bedroom â€“ AC Power Point (16A dedicated circuit)", unit: "Point", rate: 350 },
-            { name: "Bedroom â€“ TV / Internet Outlet Point", unit: "Point", rate: 200 },
-            { name: "Bedroom â€“ Modular Switch Board (6/8 Module)", unit: "Board", rate: 350 },
+            { name: "Bedroom \u2014 Ceiling Light Point", unit: "Point", rate: 250 },
+            { name: "Bedroom \u2014 Night Lamp / Foot Light Point", unit: "Point", rate: 200 },
+            { name: "Bedroom \u2014 Ceiling Fan Point", unit: "Point", rate: 250 },
+            { name: "Bedroom \u2014 Bedside 5A Charging Socket", unit: "Point", rate: 200 },
+            { name: "Bedroom \u2014 AC Power Point (16A dedicated circuit)", unit: "Point", rate: 350 },
+            { name: "Bedroom \u2014 TV / Internet Outlet Point", unit: "Point", rate: 200 },
+            { name: "Bedroom \u2014 Modular Switch Board (6/8 Module)", unit: "Board", rate: 350 },
             // Kitchen
-            { name: "Kitchen â€“ Ceiling Light Point", unit: "Point", rate: 250 },
-            { name: "Kitchen â€“ Exhaust Fan / Chimney Point", unit: "Point", rate: 300 },
-            { name: "Kitchen â€“ Refrigerator Dedicated Socket (16A)", unit: "Point", rate: 300 },
-            { name: "Kitchen â€“ Microwave / OTG Power Socket", unit: "Point", rate: 300 },
-            { name: "Kitchen â€“ Mixer / Grinder Socket (5A)", unit: "Point", rate: 200 },
-            { name: "Kitchen â€“ Water Purifier / RO Point", unit: "Point", rate: 200 },
-            { name: "Kitchen â€“ Dishwasher Power Point", unit: "Point", rate: 300 },
+            { name: "Kitchen \u2014 Ceiling Light Point", unit: "Point", rate: 250 },
+            { name: "Kitchen \u2014 Exhaust Fan / Chimney Point", unit: "Point", rate: 300 },
+            { name: "Kitchen \u2014 Refrigerator Dedicated Socket (16A)", unit: "Point", rate: 300 },
+            { name: "Kitchen \u2014 Microwave / OTG Power Socket", unit: "Point", rate: 300 },
+            { name: "Kitchen \u2014 Mixer / Grinder Socket (5A)", unit: "Point", rate: 200 },
+            { name: "Kitchen \u2014 Water Purifier / RO Point", unit: "Point", rate: 200 },
+            { name: "Kitchen \u2014 Dishwasher Power Point", unit: "Point", rate: 300 },
             // Toilet / Bathroom
-            { name: "Toilet â€“ Light Point (Mirror/Ceiling)", unit: "Point", rate: 250 },
-            { name: "Toilet â€“ Exhaust Fan Point", unit: "Point", rate: 250 },
-            { name: "Toilet â€“ Geyser / Water Heater Point (16A)", unit: "Point", rate: 350 },
-            { name: "Toilet â€“ Shaver Socket / 5A outlet", unit: "Point", rate: 200 },
+            { name: "Toilet \u2014 Light Point (Mirror/Ceiling)", unit: "Point", rate: 250 },
+            { name: "Toilet \u2014 Exhaust Fan Point", unit: "Point", rate: 250 },
+            { name: "Toilet \u2014 Geyser / Water Heater Point (16A)", unit: "Point", rate: 350 },
+            { name: "Toilet \u2014 Shaver Socket / 5A outlet", unit: "Point", rate: 200 },
             // Utility / Balcony / External
-            { name: "Washing Area â€“ Washing Machine Point (16A)", unit: "Point", rate: 350 },
-            { name: "Balcony â€“ Weatherproof Light Point", unit: "Point", rate: 250 },
-            { name: "Staircase â€“ 2-Way Switch Light System", unit: "Point", rate: 350 },
-            { name: "Main Entrance â€“ Doorbell Point", unit: "Point", rate: 150 },
-            { name: "Main Entrance â€“ Porch / Gate Light Point", unit: "Point", rate: 250 },
-            { name: "Exterior â€“ Boundary Wall Floodlight Point", unit: "Point", rate: 300 },
-            { name: "Exterior â€“ CCTV Camera Power Point", unit: "Point", rate: 250 },
+            { name: "Washing Area \u2014 Washing Machine Point (16A)", unit: "Point", rate: 350 },
+            { name: "Balcony \u2014 Weatherproof Light Point", unit: "Point", rate: 250 },
+            { name: "Staircase \u2014 2-Way Switch Light System", unit: "Point", rate: 350 },
+            { name: "Main Entrance \u2014 Doorbell Point", unit: "Point", rate: 150 },
+            { name: "Main Entrance \u2014 Porch / Gate Light Point", unit: "Point", rate: 250 },
+            { name: "Exterior \u2014 Boundary Wall Floodlight Point", unit: "Point", rate: 300 },
+            { name: "Exterior \u2014 CCTV Camera Power Point", unit: "Point", rate: 250 },
             // Heavy Wiring
             { name: "Inverter / UPS Bypass & Changeover Setup", unit: "Set", rate: 1500 },
             { name: "Borewell / Water Pump Motor Point (1.5 HP)", unit: "Point", rate: 500 },
-            { name: "Roof Terrace â€“ Waterproof Lighting Point", unit: "Point", rate: 300 },
+            { name: "Roof Terrace \u2014 Waterproof Lighting Point", unit: "Point", rate: 300 },
             { name: "Lightning Arrester (Copper Rod) Installation", unit: "Set", rate: 2000 },
             { name: "Heavy Duty PVC Conduit Pipe Laying", unit: "Sq.Ft", rate: 6 },
             { name: "Main Sub-Main Line Cable Wiring", unit: "Rft", rate: 17 },
@@ -64,7 +64,7 @@ const CATALOG = {
         ]
     },
     flat1bhk: {
-        label: "Flat â€“ 1BHK",
+        label: "Flat \u2014 1BHK",
         icon: "fa-building",
         defaultUnits: 12,
         items: [
@@ -72,34 +72,34 @@ const CATALOG = {
             { name: "Distribution Board (4-Way SP MCB) Installation", unit: "Board", rate: 1200 },
             { name: "MCB Installation per circuit", unit: "Nos", rate: 150 },
             { name: "RCCB Installation (30mA)", unit: "Nos", rate: 350 },
-            { name: "Bedroom â€“ Ceiling Light Point", unit: "Point", rate: 250 },
-            { name: "Bedroom â€“ Ceiling Fan Point", unit: "Point", rate: 250 },
-            { name: "Bedroom â€“ AC Power Point (16A)", unit: "Point", rate: 350 },
-            { name: "Bedroom â€“ Bedside 5A Socket Point", unit: "Point", rate: 200 },
-            { name: "Bedroom â€“ Night Lamp / Reading Light Point", unit: "Point", rate: 200 },
-            { name: "Bedroom â€“ TV / Internet Outlet", unit: "Point", rate: 200 },
-            { name: "Living Room â€“ Ceiling Light Point", unit: "Point", rate: 250 },
-            { name: "Living Room â€“ Ceiling Fan Point", unit: "Point", rate: 250 },
-            { name: "Living Room â€“ TV Unit Socket (5A)", unit: "Point", rate: 200 },
-            { name: "Living Room â€“ Wi-Fi Router Power Point", unit: "Point", rate: 200 },
-            { name: "Toilet â€“ Light Point", unit: "Point", rate: 250 },
-            { name: "Toilet â€“ Exhaust Fan Point", unit: "Point", rate: 250 },
-            { name: "Toilet â€“ Geyser Power Point (16A)", unit: "Point", rate: 350 },
-            { name: "Kitchen â€“ Ceiling Light Point", unit: "Point", rate: 250 },
-            { name: "Kitchen â€“ Exhaust Fan / Chimney Point", unit: "Point", rate: 300 },
-            { name: "Kitchen â€“ Refrigerator Socket (16A)", unit: "Point", rate: 300 },
-            { name: "Kitchen â€“ Microwave / Mixer Socket", unit: "Point", rate: 250 },
-            { name: "Kitchen â€“ Water Purifier / RO Point", unit: "Point", rate: 200 },
-            { name: "Entrance â€“ Calling Bell Point", unit: "Point", rate: 150 },
-            { name: "Entrance â€“ Door Light Point", unit: "Point", rate: 200 },
-            { name: "Balcony â€“ Utility Light Point", unit: "Point", rate: 200 },
-            { name: "Washing Area â€“ Washing Machine Point (16A)", unit: "Point", rate: 350 },
+            { name: "Bedroom \u2014 Ceiling Light Point", unit: "Point", rate: 250 },
+            { name: "Bedroom \u2014 Ceiling Fan Point", unit: "Point", rate: 250 },
+            { name: "Bedroom \u2014 AC Power Point (16A)", unit: "Point", rate: 350 },
+            { name: "Bedroom \u2014 Bedside 5A Socket Point", unit: "Point", rate: 200 },
+            { name: "Bedroom \u2014 Night Lamp / Reading Light Point", unit: "Point", rate: 200 },
+            { name: "Bedroom \u2014 TV / Internet Outlet", unit: "Point", rate: 200 },
+            { name: "Living Room \u2014 Ceiling Light Point", unit: "Point", rate: 250 },
+            { name: "Living Room \u2014 Ceiling Fan Point", unit: "Point", rate: 250 },
+            { name: "Living Room \u2014 TV Unit Socket (5A)", unit: "Point", rate: 200 },
+            { name: "Living Room \u2014 Wi-Fi Router Power Point", unit: "Point", rate: 200 },
+            { name: "Toilet \u2014 Light Point", unit: "Point", rate: 250 },
+            { name: "Toilet \u2014 Exhaust Fan Point", unit: "Point", rate: 250 },
+            { name: "Toilet \u2014 Geyser Power Point (16A)", unit: "Point", rate: 350 },
+            { name: "Kitchen \u2014 Ceiling Light Point", unit: "Point", rate: 250 },
+            { name: "Kitchen \u2014 Exhaust Fan / Chimney Point", unit: "Point", rate: 300 },
+            { name: "Kitchen \u2014 Refrigerator Socket (16A)", unit: "Point", rate: 300 },
+            { name: "Kitchen \u2014 Microwave / Mixer Socket", unit: "Point", rate: 250 },
+            { name: "Kitchen \u2014 Water Purifier / RO Point", unit: "Point", rate: 200 },
+            { name: "Entrance \u2014 Calling Bell Point", unit: "Point", rate: 150 },
+            { name: "Entrance \u2014 Door Light Point", unit: "Point", rate: 200 },
+            { name: "Balcony \u2014 Utility Light Point", unit: "Point", rate: 200 },
+            { name: "Washing Area \u2014 Washing Machine Point (16A)", unit: "Point", rate: 350 },
             { name: "Inverter / UPS Bypass Line", unit: "Point", rate: 300 },
             { name: "Concealer PVC Conduit Pipe Laying", unit: "Sq.Ft", rate: 7 },
         ]
     },
     flat2bhk: {
-        label: "Flat â€“ 2BHK",
+        label: "Flat \u2014 2BHK",
         icon: "fa-building",
         defaultUnits: 16,
         items: [
@@ -108,55 +108,55 @@ const CATALOG = {
             { name: "MCB Installation per circuit", unit: "Nos", rate: 150 },
             { name: "RCCB Installation (30mA Sensitivity)", unit: "Nos", rate: 350 },
             // Bedroom 1
-            { name: "Bedroom 1 â€“ Ceiling Light Points", unit: "Point", rate: 250 },
-            { name: "Bedroom 1 â€“ Ceiling Fan Point", unit: "Point", rate: 250 },
-            { name: "Bedroom 1 â€“ Switch Board (Modular 6-Module)", unit: "Board", rate: 300 },
-            { name: "Bedroom 1 â€“ Night Lamp / Foot Light", unit: "Point", rate: 200 },
-            { name: "Bedroom 1 â€“ AC Power Point (16A)", unit: "Point", rate: 350 },
-            { name: "Bedroom 1 â€“ Bedside 5A Charging Socket", unit: "Point", rate: 200 },
-            { name: "Bedroom 1 â€“ TV / Internet Outlet", unit: "Point", rate: 200 },
+            { name: "Bedroom 1 \u2014 Ceiling Light Points", unit: "Point", rate: 250 },
+            { name: "Bedroom 1 \u2014 Ceiling Fan Point", unit: "Point", rate: 250 },
+            { name: "Bedroom 1 \u2014 Switch Board (Modular 6-Module)", unit: "Board", rate: 300 },
+            { name: "Bedroom 1 \u2014 Night Lamp / Foot Light", unit: "Point", rate: 200 },
+            { name: "Bedroom 1 \u2014 AC Power Point (16A)", unit: "Point", rate: 350 },
+            { name: "Bedroom 1 \u2014 Bedside 5A Charging Socket", unit: "Point", rate: 200 },
+            { name: "Bedroom 1 \u2014 TV / Internet Outlet", unit: "Point", rate: 200 },
             // Bedroom 2
-            { name: "Bedroom 2 â€“ Ceiling Light Points", unit: "Point", rate: 250 },
-            { name: "Bedroom 2 â€“ Ceiling Fan Point", unit: "Point", rate: 250 },
-            { name: "Bedroom 2 â€“ Night Lamp / Foot Light", unit: "Point", rate: 200 },
-            { name: "Bedroom 2 â€“ AC Power Point (16A)", unit: "Point", rate: 350 },
-            { name: "Bedroom 2 â€“ Bedside 5A Socket", unit: "Point", rate: 200 },
+            { name: "Bedroom 2 \u2014 Ceiling Light Points", unit: "Point", rate: 250 },
+            { name: "Bedroom 2 \u2014 Ceiling Fan Point", unit: "Point", rate: 250 },
+            { name: "Bedroom 2 \u2014 Night Lamp / Foot Light", unit: "Point", rate: 200 },
+            { name: "Bedroom 2 \u2014 AC Power Point (16A)", unit: "Point", rate: 350 },
+            { name: "Bedroom 2 \u2014 Bedside 5A Socket", unit: "Point", rate: 200 },
             // Living Room
-            { name: "Living Room â€“ Ceiling Light Points", unit: "Point", rate: 250 },
-            { name: "Living Room â€“ Profile / Wall Light Point", unit: "Point", rate: 250 },
-            { name: "Living Room â€“ Ceiling Fan Point", unit: "Point", rate: 250 },
-            { name: "Living Room â€“ TV Unit Socket (5A)", unit: "Point", rate: 200 },
-            { name: "Living Room â€“ Set-top Box / Router Point", unit: "Point", rate: 200 },
-            { name: "Living Room â€“ Night / Hanging Lamp Point", unit: "Point", rate: 250 },
+            { name: "Living Room \u2014 Ceiling Light Points", unit: "Point", rate: 250 },
+            { name: "Living Room \u2014 Profile / Wall Light Point", unit: "Point", rate: 250 },
+            { name: "Living Room \u2014 Ceiling Fan Point", unit: "Point", rate: 250 },
+            { name: "Living Room \u2014 TV Unit Socket (5A)", unit: "Point", rate: 200 },
+            { name: "Living Room \u2014 Set-top Box / Router Point", unit: "Point", rate: 200 },
+            { name: "Living Room \u2014 Night / Hanging Lamp Point", unit: "Point", rate: 250 },
             // Toilets
-            { name: "Toilet 1 â€“ Light Point", unit: "Point", rate: 250 },
-            { name: "Toilet 1 â€“ Exhaust Fan Point", unit: "Point", rate: 250 },
-            { name: "Toilet 1 â€“ Geyser Power Point (16A)", unit: "Point", rate: 350 },
-            { name: "Toilet 2 â€“ Light & Exhaust Fan Points", unit: "Point", rate: 250 },
+            { name: "Toilet 1 \u2014 Light Point", unit: "Point", rate: 250 },
+            { name: "Toilet 1 \u2014 Exhaust Fan Point", unit: "Point", rate: 250 },
+            { name: "Toilet 1 \u2014 Geyser Power Point (16A)", unit: "Point", rate: 350 },
+            { name: "Toilet 2 \u2014 Light & Exhaust Fan Points", unit: "Point", rate: 250 },
             // Kitchen
-            { name: "Kitchen â€“ Ceiling Light Point", unit: "Point", rate: 250 },
-            { name: "Kitchen â€“ Ceiling Fan Point", unit: "Point", rate: 250 },
-            { name: "Kitchen â€“ Exhaust Fan / Chimney Point", unit: "Point", rate: 300 },
-            { name: "Kitchen â€“ Refrigerator Socket (16A)", unit: "Point", rate: 300 },
-            { name: "Kitchen â€“ Microwave / Mixer Socket", unit: "Point", rate: 250 },
-            { name: "Kitchen â€“ Water Purifier / RO Point", unit: "Point", rate: 200 },
-            { name: "Kitchen â€“ Plug / General Utility Socket", unit: "Point", rate: 200 },
+            { name: "Kitchen \u2014 Ceiling Light Point", unit: "Point", rate: 250 },
+            { name: "Kitchen \u2014 Ceiling Fan Point", unit: "Point", rate: 250 },
+            { name: "Kitchen \u2014 Exhaust Fan / Chimney Point", unit: "Point", rate: 300 },
+            { name: "Kitchen \u2014 Refrigerator Socket (16A)", unit: "Point", rate: 300 },
+            { name: "Kitchen \u2014 Microwave / Mixer Socket", unit: "Point", rate: 250 },
+            { name: "Kitchen \u2014 Water Purifier / RO Point", unit: "Point", rate: 200 },
+            { name: "Kitchen \u2014 Plug / General Utility Socket", unit: "Point", rate: 200 },
             // Others
-            { name: "Washing Area â€“ Light Point", unit: "Point", rate: 200 },
-            { name: "Washing Area â€“ Washing Machine Point (16A)", unit: "Point", rate: 350 },
-            { name: "Balcony (BR1) â€“ Weatherproof Light Point", unit: "Point", rate: 250 },
-            { name: "Balcony (BR2) â€“ Weatherproof Light Point", unit: "Point", rate: 250 },
-            { name: "Balcony (Kitchen) â€“ Light Point", unit: "Point", rate: 200 },
-            { name: "Main Entrance â€“ Doorbell Point", unit: "Point", rate: 150 },
-            { name: "Main Entrance â€“ Porch Accent Light", unit: "Point", rate: 250 },
-            { name: "Common Area â€“ Inverter / UPS Line Setup", unit: "Point", rate: 350 },
-            { name: "DB Area â€“ Stabilizer / AC Isolator Point", unit: "Point", rate: 300 },
-            { name: "Study Area â€“ Reading Lamp Point", unit: "Point", rate: 200 },
+            { name: "Washing Area \u2014 Light Point", unit: "Point", rate: 200 },
+            { name: "Washing Area \u2014 Washing Machine Point (16A)", unit: "Point", rate: 350 },
+            { name: "Balcony (BR1) \u2014 Weatherproof Light Point", unit: "Point", rate: 250 },
+            { name: "Balcony (BR2) \u2014 Weatherproof Light Point", unit: "Point", rate: 250 },
+            { name: "Balcony (Kitchen) \u2014 Light Point", unit: "Point", rate: 200 },
+            { name: "Main Entrance \u2014 Doorbell Point", unit: "Point", rate: 150 },
+            { name: "Main Entrance \u2014 Porch Accent Light", unit: "Point", rate: 250 },
+            { name: "Common Area \u2014 Inverter / UPS Line Setup", unit: "Point", rate: 350 },
+            { name: "DB Area \u2014 Stabilizer / AC Isolator Point", unit: "Point", rate: 300 },
+            { name: "Study Area \u2014 Reading Lamp Point", unit: "Point", rate: 200 },
             { name: "Concealer PVC Conduit Pipe Laying", unit: "Sq.Ft", rate: 7 },
         ]
     },
     flat3bhk: {
-        label: "Flat â€“ 3BHK",
+        label: "Flat \u2014 3BHK",
         icon: "fa-building",
         defaultUnits: 8,
         items: [
@@ -165,52 +165,52 @@ const CATALOG = {
             { name: "MCB Installation per circuit", unit: "Nos", rate: 150 },
             { name: "RCCB Installation (30mA 4-Pole)", unit: "Nos", rate: 500 },
             // Master Bedroom
-            { name: "Master Bedroom â€“ Ceiling Light Points", unit: "Point", rate: 250 },
-            { name: "Master Bedroom â€“ Ceiling Fan Points", unit: "Point", rate: 250 },
-            { name: "Master Bedroom â€“ AC Power Point (16A)", unit: "Point", rate: 350 },
-            { name: "Master Bedroom â€“ Night Lamp / Foot Light", unit: "Point", rate: 200 },
-            { name: "Master Bedroom â€“ Bedside USB Multi-Socket", unit: "Point", rate: 250 },
-            { name: "Master Bedroom â€“ TV / Internet Outlet", unit: "Point", rate: 200 },
-            { name: "Master Bedroom â€“ Reading Light Points", unit: "Point", rate: 200 },
+            { name: "Master Bedroom \u2014 Ceiling Light Points", unit: "Point", rate: 250 },
+            { name: "Master Bedroom \u2014 Ceiling Fan Points", unit: "Point", rate: 250 },
+            { name: "Master Bedroom \u2014 AC Power Point (16A)", unit: "Point", rate: 350 },
+            { name: "Master Bedroom \u2014 Night Lamp / Foot Light", unit: "Point", rate: 200 },
+            { name: "Master Bedroom \u2014 Bedside USB Multi-Socket", unit: "Point", rate: 250 },
+            { name: "Master Bedroom \u2014 TV / Internet Outlet", unit: "Point", rate: 200 },
+            { name: "Master Bedroom \u2014 Reading Light Points", unit: "Point", rate: 200 },
             // BR2
-            { name: "Bedroom 2 â€“ Ceiling Light Points", unit: "Point", rate: 250 },
-            { name: "Bedroom 2 â€“ Ceiling Fan Point", unit: "Point", rate: 250 },
-            { name: "Bedroom 2 â€“ AC Power Point (16A)", unit: "Point", rate: 350 },
-            { name: "Bedroom 2 â€“ Bedside Charging Socket", unit: "Point", rate: 200 },
+            { name: "Bedroom 2 \u2014 Ceiling Light Points", unit: "Point", rate: 250 },
+            { name: "Bedroom 2 \u2014 Ceiling Fan Point", unit: "Point", rate: 250 },
+            { name: "Bedroom 2 \u2014 AC Power Point (16A)", unit: "Point", rate: 350 },
+            { name: "Bedroom 2 \u2014 Bedside Charging Socket", unit: "Point", rate: 200 },
             // BR3
-            { name: "Bedroom 3 â€“ Ceiling Light Points", unit: "Point", rate: 250 },
-            { name: "Bedroom 3 â€“ Ceiling Fan Point", unit: "Point", rate: 250 },
-            { name: "Bedroom 3 â€“ AC Power Point (16A)", unit: "Point", rate: 350 },
+            { name: "Bedroom 3 \u2014 Ceiling Light Points", unit: "Point", rate: 250 },
+            { name: "Bedroom 3 \u2014 Ceiling Fan Point", unit: "Point", rate: 250 },
+            { name: "Bedroom 3 \u2014 AC Power Point (16A)", unit: "Point", rate: 350 },
             // Living / Dining
-            { name: "Living/Dining â€“ Chandelier / Ceiling Spot Points", unit: "Point", rate: 300 },
-            { name: "Living/Dining â€“ Downlight / Spotlight Points", unit: "Point", rate: 250 },
-            { name: "Living/Dining â€“ Ceiling Fan Points", unit: "Point", rate: 250 },
-            { name: "Living/Dining â€“ TV/Internet/AV Cabinet Outlet", unit: "Point", rate: 200 },
-            { name: "Living â€“ Extra Media / Entertainment Sockets", unit: "Point", rate: 200 },
+            { name: "Living/Dining \u2014 Chandelier / Ceiling Spot Points", unit: "Point", rate: 300 },
+            { name: "Living/Dining \u2014 Downlight / Spotlight Points", unit: "Point", rate: 250 },
+            { name: "Living/Dining \u2014 Ceiling Fan Points", unit: "Point", rate: 250 },
+            { name: "Living/Dining \u2014 TV/Internet/AV Cabinet Outlet", unit: "Point", rate: 200 },
+            { name: "Living \u2014 Extra Media / Entertainment Sockets", unit: "Point", rate: 200 },
             // Toilets
-            { name: "Toilet 1 â€“ Light, Exhaust & Geyser Points", unit: "Point", rate: 250 },
-            { name: "Toilet 2 â€“ Light, Exhaust & Geyser Points", unit: "Point", rate: 250 },
-            { name: "Toilet 3 â€“ Light & Exhaust Fan Points", unit: "Point", rate: 250 },
+            { name: "Toilet 1 \u2014 Light, Exhaust & Geyser Points", unit: "Point", rate: 250 },
+            { name: "Toilet 2 \u2014 Light, Exhaust & Geyser Points", unit: "Point", rate: 250 },
+            { name: "Toilet 3 \u2014 Light & Exhaust Fan Points", unit: "Point", rate: 250 },
             // Kitchen
-            { name: "Kitchen â€“ Ceiling Light & Under-Counter Light", unit: "Point", rate: 250 },
-            { name: "Kitchen â€“ Chimney / Exhaust Fan Point", unit: "Point", rate: 300 },
-            { name: "Kitchen â€“ Refrigerator Socket (16A)", unit: "Point", rate: 300 },
-            { name: "Kitchen â€“ Microwave / OTG Socket", unit: "Point", rate: 300 },
-            { name: "Kitchen â€“ Water Purifier / RO Point", unit: "Point", rate: 200 },
-            { name: "Kitchen â€“ Dishwasher Power Point", unit: "Point", rate: 300 },
-            { name: "Kitchen â€“ Mixer / Grinder Socket", unit: "Point", rate: 200 },
+            { name: "Kitchen \u2014 Ceiling Light & Under-Counter Light", unit: "Point", rate: 250 },
+            { name: "Kitchen \u2014 Chimney / Exhaust Fan Point", unit: "Point", rate: 300 },
+            { name: "Kitchen \u2014 Refrigerator Socket (16A)", unit: "Point", rate: 300 },
+            { name: "Kitchen \u2014 Microwave / OTG Socket", unit: "Point", rate: 300 },
+            { name: "Kitchen \u2014 Water Purifier / RO Point", unit: "Point", rate: 200 },
+            { name: "Kitchen \u2014 Dishwasher Power Point", unit: "Point", rate: 300 },
+            { name: "Kitchen \u2014 Mixer / Grinder Socket", unit: "Point", rate: 200 },
             // Others
-            { name: "Balconies (All) â€“ Exterior Light Points", unit: "Point", rate: 250 },
-            { name: "Main Entrance â€“ Video Doorbell Setup", unit: "Point", rate: 350 },
-            { name: "Main Entrance â€“ Foot Light / Porch Lamp", unit: "Point", rate: 250 },
-            { name: "Washing Balcony â€“ Washing Machine Point (16A)", unit: "Point", rate: 350 },
-            { name: "DB Space â€“ 3-Phase Stabilizer & Isolator", unit: "Point", rate: 400 },
-            { name: "Common Area â€“ UPS / Inverter System Point", unit: "Point", rate: 400 },
+            { name: "Balconies (All) \u2014 Exterior Light Points", unit: "Point", rate: 250 },
+            { name: "Main Entrance \u2014 Video Doorbell Setup", unit: "Point", rate: 350 },
+            { name: "Main Entrance \u2014 Foot Light / Porch Lamp", unit: "Point", rate: 250 },
+            { name: "Washing Balcony \u2014 Washing Machine Point (16A)", unit: "Point", rate: 350 },
+            { name: "DB Space \u2014 3-Phase Stabilizer & Isolator", unit: "Point", rate: 400 },
+            { name: "Common Area \u2014 UPS / Inverter System Point", unit: "Point", rate: 400 },
             { name: "Concealer PVC Conduit Pipe Laying", unit: "Sq.Ft", rate: 7 },
         ]
     },
     flat4bhk: {
-        label: "Flat â€“ 4BHK",
+        label: "Flat \u2014 4BHK",
         icon: "fa-building-columns",
         defaultUnits: 6,
         items: [
@@ -220,38 +220,38 @@ const CATALOG = {
             { name: "RCCB Installation (30mA 4-Pole)", unit: "Nos", rate: 500 },
             { name: "ELCB (Earth Leakage CB) Installation", unit: "Nos", rate: 450 },
             // MBR
-            { name: "Master Bedroom â€“ Downlights & Wall Lights", unit: "Point", rate: 280 },
-            { name: "Master Bedroom â€“ Fan Points", unit: "Point", rate: 250 },
-            { name: "Master Bedroom â€“ AC Power Point (16A)", unit: "Point", rate: 350 },
-            { name: "Master Bedroom â€“ Footlight/Night Light", unit: "Point", rate: 200 },
-            { name: "Master Bedroom â€“ Bedside Double Power Outlets", unit: "Point", rate: 250 },
-            { name: "Master Bedroom â€“ TV / AV Outlet", unit: "Point", rate: 200 },
+            { name: "Master Bedroom \u2014 Downlights & Wall Lights", unit: "Point", rate: 280 },
+            { name: "Master Bedroom \u2014 Fan Points", unit: "Point", rate: 250 },
+            { name: "Master Bedroom \u2014 AC Power Point (16A)", unit: "Point", rate: 350 },
+            { name: "Master Bedroom \u2014 Footlight/Night Light", unit: "Point", rate: 200 },
+            { name: "Master Bedroom \u2014 Bedside Double Power Outlets", unit: "Point", rate: 250 },
+            { name: "Master Bedroom \u2014 TV / AV Outlet", unit: "Point", rate: 200 },
             // BR2-4
-            { name: "Bedroom 2 â€“ Light, Fan & AC Points", unit: "Point", rate: 250 },
-            { name: "Bedroom 3 â€“ Light, Fan & AC Points", unit: "Point", rate: 250 },
-            { name: "Bedroom 4 â€“ Light, Fan & AC Points", unit: "Point", rate: 250 },
-            { name: "Bedrooms â€“ Bedside Sockets (Each)", unit: "Point", rate: 200 },
+            { name: "Bedroom 2 \u2014 Light, Fan & AC Points", unit: "Point", rate: 250 },
+            { name: "Bedroom 3 \u2014 Light, Fan & AC Points", unit: "Point", rate: 250 },
+            { name: "Bedroom 4 \u2014 Light, Fan & AC Points", unit: "Point", rate: 250 },
+            { name: "Bedrooms \u2014 Bedside Sockets (Each)", unit: "Point", rate: 200 },
             // Living / Dining
-            { name: "Living Room â€“ Spotlight / Cove Light Circuits", unit: "Point", rate: 300 },
-            { name: "Living Room â€“ Ceiling Fans", unit: "Point", rate: 250 },
-            { name: "Living â€“ TV Screen/AV Receiver Sockets", unit: "Point", rate: 200 },
-            { name: "Dining Hall â€“ Chandelier & Wall Sconces", unit: "Point", rate: 300 },
-            { name: "Dining Hall â€“ Fan & Dining Table Point", unit: "Point", rate: 250 },
+            { name: "Living Room \u2014 Spotlight / Cove Light Circuits", unit: "Point", rate: 300 },
+            { name: "Living Room \u2014 Ceiling Fans", unit: "Point", rate: 250 },
+            { name: "Living \u2014 TV Screen/AV Receiver Sockets", unit: "Point", rate: 200 },
+            { name: "Dining Hall \u2014 Chandelier & Wall Sconces", unit: "Point", rate: 300 },
+            { name: "Dining Hall \u2014 Fan & Dining Table Point", unit: "Point", rate: 250 },
             // Kitchen
-            { name: "Kitchen â€“ Work Counter & Cabinet Lights", unit: "Point", rate: 250 },
-            { name: "Kitchen â€“ Fridge, Purifier & Chimney Points", unit: "Point", rate: 300 },
-            { name: "Kitchen â€“ Microwave, Dishwasher & Oven Sockets", unit: "Point", rate: 300 },
+            { name: "Kitchen \u2014 Work Counter & Cabinet Lights", unit: "Point", rate: 250 },
+            { name: "Kitchen \u2014 Fridge, Purifier & Chimney Points", unit: "Point", rate: 300 },
+            { name: "Kitchen \u2014 Microwave, Dishwasher & Oven Sockets", unit: "Point", rate: 300 },
             // Toilets
-            { name: "Toilets (All 4) â€“ Light, Exhaust & Geyser Points (each)", unit: "Point", rate: 250 },
+            { name: "Toilets (All 4) \u2014 Light, Exhaust & Geyser Points (each)", unit: "Point", rate: 250 },
             // Special rooms
-            { name: "Pooja Room â€“ Spotlight & Ambient Light", unit: "Point", rate: 250 },
-            { name: "Servant Quarter â€“ Light, Fan & Bell Points", unit: "Point", rate: 250 },
+            { name: "Pooja Room \u2014 Spotlight & Ambient Light", unit: "Point", rate: 250 },
+            { name: "Servant Quarter \u2014 Light, Fan & Bell Points", unit: "Point", rate: 250 },
             // Others
-            { name: "Balconies â€“ Decorative Ceiling Lights (each)", unit: "Point", rate: 250 },
-            { name: "Main Entrance â€“ Smart Lock & Bell Points", unit: "Point", rate: 350 },
-            { name: "Common Area â€“ Dual Inverter Backup Loops", unit: "Point", rate: 500 },
-            { name: "DB Closet â€“ Phase Corrector & Isolators", unit: "Point", rate: 400 },
-            { name: "Washing Area â€“ Washing Machine Point (16A)", unit: "Point", rate: 350 },
+            { name: "Balconies \u2014 Decorative Ceiling Lights (each)", unit: "Point", rate: 250 },
+            { name: "Main Entrance \u2014 Smart Lock & Bell Points", unit: "Point", rate: 350 },
+            { name: "Common Area \u2014 Dual Inverter Backup Loops", unit: "Point", rate: 500 },
+            { name: "DB Closet \u2014 Phase Corrector & Isolators", unit: "Point", rate: 400 },
+            { name: "Washing Area \u2014 Washing Machine Point (16A)", unit: "Point", rate: 350 },
             { name: "Concealer PVC Conduit Pipe Laying", unit: "Sq.Ft", rate: 7 },
         ]
     },
@@ -266,23 +266,23 @@ const CATALOG = {
             { name: "RCCB per flat (30mA)", unit: "Nos", rate: 350 },
             { name: "Chemical Earthing Pit (Building Common)", unit: "Pit", rate: 3500 },
             // Per Flat Standard Points
-            { name: "Flat â€“ All Room Light Points (avg 12 per flat)", unit: "Point", rate: 250 },
-            { name: "Flat â€“ All Room Fan Points (avg 6 per flat)", unit: "Point", rate: 250 },
-            { name: "Flat â€“ AC Power Points (avg 2 per flat)", unit: "Point", rate: 350 },
-            { name: "Flat â€“ Socket & Plug Points (avg 10 per flat)", unit: "Point", rate: 200 },
-            { name: "Flat â€“ Kitchen Dedicated Lines (Fridge/Chimney/RO)", unit: "Point", rate: 300 },
-            { name: "Flat â€“ Geyser / Water Heater Points", unit: "Point", rate: 350 },
-            { name: "Flat â€“ Washing Machine Point", unit: "Point", rate: 350 },
-            { name: "Flat â€“ Doorbell & Entrance Light", unit: "Point", rate: 200 },
-            { name: "Flat â€“ Inverter / UPS Line", unit: "Point", rate: 350 },
+            { name: "Flat \u2014 All Room Light Points (avg 12 per flat)", unit: "Point", rate: 250 },
+            { name: "Flat \u2014 All Room Fan Points (avg 6 per flat)", unit: "Point", rate: 250 },
+            { name: "Flat \u2014 AC Power Points (avg 2 per flat)", unit: "Point", rate: 350 },
+            { name: "Flat \u2014 Socket & Plug Points (avg 10 per flat)", unit: "Point", rate: 200 },
+            { name: "Flat \u2014 Kitchen Dedicated Lines (Fridge/Chimney/RO)", unit: "Point", rate: 300 },
+            { name: "Flat \u2014 Geyser / Water Heater Points", unit: "Point", rate: 350 },
+            { name: "Flat \u2014 Washing Machine Point", unit: "Point", rate: 350 },
+            { name: "Flat \u2014 Doorbell & Entrance Light", unit: "Point", rate: 200 },
+            { name: "Flat \u2014 Inverter / UPS Line", unit: "Point", rate: 350 },
             // Common Area
-            { name: "Common Area â€“ Staircase Lighting (2-Way)", unit: "Point", rate: 350 },
-            { name: "Common Area â€“ Corridor / Lobby Lights", unit: "Point", rate: 250 },
-            { name: "Common Area â€“ Parking Area Illumination", unit: "Point", rate: 250 },
-            { name: "Common Area â€“ Lift Power Connection", unit: "Set", rate: 3000 },
-            { name: "Common Area â€“ Water Pump Motor Points", unit: "Point", rate: 500 },
-            { name: "Common Area â€“ CCTV Camera Points (per camera)", unit: "Point", rate: 250 },
-            { name: "Common Area â€“ Fire Alarm Bell Points", unit: "Point", rate: 300 },
+            { name: "Common Area \u2014 Staircase Lighting (2-Way)", unit: "Point", rate: 350 },
+            { name: "Common Area \u2014 Corridor / Lobby Lights", unit: "Point", rate: 250 },
+            { name: "Common Area \u2014 Parking Area Illumination", unit: "Point", rate: 250 },
+            { name: "Common Area \u2014 Lift Power Connection", unit: "Set", rate: 3000 },
+            { name: "Common Area \u2014 Water Pump Motor Points", unit: "Point", rate: 500 },
+            { name: "Common Area \u2014 CCTV Camera Points (per camera)", unit: "Point", rate: 250 },
+            { name: "Common Area \u2014 Fire Alarm Bell Points", unit: "Point", rate: 300 },
             // Heavy
             { name: "Ground Floor Commercial Shops Wiring", unit: "Point", rate: 250 },
             { name: "Heavy Duty PVC Conduit Pipe Laying", unit: "Sq.Ft", rate: 6 },
@@ -302,39 +302,39 @@ const CATALOG = {
             { name: "RCCB / ELCB Installation", unit: "Nos", rate: 400 },
             { name: "Copper Plate Chemical Earthing Pit", unit: "Pit", rate: 3500 },
             // Workstation Area
-            { name: "Workstation â€“ Dual 5A Socket Outlet (per desk)", unit: "Point", rate: 200 },
-            { name: "Workstation â€“ UPS Line Socket (per desk)", unit: "Point", rate: 250 },
-            { name: "Workstation â€“ CAT6 LAN Data Point (per desk)", unit: "Point", rate: 350 },
-            { name: "Workstation â€“ Telephone Point", unit: "Point", rate: 200 },
+            { name: "Workstation \u2014 Dual 5A Socket Outlet (per desk)", unit: "Point", rate: 200 },
+            { name: "Workstation \u2014 UPS Line Socket (per desk)", unit: "Point", rate: 250 },
+            { name: "Workstation \u2014 CAT6 LAN Data Point (per desk)", unit: "Point", rate: 350 },
+            { name: "Workstation \u2014 Telephone Point", unit: "Point", rate: 200 },
             // Cabin
-            { name: "Manager Cabin â€“ Light Points", unit: "Point", rate: 250 },
-            { name: "Manager Cabin â€“ Fan / AC Point", unit: "Point", rate: 300 },
-            { name: "Manager Cabin â€“ Multi-socket Outlet", unit: "Point", rate: 200 },
+            { name: "Manager Cabin \u2014 Light Points", unit: "Point", rate: 250 },
+            { name: "Manager Cabin \u2014 Fan / AC Point", unit: "Point", rate: 300 },
+            { name: "Manager Cabin \u2014 Multi-socket Outlet", unit: "Point", rate: 200 },
             // Ceiling
-            { name: "Ceiling â€“ LED 2x2 Panel Light (600x600mm)", unit: "Point", rate: 300 },
-            { name: "Ceiling â€“ Recessed Downlight Point", unit: "Point", rate: 250 },
-            { name: "Office Floor â€“ Ceiling Fan / Exhaust Fan Wiring", unit: "Point", rate: 250 },
+            { name: "Ceiling \u2014 LED 2x2 Panel Light (600x600mm)", unit: "Point", rate: 300 },
+            { name: "Ceiling \u2014 Recessed Downlight Point", unit: "Point", rate: 250 },
+            { name: "Office Floor \u2014 Ceiling Fan / Exhaust Fan Wiring", unit: "Point", rate: 250 },
             // Conference
-            { name: "Conference Room â€“ HDMI / Projector Ceiling Outlet", unit: "Point", rate: 500 },
-            { name: "Conference Room â€“ Pop-up Floor / Table Sockets", unit: "Point", rate: 400 },
-            { name: "Conference Room â€“ Dimmable Light Circuits", unit: "Point", rate: 350 },
+            { name: "Conference Room \u2014 HDMI / Projector Ceiling Outlet", unit: "Point", rate: 500 },
+            { name: "Conference Room \u2014 Pop-up Floor / Table Sockets", unit: "Point", rate: 400 },
+            { name: "Conference Room \u2014 Dimmable Light Circuits", unit: "Point", rate: 350 },
             // Server
-            { name: "Server Room â€“ Dedicated 16A Rack Power Outlet", unit: "Point", rate: 500 },
-            { name: "Server Room â€“ Precision AC Dedicated Point", unit: "Point", rate: 500 },
-            { name: "Server Room â€“ UPS Input/Output Panel Setup", unit: "Set", rate: 2000 },
+            { name: "Server Room \u2014 Dedicated 16A Rack Power Outlet", unit: "Point", rate: 500 },
+            { name: "Server Room \u2014 Precision AC Dedicated Point", unit: "Point", rate: 500 },
+            { name: "Server Room \u2014 UPS Input/Output Panel Setup", unit: "Set", rate: 2000 },
             // Pantry
-            { name: "Pantry â€“ Microwave / Coffee Machine Socket (16A)", unit: "Point", rate: 300 },
-            { name: "Pantry â€“ Refrigerator / Water Cooler Socket", unit: "Point", rate: 300 },
-            { name: "Pantry â€“ General Utility Socket", unit: "Point", rate: 200 },
+            { name: "Pantry \u2014 Microwave / Coffee Machine Socket (16A)", unit: "Point", rate: 300 },
+            { name: "Pantry \u2014 Refrigerator / Water Cooler Socket", unit: "Point", rate: 300 },
+            { name: "Pantry \u2014 General Utility Socket", unit: "Point", rate: 200 },
             // Reception
-            { name: "Reception â€“ Desk Power + Network Points", unit: "Point", rate: 300 },
-            { name: "Reception â€“ Digital Signage Display Point", unit: "Point", rate: 300 },
-            { name: "Reception â€“ Decorative / Ambient Lighting", unit: "Point", rate: 250 },
+            { name: "Reception \u2014 Desk Power + Network Points", unit: "Point", rate: 300 },
+            { name: "Reception \u2014 Digital Signage Display Point", unit: "Point", rate: 300 },
+            { name: "Reception \u2014 Decorative / Ambient Lighting", unit: "Point", rate: 250 },
             // Security
-            { name: "CCTV â€“ Dome Camera Ceiling Points (per camera)", unit: "Point", rate: 250 },
-            { name: "Security â€“ Access Control / Biometric Point", unit: "Point", rate: 350 },
-            { name: "Emergency â€“ Exit Signage Illuminated Points", unit: "Point", rate: 300 },
-            { name: "Fire Alarm â€“ Detector & Alarm Bell Points", unit: "Point", rate: 350 },
+            { name: "CCTV \u2014 Dome Camera Ceiling Points (per camera)", unit: "Point", rate: 250 },
+            { name: "Security \u2014 Access Control / Biometric Point", unit: "Point", rate: 350 },
+            { name: "Emergency \u2014 Exit Signage Illuminated Points", unit: "Point", rate: 300 },
+            { name: "Fire Alarm \u2014 Detector & Alarm Bell Points", unit: "Point", rate: 350 },
             // Heavy
             { name: "Heavy Duty PVC Conduit / Cable Tray Installation", unit: "Sq.Ft", rate: 8 },
             { name: "Main Sub-Main Cable Wiring", unit: "Rft", rate: 20 },
@@ -355,19 +355,19 @@ const CATALOG = {
             { name: "Heavy Chemical Earthing Pit (IS 3043)", unit: "Pit", rate: 5000 },
             { name: "GI Strip Earthing (Factory Perimeter)", unit: "Rft", rate: 25 },
             // Shop Floor
-            { name: "Shop Floor â€“ 3-Phase Industrial Socket (32A)", unit: "Point", rate: 500 },
-            { name: "Shop Floor â€“ 3-Phase Industrial Socket (63A)", unit: "Point", rate: 800 },
-            { name: "Shop Floor â€“ High-Bay LED Light (150W/200W)", unit: "Point", rate: 400 },
-            { name: "Shop Floor â€“ Task / Workbench Lighting Point", unit: "Point", rate: 250 },
+            { name: "Shop Floor \u2014 3-Phase Industrial Socket (32A)", unit: "Point", rate: 500 },
+            { name: "Shop Floor \u2014 3-Phase Industrial Socket (63A)", unit: "Point", rate: 800 },
+            { name: "Shop Floor \u2014 High-Bay LED Light (150W/200W)", unit: "Point", rate: 400 },
+            { name: "Shop Floor \u2014 Task / Workbench Lighting Point", unit: "Point", rate: 250 },
             // Machinery
-            { name: "Machinery Row â€“ Motor Isolator Switch Wiring", unit: "Point", rate: 600 },
-            { name: "Machinery â€“ Star-Delta Starter Panel Wiring", unit: "Set", rate: 2500 },
-            { name: "Machinery â€“ DOL Starter Panel Wiring", unit: "Set", rate: 1500 },
+            { name: "Machinery Row \u2014 Motor Isolator Switch Wiring", unit: "Point", rate: 600 },
+            { name: "Machinery \u2014 Star-Delta Starter Panel Wiring", unit: "Set", rate: 2500 },
+            { name: "Machinery \u2014 DOL Starter Panel Wiring", unit: "Set", rate: 1500 },
             { name: "Crane / Hoist Power Supply Wiring", unit: "Point", rate: 1000 },
             // Office / Admin
-            { name: "Office Cabin â€“ Light, Fan & Socket Points", unit: "Point", rate: 250 },
-            { name: "Office â€“ AC Power Point (16A)", unit: "Point", rate: 350 },
-            { name: "Store Room â€“ Light & Socket Points", unit: "Point", rate: 200 },
+            { name: "Office Cabin \u2014 Light, Fan & Socket Points", unit: "Point", rate: 250 },
+            { name: "Office \u2014 AC Power Point (16A)", unit: "Point", rate: 350 },
+            { name: "Store Room \u2014 Light & Socket Points", unit: "Point", rate: 200 },
             // Safety
             { name: "Industrial Exhaust Blower Fan Wiring", unit: "Point", rate: 500 },
             { name: "Emergency Strobe / Beacon Lights", unit: "Point", rate: 400 },
@@ -376,8 +376,8 @@ const CATALOG = {
             { name: "Generator AMF Control Panel Setup", unit: "Set", rate: 5000 },
             { name: "DG Set Power Cable Termination", unit: "Set", rate: 3000 },
             // Exterior
-            { name: "Perimeter â€“ High-Power Floodlights", unit: "Point", rate: 500 },
-            { name: "Gate â€“ Security Cabin Power & CCTV Points", unit: "Point", rate: 350 },
+            { name: "Perimeter \u2014 High-Power Floodlights", unit: "Point", rate: 500 },
+            { name: "Gate \u2014 Security Cabin Power & CCTV Points", unit: "Point", rate: 350 },
             // Heavy Wiring
             { name: "Cable Tray / Trunking Installation", unit: "Rft", rate: 30 },
             { name: "Armoured Cable Laying (Outdoor/Underground)", unit: "Rft", rate: 45 },
@@ -528,8 +528,8 @@ function generateQuotation() {
     const units = parseInt(document.getElementById('inp-units').value) || 1;
     const client = document.getElementById('inp-client').value || 'Client';
     const project = document.getElementById('inp-project').value || 'Project';
-    const address = document.getElementById('inp-address').value || 'â€”';
-    const quoteno = document.getElementById('inp-quoteno').value || 'â€”';
+    const address = document.getElementById('inp-address').value || '\u2014';
+    const quoteno = document.getElementById('inp-quoteno').value || '\u2014';
     const dateVal = document.getElementById('inp-date').value;
     
     // Only include items with qty > 0
@@ -575,9 +575,9 @@ function generateQuotation() {
             <td class="text-center font-bold">${idx + 1}</td>
             <td>${item.name}</td>
             <td class="text-center">${item.unit}</td>
-            <td class="text-right">â‚¹${item.rate.toLocaleString('en-IN')}</td>
-            <td class="text-center font-bold">${totalQty}${units > 1 ? ` (${item.qty}Ã—${units})` : ''}</td>
-            <td class="text-right" style="color:#d97706;">${itemDisc > 0 ? 'â‚¹' + itemDisc.toLocaleString('en-IN') : 'â€”'}</td>
+            <td class="text-right">\u20b9${item.rate.toLocaleString('en-IN')}</td>
+            <td class="text-center font-bold">${totalQty}${units > 1 ? ` (${item.qty}\u00d7${units})` : ''}</td>
+            <td class="text-right" style="color:#d97706;">${itemDisc > 0 ? '\u20b9' + itemDisc.toLocaleString('en-IN') : '\u2014'}</td>
             <td class="text-right font-mono font-bold">${formatCurrency(amount)}</td>
         `;
         boqTbody.appendChild(tr);
@@ -624,7 +624,7 @@ function generateQuotation() {
         const li = document.createElement('li');
         // Remove leading bullet character if present
         let text = line.trim();
-        if (text.startsWith('â€¢') || text.startsWith('-') || text.startsWith('*')) {
+        if (text.startsWith('\u2022') || text.startsWith('-') || text.startsWith('*')) {
             text = text.substring(1).trim();
         }
         // Bold the part before the first colon
@@ -673,7 +673,7 @@ function downloadPDF() {
 
 // ====== HELPERS ======
 function formatCurrency(v) {
-    return 'â‚¹' + v.toLocaleString('en-IN', { maximumFractionDigits:2, minimumFractionDigits:2 });
+    return '\u20b9' + v.toLocaleString('en-IN', { maximumFractionDigits:2, minimumFractionDigits:2 });
 }
 
 // Keyboard shortcut: Enter to generate
@@ -852,7 +852,7 @@ function renderMaterialsTable() {
     
     materialItems.forEach((item, idx) => {
         const tr = document.createElement('tr');
-        const sellingPrice = Math.round(item.cost * (1 + item.profit / 100));
+        const sellingPrice = item.sellPriceOverride || Math.round(item.cost * (1 + item.profit / 100));
         const effectivePrice = Math.max(0, sellingPrice - item.discount);
         const amount = item.qty * effectivePrice;
         
@@ -864,7 +864,7 @@ function renderMaterialsTable() {
             <td class="text-center"><input type="text" class="unit-input" value="${item.unit}" data-idx="${idx}" data-field="unit" onchange="updateMaterialItem(this)" placeholder="Unit" style="width:50px"></td>
             <td><input type="number" class="cost-input" value="${item.cost}" min="0" data-idx="${idx}" data-field="cost" onchange="updateMaterialItem(this)"></td>
             <td><input type="number" class="profit-input" value="${item.profit}" min="0" data-idx="${idx}" data-field="profit" onchange="updateMaterialItem(this)" style="width:55px"></td>
-            <td class="text-center auto-price" id="mat-sell-${idx}">${formatCurrency(sellingPrice)}</td>
+            <td><input type="number" class="profit-input" value="${sellingPrice}" min="0" data-idx="${idx}" data-field="sellPrice" onchange="updateMaterialItem(this)" style="color:#0ea5e9;font-weight:600"></td>
             <td><input type="number" value="${item.qty}" min="0" data-idx="${idx}" data-field="qty" onchange="updateMaterialItem(this)"></td>
             <td><input type="number" class="disc-input" value="${item.discount}" min="0" data-idx="${idx}" data-field="discount" onchange="updateMaterialItem(this)"></td>
             <td class="amount-cell" id="mat-amt-${idx}">${amount > 0 ? formatCurrency(amount) : '\u2014'}</td>
@@ -881,16 +881,18 @@ function updateMaterialItem(el) {
     
     if (field === 'name' || field === 'brand' || field === 'spec' || field === 'unit') {
         materialItems[idx][field] = el.value;
+    } else if (field === 'sellPrice') {
+        materialItems[idx].sellPriceOverride = parseFloat(el.value) || 0;
     } else {
         materialItems[idx][field] = parseFloat(el.value) || 0;
+        if (field === 'cost' || field === 'profit') materialItems[idx].sellPriceOverride = 0;
     }
     
     const item = materialItems[idx];
-    const sellingPrice = Math.round(item.cost * (1 + item.profit / 100));
+    const sellingPrice = item.sellPriceOverride || Math.round(item.cost * (1 + item.profit / 100));
     const effectivePrice = Math.max(0, sellingPrice - item.discount);
     const amount = item.qty * effectivePrice;
     
-    document.getElementById(`mat-sell-${idx}`).textContent = formatCurrency(sellingPrice);
     document.getElementById(`mat-amt-${idx}`).textContent = amount > 0 ? formatCurrency(amount) : '\u2014';
     recalcMaterialsTotal();
 }
@@ -898,18 +900,38 @@ function updateMaterialItem(el) {
 function recalcMaterialsTotal() {
     let grossTotal = 0;
     let totalDiscount = 0;
+    let totalCost = 0;
     materialItems.forEach(item => {
-        const sellingPrice = Math.round(item.cost * (1 + item.profit / 100));
+        const sellingPrice = item.sellPriceOverride || Math.round(item.cost * (1 + item.profit / 100));
         grossTotal += item.qty * sellingPrice;
         totalDiscount += item.qty * item.discount;
+        totalCost += item.qty * item.cost;
     });
-    const netTotal = grossTotal - totalDiscount;
-    document.getElementById('mat-config-total').textContent = formatCurrency(Math.max(0, netTotal));
+    const netTotal = Math.max(0, grossTotal - totalDiscount);
+    const totalProfit = netTotal - totalCost;
+    const gstAmount = Math.round(netTotal * 0.18);
+    const grandWithGST = netTotal + gstAmount;
+    
+    document.getElementById('mat-config-total').textContent = formatCurrency(grandWithGST);
     
     const discPct = grossTotal > 0 ? ((totalDiscount / grossTotal) * 100).toFixed(1) : 0;
     document.getElementById('mat-total-discount').value = formatCurrency(totalDiscount);
     document.getElementById('mat-discount-pct').value = discPct + '%';
-    document.getElementById('mat-net-total').value = formatCurrency(Math.max(0, netTotal));
+    document.getElementById('mat-net-total').value = formatCurrency(netTotal);
+    
+    // GST
+    const gstEl = document.getElementById('mat-gst-amount');
+    if (gstEl) gstEl.value = formatCurrency(gstAmount);
+    const grandEl = document.getElementById('mat-grand-with-gst');
+    if (grandEl) grandEl.value = formatCurrency(grandWithGST);
+    
+    // Internal Profit
+    const profitEl = document.getElementById('mat-total-profit');
+    if (profitEl) profitEl.value = formatCurrency(Math.max(0, totalProfit));
+    const profitPctEl = document.getElementById('mat-profit-pct');
+    if (profitPctEl) profitPctEl.value = totalCost > 0 ? ((totalProfit / totalCost) * 100).toFixed(1) + '%' : '0%';
+    const costEl = document.getElementById('mat-total-cost');
+    if (costEl) costEl.value = formatCurrency(totalCost);
 }
 
 function applyGlobalMaterialDiscount() {
@@ -960,7 +982,7 @@ function generateMaterialsQuotation() {
     validityDate.setDate(validityDate.getDate() + 30);
     document.getElementById('mat-pdf-validity').textContent = validityDate.toLocaleDateString('en-US', opts);
     
-    // Fill BOQ Table â€” Customer PDF (NO cost price, NO profit %)
+    // Fill BOQ Table \u2014 Customer PDF (NO cost price, NO profit %)
     const boqTbody = document.getElementById('mat-pdf-boq-tbody');
     boqTbody.innerHTML = '';
     
@@ -968,7 +990,7 @@ function generateMaterialsQuotation() {
     let totalDiscount = 0;
     
     activeItems.forEach((item, idx) => {
-        const sellingPrice = Math.round(item.cost * (1 + item.profit / 100));
+        const sellingPrice = item.sellPriceOverride || Math.round(item.cost * (1 + item.profit / 100));
         const effectivePrice = Math.max(0, sellingPrice - item.discount);
         const amount = item.qty * effectivePrice;
         grossTotal += item.qty * sellingPrice;
@@ -989,7 +1011,9 @@ function generateMaterialsQuotation() {
         boqTbody.appendChild(tr);
     });
     
-    const grandTotal = Math.max(0, grossTotal - totalDiscount);
+    const netTotal = Math.max(0, grossTotal - totalDiscount);
+    const gstAmount = Math.round(netTotal * 0.18);
+    const grandTotal = netTotal + gstAmount;
     const discPct = grossTotal > 0 ? ((totalDiscount / grossTotal) * 100).toFixed(1) : 0;
     
     const discBox = document.getElementById('mat-pdf-discount-box');
@@ -1002,6 +1026,9 @@ function generateMaterialsQuotation() {
         discBox.style.display = 'none';
     }
     
+    // GST in PDF
+    document.getElementById('mat-pdf-net-total').textContent = formatCurrency(netTotal);
+    document.getElementById('mat-pdf-gst').textContent = formatCurrency(gstAmount);
     document.getElementById('mat-pdf-grand-total').textContent = formatCurrency(grandTotal);
     document.getElementById('mat-pdf-validity').textContent = validityDate.toLocaleDateString('en-US', opts);
     

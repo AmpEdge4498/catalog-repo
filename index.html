@@ -457,6 +457,33 @@
                             <label>Net Total (₹)</label>
                             <input type="text" id="mat-net-total" value="₹0.00" readonly style="color:var(--green);font-weight:700;">
                         </div>
+                        <div class="form-field">
+                            <label>GST 18% (₹)</label>
+                            <input type="text" id="mat-gst-amount" value="₹0.00" readonly style="color:#f59e0b;font-weight:700;">
+                        </div>
+                        <div class="form-field">
+                            <label style="color:#10b981;font-size:.9rem">Grand Total + GST (₹)</label>
+                            <input type="text" id="mat-grand-with-gst" value="₹0.00" readonly style="color:#10b981;font-weight:700;font-size:1.1rem;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Internal Profit Summary (NOT visible to customer) -->
+                <div class="config-section" style="border:1px dashed #ef4444;background:rgba(239,68,68,0.05);margin-top:16px;">
+                    <h3 style="color:#ef4444;font-size:.85rem;"><i class="fa-solid fa-lock"></i> INTERNAL ONLY - Profit Summary <span class="internal-badge">NOT IN PDF</span></h3>
+                    <div class="form-row">
+                        <div class="form-field">
+                            <label>Total Cost Price (₹)</label>
+                            <input type="text" id="mat-total-cost" value="₹0.00" readonly style="color:#94a3b8;font-weight:700;">
+                        </div>
+                        <div class="form-field">
+                            <label>Total Profit (₹)</label>
+                            <input type="text" id="mat-total-profit" value="₹0.00" readonly style="color:#10b981;font-weight:700;">
+                        </div>
+                        <div class="form-field">
+                            <label>Profit %</label>
+                            <input type="text" id="mat-profit-pct" value="0%" readonly style="color:#10b981;font-weight:700;">
+                        </div>
                     </div>
                 </div>
 
@@ -542,8 +569,12 @@
                         <div class="discount-row"><span>Gross Total</span><span id="mat-pdf-gross-total">₹0</span></div>
                         <div class="discount-row"><span>Discount (<span id="mat-pdf-disc-pct">0</span>%)</span><span id="mat-pdf-disc-amt">-₹0</span></div>
                     </div>
+                    <div class="pdf-discount-summary" style="display:block;margin-top:4px;">
+                        <div class="discount-row"><span>Net Total</span><span id="mat-pdf-net-total">₹0</span></div>
+                        <div class="discount-row"><span>GST @ 18%</span><span id="mat-pdf-gst" style="color:#f59e0b;">₹0</span></div>
+                    </div>
                     <div class="pdf-grand-total-banner">
-                        <span>GRAND TOTAL (Materials)</span>
+                        <span>GRAND TOTAL incl. GST (Materials)</span>
                         <span class="pdf-grand-value" id="mat-pdf-grand-total">₹0.00</span>
                     </div>
                     <div class="pdf-page-footer"><span>AMPEdge Solution | Powering the Edge of Tomorrow.</span><span>Page 2</span></div>
