@@ -3,6 +3,11 @@
  * Research-backed comprehensive electrical point data for Indian installations
  */
 
+// Currency & symbol helpers (encoding-safe)
+const RUPEE = String.fromCharCode(8377);   // ₹
+const MULTIPLY = String.fromCharCode(215); // ×
+const EMDASH = String.fromCharCode(8212);  // —
+
 // ====== COMPREHENSIVE ELECTRICAL POINTS DATA (Researched) ======
 const CATALOG = {
     house: {
@@ -450,7 +455,7 @@ function renderPointsTable() {
             <td><input type="number" class="rate-input" value="${item.rate}" min="0" data-idx="${idx}" data-field="rate" onchange="updateConfigItem(this)"></td>
             <td><input type="number" value="${item.qty}" min="0" data-idx="${idx}" data-field="qty" onchange="updateConfigItem(this)"></td>
             <td><input type="number" class="disc-input" value="${item.discount}" min="0" data-idx="${idx}" data-field="discount" onchange="updateConfigItem(this)"></td>
-            <td class="amount-cell" id="amt-${idx}">${amount > 0 ? formatCurrency(amount) : '\u2014'}</td>
+            <td class="amount-cell" id="amt-${idx}">${amount > 0 ? formatCurrency(amount) : EMDASH}</td>
         `;
         tbody.appendChild(tr);
     });
@@ -470,7 +475,7 @@ function updateConfigItem(el) {
     
     const effectiveRate = Math.max(0, configItems[idx].rate - configItems[idx].discount);
     const amount = configItems[idx].qty * effectiveRate;
-    document.getElementById(`amt-${idx}`).textContent = amount > 0 ? formatCurrency(amount) : '\u2014';
+    document.getElementById(`amt-${idx}`).textContent = amount > 0 ? formatCurrency(amount) : EMDASH;
     recalcTotal();
 }
 
@@ -528,8 +533,8 @@ function generateQuotation() {
     const units = parseInt(document.getElementById('inp-units').value) || 1;
     const client = document.getElementById('inp-client').value || 'Client';
     const project = document.getElementById('inp-project').value || 'Project';
-    const address = document.getElementById('inp-address').value || '\u2014';
-    const quoteno = document.getElementById('inp-quoteno').value || '\u2014';
+    const address = document.getElementById('inp-address').value || EMDASH;
+    const quoteno = document.getElementById('inp-quoteno').value || EMDASH;
     const dateVal = document.getElementById('inp-date').value;
     
     // Only include items with qty > 0
@@ -575,9 +580,9 @@ function generateQuotation() {
             <td class="text-center font-bold">${idx + 1}</td>
             <td>${item.name}</td>
             <td class="text-center">${item.unit}</td>
-            <td class="text-right">\u20b9${item.rate.toLocaleString('en-IN')}</td>
-            <td class="text-center font-bold">${totalQty}${units > 1 ? ` (${item.qty}\u00d7${units})` : ''}</td>
-            <td class="text-right" style="color:#d97706;">${itemDisc > 0 ? '\u20b9' + itemDisc.toLocaleString('en-IN') : '\u2014'}</td>
+            <td class="text-right">${RUPEE}${item.rate.toLocaleString('en-IN')}</td>
+            <td class="text-center font-bold">${totalQty}${units > 1 ? ` (${item.qty}${MULTIPLY}${units})` : ''}</td>
+            <td class="text-right" style="color:#d97706;">${itemDisc > 0 ? RUPEE + itemDisc.toLocaleString('en-IN') : EMDASH}</td>
             <td class="text-right font-mono font-bold">${formatCurrency(amount)}</td>
         `;
         boqTbody.appendChild(tr);
@@ -673,7 +678,7 @@ function downloadPDF() {
 
 // ====== HELPERS ======
 function formatCurrency(v) {
-    return '\u20b9' + v.toLocaleString('en-IN', { maximumFractionDigits:2, minimumFractionDigits:2 });
+    return RUPEE + v.toLocaleString('en-IN', { maximumFractionDigits:2, minimumFractionDigits:2 });
 }
 
 // Keyboard shortcut: Enter to generate
@@ -867,7 +872,7 @@ function renderMaterialsTable() {
             <td><input type="number" class="profit-input" value="${sellingPrice}" min="0" data-idx="${idx}" data-field="sellPrice" onchange="updateMaterialItem(this)" style="color:#0ea5e9;font-weight:600"></td>
             <td><input type="number" value="${item.qty}" min="0" data-idx="${idx}" data-field="qty" onchange="updateMaterialItem(this)"></td>
             <td><input type="number" class="disc-input" value="${item.discount}" min="0" data-idx="${idx}" data-field="discount" onchange="updateMaterialItem(this)"></td>
-            <td class="amount-cell" id="mat-amt-${idx}">${amount > 0 ? formatCurrency(amount) : '\u2014'}</td>
+            <td class="amount-cell" id="mat-amt-${idx}">${amount > 0 ? formatCurrency(amount) : EMDASH}</td>
         `;
         tbody.appendChild(tr);
     });
@@ -893,7 +898,7 @@ function updateMaterialItem(el) {
     const effectivePrice = Math.max(0, sellingPrice - item.discount);
     const amount = item.qty * effectivePrice;
     
-    document.getElementById(`mat-amt-${idx}`).textContent = amount > 0 ? formatCurrency(amount) : '\u2014';
+    document.getElementById(`mat-amt-${idx}`).textContent = amount > 0 ? formatCurrency(amount) : EMDASH;
     recalcMaterialsTotal();
 }
 
@@ -958,8 +963,8 @@ function addCustomMaterialRow() {
 function generateMaterialsQuotation() {
     const client = document.getElementById('mat-inp-client').value || 'Client';
     const project = document.getElementById('mat-inp-project').value || 'Project';
-    const address = document.getElementById('mat-inp-address').value || '\u2014';
-    const quoteno = document.getElementById('mat-inp-quoteno').value || '\u2014';
+    const address = document.getElementById('mat-inp-address').value || EMDASH;
+    const quoteno = document.getElementById('mat-inp-quoteno').value || EMDASH;
     const dateVal = document.getElementById('mat-inp-date').value;
     
     const activeItems = materialItems.filter(i => i.qty > 0);
@@ -1003,9 +1008,9 @@ function generateMaterialsQuotation() {
             <td class="text-center" style="font-size:.6rem">${item.brand}</td>
             <td class="text-center" style="font-size:.6rem">${item.spec}</td>
             <td class="text-center">${item.unit}</td>
-            <td class="text-right">\u20b9${sellingPrice.toLocaleString('en-IN')}</td>
+            <td class="text-right">${RUPEE}${sellingPrice.toLocaleString('en-IN')}</td>
             <td class="text-center font-bold">${item.qty}</td>
-            <td class="text-right" style="color:#d97706;">${item.discount > 0 ? '\u20b9' + item.discount.toLocaleString('en-IN') : '\u2014'}</td>
+            <td class="text-right" style="color:#d97706;">${item.discount > 0 ? RUPEE + item.discount.toLocaleString('en-IN') : EMDASH}</td>
             <td class="text-right font-mono font-bold">${formatCurrency(amount)}</td>
         `;
         boqTbody.appendChild(tr);
