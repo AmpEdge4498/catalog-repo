@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=20260910">
+    <link rel="stylesheet" href="style.css?v=20260911">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
@@ -487,7 +487,35 @@
                     </div>
                 </div>
 
-                <!-- Generate Button -->
+                <!-- Materials Payment Terms & Validity (Editable) -->
+                <div class="config-section">
+                    <h2 class="config-section-title"><i class="fa-solid fa-receipt"></i> Materials Payment Terms & Offer Validity</h2>
+                    <div class="client-form-grid" style="grid-template-columns: 1fr 1fr;">
+                        <div class="form-field">
+                            <label>Payment Terms <span class="hint">(Strictly for Materials Supply)</span></label>
+                            <input type="text" id="mat-inp-pay-terms" value="100% Advance Payment before dispatch" readonly style="color:var(--green);font-weight:700;">
+                        </div>
+                        <div class="form-field">
+                            <label>Quotation Validity <span class="hint">(15 Days)</span></label>
+                            <input type="text" id="mat-inp-validity-days" value="15 Days from Date of Issue" readonly style="color:var(--amber);font-weight:700;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Materials Terms & Conditions (Editable) -->
+                <div class="config-section">
+                    <h2 class="config-section-title"><i class="fa-solid fa-file-contract"></i> Materials Terms & Conditions <span class="hint">(Editable — modify as needed)</span></h2>
+                    <div class="form-field">
+                        <textarea id="mat-inp-terms" rows="8" style="width:100%;background:var(--bg-card);border:1px solid var(--border);color:var(--text);padding:12px;border-radius:8px;font-size:.82rem;line-height:1.6;resize:vertical;outline:none;font-family:'Inter',sans-serif;">• 100% Advance Payment: Full 100% payment required upon order confirmation prior to material dispatch / procurement.
+• 15 Days Offer Validity: This quotation is strictly valid for 15 days from date of issue due to copper and metal market price fluctuations.
+• Genuine Brand Guarantee: All supplied goods are 100% brand-original (Havells, Polycab, Finolex, Schneider, etc.) with official ISI certifications.
+• Delivery Schedule: Material dispatch initiated immediately upon 100% advance clearance, delivered to site within committed timeline.
+• Transit & Delivery Inspection: Client representative must physically verify package seals & quantities at time of delivery.
+• Statutory Taxes: GST @ 18% is inclusive in the Grand Total as specified in the Bill of Quantities.
+• Manufacturer Warranty: Standard OEM warranty applicable directly by manufacturers on switches, MCBs, wires, and fixtures.</textarea>
+                    </div>
+                </div>
+
                 <div class="generate-section">
                     <button class="generate-btn" onclick="generateMaterialsQuotation()">
                         <i class="fa-solid fa-file-pdf"></i> Generate Materials Quotation
@@ -580,37 +608,60 @@
                     <div class="pdf-page-footer"><span>AMPEdge Solution | Powering the Edge of Tomorrow.</span><span>Page 2</span></div>
                 </div>
 
-                <!-- MAT PAGE 3: SIGNATURES -->
-                <div class="pdf-page">
+                <!-- MAT PAGE 3: TERMS & SIGNATURES -->
+                <div class="pdf-page page-terms">
                     <div class="pdf-page-header-repeat">
                         <img src="logo.png" alt="AMPEdge" class="pdf-logo-sm">
                         <span class="pdf-header-company">AMPEdge Solution</span>
                         <span class="pdf-header-tag">Powering the Edge of Tomorrow.</span>
                     </div>
-                    <div class="pdf-section-strip"><h2><i class="fa-solid fa-file-signature"></i> Acceptance & Authorization</h2></div>
-                    <div class="pdf-validity-box"><i class="fa-solid fa-clock"></i> This materials quotation is valid until <strong id="mat-pdf-validity-2">—</strong></div>
-                    <div class="sig-strip" style="margin-top:auto;">
-                        <div class="pdf-sig-grid">
-                            <div class="pdf-sig-card">
-                                <h4>FOR: AMPEdge Solution</h4>
-                                <div class="sig-images-row">
-                                    <img src="sig1.png" alt="Signature" class="sig-img">
-                                    <img src="sig2.png" alt="Signature" class="sig-img">
-                                </div>
-                                <p class="sig-company">AMPEdge Solution</p>
-                                <p class="sig-dept">Materials Supply Division</p>
-                                <div class="sig-stamp">✓ AUTHORISED SIGNATORY</div>
-                                <div class="sig-line"></div>
-                                <p class="sig-detail">Sayantam Pal — Director<br>Rittick Das — Director</p>
+                    <div class="pdf-section-strip"><h2>3. COMMERCIAL TERMS, SUPPLY POLICY & PAYMENT TERMS</h2></div>
+                    <div class="pdf-terms-grid">
+                        <div class="pdf-terms-card">
+                            <h3><i class="fa-solid fa-list-ul"></i> SUPPLY TERMS & CONDITIONS</h3>
+                            <ul id="mat-pdf-terms-list">
+                                <!-- Dynamically populated from editable textarea -->
+                            </ul>
+                        </div>
+                        <div class="pdf-terms-card">
+                            <h3><i class="fa-solid fa-receipt"></i> PAYMENT SCHEDULE & VALIDITY</h3>
+                            <table class="pdf-payment-table">
+                                <thead><tr><th>Payment Milestone</th><th class="text-right">%</th><th class="text-right">Amount (₹)</th></tr></thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>100% Advance Payment</strong><br><small>Required on confirmed order prior to material dispatch</small></td>
+                                        <td class="text-right font-bold" style="color:#10b981;">100%</td>
+                                        <td class="text-right font-mono font-bold" id="mat-pdf-advance-amt">₹0</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="pdf-validity-box" style="margin-top:10px;border-left:3px solid #f59e0b;background:#fffbeb;padding:8px 10px;border-radius:4px;font-size:.62rem;color:#b45309;text-align:left;">
+                                <strong><i class="fa-solid fa-clock"></i> Proposal Validity:</strong> Strictly <strong>15 Days</strong> from date of issue (Valid until <strong id="mat-pdf-validity-2">—</strong>). Prices subject to copper/metal index revision thereafter.
                             </div>
-                            <div class="pdf-sig-card">
-                                <h4>CLIENT ACCEPTANCE</h4>
-                                <div class="sig-stamp empty"></div>
-                                <p class="sig-company" id="mat-pdf-sig-client">Client</p>
-                                <p class="sig-dept">Authorised Representative</p>
-                                <div class="sig-line"></div>
-                                <p class="sig-detail">Name: _______________________<br>Date: _________ Stamp/Seal:</p>
+                        </div>
+                    </div>
+
+                    <div class="pdf-section-strip sig-strip"><h2>4. ACCEPTANCE & MATERIAL PURCHASE AUTHORIZATION</h2></div>
+                    <div class="pdf-sig-grid">
+                        <div class="pdf-sig-card">
+                            <h4>FOR: AMPEdge Solution</h4>
+                            <div class="sig-images-row">
+                                <img src="sig1.png" alt="Signature" class="sig-img">
+                                <img src="sig2.png" alt="Signature" class="sig-img">
                             </div>
+                            <p class="sig-company">AMPEdge Solution</p>
+                            <p class="sig-dept">Materials Supply Division</p>
+                            <div class="sig-stamp">✓ AUTHORISED SIGNATORY</div>
+                            <div class="sig-line"></div>
+                            <p class="sig-detail">Sayantam Pal — Director<br>Rittick Das — Director</p>
+                        </div>
+                        <div class="pdf-sig-card">
+                            <h4>CLIENT ACCEPTANCE</h4>
+                            <div class="sig-stamp empty"></div>
+                            <p class="sig-company" id="mat-pdf-sig-client">Client</p>
+                            <p class="sig-dept">Authorised Representative</p>
+                            <div class="sig-line"></div>
+                            <p class="sig-detail">Name: _______________________<br>Date: _________ Stamp/Seal:</p>
                         </div>
                     </div>
                     <div class="pdf-page-footer"><span>AMPEdge Solution | Powering the Edge of Tomorrow.</span><span>Page 3</span></div>
@@ -619,6 +670,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=20260910"></script>
+    <script src="app.js?v=20260911"></script>
 </body>
 </html>

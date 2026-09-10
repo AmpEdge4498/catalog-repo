@@ -693,136 +693,248 @@ document.addEventListener('keydown', (e) => {
 
 // ====== MATERIALS MODULE ======
 const MATERIALS_CATALOG = [
-    // -- WIRES (Havells) --
-    { name: 'FR PVC Insulated Copper Wire 0.75 sq mm', brand: 'Havells', spec: '0.75 sq mm, 90m coil', unit: 'Coil', cost: 650 },
-    { name: 'FR PVC Insulated Copper Wire 1.0 sq mm', brand: 'Havells', spec: '1.0 sq mm, 90m coil', unit: 'Coil', cost: 850 },
-    { name: 'FR PVC Insulated Copper Wire 1.5 sq mm', brand: 'Havells', spec: '1.5 sq mm, 90m coil', unit: 'Coil', cost: 1250 },
-    { name: 'FR PVC Insulated Copper Wire 2.5 sq mm', brand: 'Havells', spec: '2.5 sq mm, 90m coil', unit: 'Coil', cost: 2100 },
-    { name: 'FR PVC Insulated Copper Wire 4.0 sq mm', brand: 'Havells', spec: '4.0 sq mm, 90m coil', unit: 'Coil', cost: 3200 },
-    { name: 'FR PVC Insulated Copper Wire 6.0 sq mm', brand: 'Havells', spec: '6.0 sq mm, 90m coil', unit: 'Coil', cost: 4800 },
-    // -- WIRES (Havells Standard) --
-    { name: 'FR PVC Insulated Copper Wire 0.75 sq mm', brand: 'Havells Standard', spec: '0.75 sq mm, 90m coil', unit: 'Coil', cost: 580 },
-    { name: 'FR PVC Insulated Copper Wire 1.0 sq mm', brand: 'Havells Standard', spec: '1.0 sq mm, 90m coil', unit: 'Coil', cost: 750 },
-    { name: 'FR PVC Insulated Copper Wire 1.5 sq mm', brand: 'Havells Standard', spec: '1.5 sq mm, 90m coil', unit: 'Coil', cost: 1100 },
-    { name: 'FR PVC Insulated Copper Wire 2.5 sq mm', brand: 'Havells Standard', spec: '2.5 sq mm, 90m coil', unit: 'Coil', cost: 1850 },
-    { name: 'FR PVC Insulated Copper Wire 4.0 sq mm', brand: 'Havells Standard', spec: '4.0 sq mm, 90m coil', unit: 'Coil', cost: 2800 },
-    { name: 'FR PVC Insulated Copper Wire 6.0 sq mm', brand: 'Havells Standard', spec: '6.0 sq mm, 90m coil', unit: 'Coil', cost: 4200 },
-    // -- WIRES (Polycab) --
-    { name: 'FR PVC Insulated Copper Wire 0.75 sq mm', brand: 'Polycab', spec: '0.75 sq mm, 90m coil', unit: 'Coil', cost: 620 },
-    { name: 'FR PVC Insulated Copper Wire 1.0 sq mm', brand: 'Polycab', spec: '1.0 sq mm, 90m coil', unit: 'Coil', cost: 820 },
-    { name: 'FR PVC Insulated Copper Wire 1.5 sq mm', brand: 'Polycab', spec: '1.5 sq mm, 90m coil', unit: 'Coil', cost: 1200 },
-    { name: 'FR PVC Insulated Copper Wire 2.5 sq mm', brand: 'Polycab', spec: '2.5 sq mm, 90m coil', unit: 'Coil', cost: 2000 },
-    { name: 'FR PVC Insulated Copper Wire 4.0 sq mm', brand: 'Polycab', spec: '4.0 sq mm, 90m coil', unit: 'Coil', cost: 3100 },
-    { name: 'FR PVC Insulated Copper Wire 6.0 sq mm', brand: 'Polycab', spec: '6.0 sq mm, 90m coil', unit: 'Coil', cost: 4600 },
-    // -- WIRES (Finolex) --
-    { name: 'FR PVC Insulated Copper Wire 0.75 sq mm', brand: 'Finolex', spec: '0.75 sq mm, 90m coil', unit: 'Coil', cost: 600 },
-    { name: 'FR PVC Insulated Copper Wire 1.0 sq mm', brand: 'Finolex', spec: '1.0 sq mm, 90m coil', unit: 'Coil', cost: 800 },
-    { name: 'FR PVC Insulated Copper Wire 1.5 sq mm', brand: 'Finolex', spec: '1.5 sq mm, 90m coil', unit: 'Coil', cost: 1180 },
-    { name: 'FR PVC Insulated Copper Wire 2.5 sq mm', brand: 'Finolex', spec: '2.5 sq mm, 90m coil', unit: 'Coil', cost: 1950 },
-    { name: 'FR PVC Insulated Copper Wire 4.0 sq mm', brand: 'Finolex', spec: '4.0 sq mm, 90m coil', unit: 'Coil', cost: 3000 },
-    { name: 'FR PVC Insulated Copper Wire 6.0 sq mm', brand: 'Finolex', spec: '6.0 sq mm, 90m coil', unit: 'Coil', cost: 4500 },
-    // -- WIRES (RR Kabel) --
-    { name: 'FR PVC Insulated Copper Wire 0.75 sq mm', brand: 'RR Kabel', spec: '0.75 sq mm, 90m coil', unit: 'Coil', cost: 610 },
-    { name: 'FR PVC Insulated Copper Wire 1.0 sq mm', brand: 'RR Kabel', spec: '1.0 sq mm, 90m coil', unit: 'Coil', cost: 810 },
-    { name: 'FR PVC Insulated Copper Wire 1.5 sq mm', brand: 'RR Kabel', spec: '1.5 sq mm, 90m coil', unit: 'Coil', cost: 1190 },
-    { name: 'FR PVC Insulated Copper Wire 2.5 sq mm', brand: 'RR Kabel', spec: '2.5 sq mm, 90m coil', unit: 'Coil', cost: 1980 },
-    { name: 'FR PVC Insulated Copper Wire 4.0 sq mm', brand: 'RR Kabel', spec: '4.0 sq mm, 90m coil', unit: 'Coil', cost: 3050 },
-    { name: 'FR PVC Insulated Copper Wire 6.0 sq mm', brand: 'RR Kabel', spec: '6.0 sq mm, 90m coil', unit: 'Coil', cost: 4550 },
-    // -- WIRES (V-Guard) --
-    { name: 'FR PVC Insulated Copper Wire 0.75 sq mm', brand: 'V-Guard', spec: '0.75 sq mm, 90m coil', unit: 'Coil', cost: 590 },
-    { name: 'FR PVC Insulated Copper Wire 1.0 sq mm', brand: 'V-Guard', spec: '1.0 sq mm, 90m coil', unit: 'Coil', cost: 780 },
-    { name: 'FR PVC Insulated Copper Wire 1.5 sq mm', brand: 'V-Guard', spec: '1.5 sq mm, 90m coil', unit: 'Coil', cost: 1150 },
-    { name: 'FR PVC Insulated Copper Wire 2.5 sq mm', brand: 'V-Guard', spec: '2.5 sq mm, 90m coil', unit: 'Coil', cost: 1900 },
-    { name: 'FR PVC Insulated Copper Wire 4.0 sq mm', brand: 'V-Guard', spec: '4.0 sq mm, 90m coil', unit: 'Coil', cost: 2950 },
-    { name: 'FR PVC Insulated Copper Wire 6.0 sq mm', brand: 'V-Guard', spec: '6.0 sq mm, 90m coil', unit: 'Coil', cost: 4400 },
-    // -- PVC CONDUIT PIPES --
-    { name: 'PVC Conduit Pipe 20mm (3/4")', brand: 'Supreme/Sudhakar', spec: '20mm, 3 meter length', unit: 'Pcs', cost: 38 },
-    { name: 'PVC Conduit Pipe 25mm (1")', brand: 'Supreme/Sudhakar', spec: '25mm, 3 meter length', unit: 'Pcs', cost: 52 },
-    { name: 'PVC Conduit Pipe 32mm (1.25")', brand: 'Supreme/Sudhakar', spec: '32mm, 3 meter length', unit: 'Pcs', cost: 72 },
-    { name: 'PVC Concealer Casing-Capping', brand: 'Supreme/MK', spec: '25x16mm, 3m length', unit: 'Pcs', cost: 45 },
-    { name: 'PVC Bend / Elbow 20mm', brand: 'Supreme/Sudhakar', spec: '20mm, 90 degree', unit: 'Pcs', cost: 5 },
-    { name: 'PVC Bend / Elbow 25mm', brand: 'Supreme/Sudhakar', spec: '25mm, 90 degree', unit: 'Pcs', cost: 7 },
-    // -- SWITCHES (Preciton) --
-    { name: 'Modular Switch 6A (One-Way)', brand: 'Preciton', spec: '6 Amp, ISI Marked', unit: 'Pcs', cost: 18 },
-    { name: 'Modular Switch 16A (One-Way)', brand: 'Preciton', spec: '16 Amp, ISI Marked', unit: 'Pcs', cost: 30 },
-    { name: 'Modular Switch 2-Way (6A)', brand: 'Preciton', spec: '6 Amp, 2-Way', unit: 'Pcs', cost: 32 },
-    { name: 'Modular Switch Plate 2M', brand: 'Preciton', spec: '2 Module, White', unit: 'Pcs', cost: 22 },
-    { name: 'Modular Switch Plate 4M', brand: 'Preciton', spec: '4 Module, White', unit: 'Pcs', cost: 38 },
-    { name: 'Modular Switch Plate 6M', brand: 'Preciton', spec: '6 Module, White', unit: 'Pcs', cost: 52 },
-    { name: 'Modular Switch Plate 8M', brand: 'Preciton', spec: '8 Module, White', unit: 'Pcs', cost: 68 },
-    { name: '5A Socket Outlet', brand: 'Preciton', spec: '5 Pin, Modular', unit: 'Pcs', cost: 25 },
-    { name: '16A Socket Outlet (3 Pin)', brand: 'Preciton', spec: '16 Amp, Heavy Duty', unit: 'Pcs', cost: 45 },
-    // -- SWITCHES (Anchor/Havells) --
-    { name: 'Modular Switch 6A (One-Way)', brand: 'Anchor/Havells', spec: '6 Amp, ISI Marked', unit: 'Pcs', cost: 28 },
-    { name: 'Modular Switch 16A (One-Way)', brand: 'Anchor/Havells', spec: '16 Amp, ISI Marked', unit: 'Pcs', cost: 42 },
-    { name: 'Modular Switch 2-Way (6A)', brand: 'Anchor/Havells', spec: '6 Amp, 2-Way', unit: 'Pcs', cost: 45 },
-    { name: 'Modular Switch Plate 2M', brand: 'Anchor/Havells', spec: '2 Module, White', unit: 'Pcs', cost: 35 },
-    { name: 'Modular Switch Plate 4M', brand: 'Anchor/Havells', spec: '4 Module, White', unit: 'Pcs', cost: 55 },
-    { name: 'Modular Switch Plate 6M', brand: 'Anchor/Havells', spec: '6 Module, White', unit: 'Pcs', cost: 75 },
-    { name: 'Modular Switch Plate 8M', brand: 'Anchor/Havells', spec: '8 Module, White', unit: 'Pcs', cost: 95 },
-    { name: '5A Socket Outlet', brand: 'Anchor/Havells', spec: '5 Pin, Modular', unit: 'Pcs', cost: 38 },
-    { name: '16A Socket Outlet (3 Pin)', brand: 'Anchor/Havells', spec: '16 Amp, Heavy Duty', unit: 'Pcs', cost: 65 },
-    // -- SWITCHES (Legrand) --
-    { name: 'Modular Switch 6A (One-Way)', brand: 'Legrand', spec: '6 Amp, Myrius', unit: 'Pcs', cost: 48 },
-    { name: 'Modular Switch 16A (One-Way)', brand: 'Legrand', spec: '16 Amp, Myrius', unit: 'Pcs', cost: 65 },
-    { name: 'Modular Switch Plate 2M', brand: 'Legrand', spec: '2 Module, Myrius', unit: 'Pcs', cost: 55 },
-    { name: 'Modular Switch Plate 4M', brand: 'Legrand', spec: '4 Module, Myrius', unit: 'Pcs', cost: 85 },
-    // -- FAN REGULATORS --
-    { name: 'Fan Regulator (Step Type)', brand: 'Anchor/Havells', spec: '5 Step, Modular', unit: 'Pcs', cost: 85 },
-    { name: 'Fan Regulator (Electronic)', brand: 'Havells/Crompton', spec: 'Stepless Electronic', unit: 'Pcs', cost: 180 },
-    // -- MCB (Havells) --
-    { name: 'MCB Single Pole 6A', brand: 'Havells', spec: 'SP, C-Curve, 10kA', unit: 'Pcs', cost: 90 },
-    { name: 'MCB Single Pole 10A', brand: 'Havells', spec: 'SP, C-Curve, 10kA', unit: 'Pcs', cost: 92 },
-    { name: 'MCB Single Pole 16A', brand: 'Havells', spec: 'SP, C-Curve, 10kA', unit: 'Pcs', cost: 95 },
-    { name: 'MCB Single Pole 20A', brand: 'Havells', spec: 'SP, C-Curve, 10kA', unit: 'Pcs', cost: 98 },
-    { name: 'MCB Single Pole 32A', brand: 'Havells', spec: 'SP, C-Curve, 10kA', unit: 'Pcs', cost: 110 },
-    { name: 'MCB Double Pole 32A', brand: 'Havells', spec: 'DP, C-Curve, 10kA', unit: 'Pcs', cost: 220 },
-    { name: 'MCB Double Pole 40A', brand: 'Havells', spec: 'DP, C-Curve, 10kA', unit: 'Pcs', cost: 240 },
-    // -- MCB (Schneider) --
-    { name: 'MCB Single Pole 16A', brand: 'Schneider', spec: 'SP, C-Curve, Acti9', unit: 'Pcs', cost: 105 },
-    { name: 'MCB Single Pole 32A', brand: 'Schneider', spec: 'SP, C-Curve, Acti9', unit: 'Pcs', cost: 120 },
-    { name: 'MCB Double Pole 40A', brand: 'Schneider', spec: 'DP, C-Curve, Acti9', unit: 'Pcs', cost: 260 },
-    // -- MCB (Preciton) --
-    { name: 'MCB Single Pole 6A/10A/16A', brand: 'Preciton', spec: 'SP, C-Curve', unit: 'Pcs', cost: 55 },
-    { name: 'MCB Double Pole 32A/40A', brand: 'Preciton', spec: 'DP, C-Curve', unit: 'Pcs', cost: 130 },
-    // -- RCCB --
-    { name: 'RCCB 25A/40A 30mA (2 Pole)', brand: 'Havells', spec: '30mA sensitivity, DP', unit: 'Pcs', cost: 850 },
-    { name: 'RCCB 40A 30mA (4 Pole)', brand: 'Havells', spec: '30mA sensitivity, FP', unit: 'Pcs', cost: 1800 },
-    { name: 'RCCB 25A/40A 30mA (2 Pole)', brand: 'Schneider', spec: '30mA sensitivity, DP', unit: 'Pcs', cost: 950 },
-    // -- DISTRIBUTION BOARDS --
-    { name: 'Distribution Board 4-Way SPN', brand: 'Havells', spec: '4 Way, Single Phase', unit: 'Pcs', cost: 350 },
-    { name: 'Distribution Board 8-Way SPN', brand: 'Havells', spec: '8 Way, Single Phase', unit: 'Pcs', cost: 550 },
-    { name: 'Distribution Board 12-Way TPN', brand: 'Havells', spec: '12 Way, Three Phase', unit: 'Pcs', cost: 1200 },
-    { name: 'Distribution Board 4-Way SPN', brand: 'Schneider', spec: '4 Way, Single Phase', unit: 'Pcs', cost: 400 },
-    { name: 'Distribution Board 8-Way SPN', brand: 'Schneider', spec: '8 Way, Single Phase', unit: 'Pcs', cost: 650 },
-    // -- CEILING FANS --
-    { name: 'Ceiling Fan (Standard 1200mm)', brand: 'Havells', spec: '1200mm, 75W', unit: 'Pcs', cost: 1200 },
-    { name: 'Ceiling Fan (Standard 1200mm)', brand: 'Crompton', spec: '1200mm, 75W', unit: 'Pcs', cost: 1100 },
-    { name: 'Ceiling Fan (BLDC Energy Saver)', brand: 'Atomberg', spec: '1200mm, 28W BLDC', unit: 'Pcs', cost: 2800 },
-    { name: 'Ceiling Fan (BLDC Energy Saver)', brand: 'Havells', spec: '1200mm, 32W BLDC', unit: 'Pcs', cost: 3200 },
-    // -- LIGHTS --
+    // ========== WIRES - HAVELLS (All Sizes x Colors) ==========
+    { name: 'FR PVC Wire 0.75 sq mm - Red', brand: 'Havells', spec: '0.75 sq mm, Red, 90m', unit: 'Coil', cost: 650 },
+    { name: 'FR PVC Wire 0.75 sq mm - Blue', brand: 'Havells', spec: '0.75 sq mm, Blue, 90m', unit: 'Coil', cost: 650 },
+    { name: 'FR PVC Wire 0.75 sq mm - Black', brand: 'Havells', spec: '0.75 sq mm, Black, 90m', unit: 'Coil', cost: 650 },
+    { name: 'FR PVC Wire 0.75 sq mm - Green', brand: 'Havells', spec: '0.75 sq mm, Green, 90m', unit: 'Coil', cost: 650 },
+    { name: 'FR PVC Wire 0.75 sq mm - Yellow', brand: 'Havells', spec: '0.75 sq mm, Yellow, 90m', unit: 'Coil', cost: 650 },
+    { name: 'FR PVC Wire 0.75 sq mm - White', brand: 'Havells', spec: '0.75 sq mm, White, 90m', unit: 'Coil', cost: 650 },
+    { name: 'FR PVC Wire 1.0 sq mm - Red', brand: 'Havells', spec: '1.0 sq mm, Red, 90m', unit: 'Coil', cost: 850 },
+    { name: 'FR PVC Wire 1.0 sq mm - Blue', brand: 'Havells', spec: '1.0 sq mm, Blue, 90m', unit: 'Coil', cost: 850 },
+    { name: 'FR PVC Wire 1.0 sq mm - Black', brand: 'Havells', spec: '1.0 sq mm, Black, 90m', unit: 'Coil', cost: 850 },
+    { name: 'FR PVC Wire 1.0 sq mm - Green', brand: 'Havells', spec: '1.0 sq mm, Green, 90m', unit: 'Coil', cost: 850 },
+    { name: 'FR PVC Wire 1.0 sq mm - Yellow', brand: 'Havells', spec: '1.0 sq mm, Yellow, 90m', unit: 'Coil', cost: 850 },
+    { name: 'FR PVC Wire 1.0 sq mm - White', brand: 'Havells', spec: '1.0 sq mm, White, 90m', unit: 'Coil', cost: 850 },
+    { name: 'FR PVC Wire 1.5 sq mm - Red', brand: 'Havells', spec: '1.5 sq mm, Red, 90m', unit: 'Coil', cost: 1250 },
+    { name: 'FR PVC Wire 1.5 sq mm - Blue', brand: 'Havells', spec: '1.5 sq mm, Blue, 90m', unit: 'Coil', cost: 1250 },
+    { name: 'FR PVC Wire 1.5 sq mm - Black', brand: 'Havells', spec: '1.5 sq mm, Black, 90m', unit: 'Coil', cost: 1250 },
+    { name: 'FR PVC Wire 1.5 sq mm - Green', brand: 'Havells', spec: '1.5 sq mm, Green, 90m', unit: 'Coil', cost: 1250 },
+    { name: 'FR PVC Wire 1.5 sq mm - Yellow', brand: 'Havells', spec: '1.5 sq mm, Yellow, 90m', unit: 'Coil', cost: 1250 },
+    { name: 'FR PVC Wire 1.5 sq mm - White', brand: 'Havells', spec: '1.5 sq mm, White, 90m', unit: 'Coil', cost: 1250 },
+    { name: 'FR PVC Wire 2.5 sq mm - Red', brand: 'Havells', spec: '2.5 sq mm, Red, 90m', unit: 'Coil', cost: 2100 },
+    { name: 'FR PVC Wire 2.5 sq mm - Blue', brand: 'Havells', spec: '2.5 sq mm, Blue, 90m', unit: 'Coil', cost: 2100 },
+    { name: 'FR PVC Wire 2.5 sq mm - Black', brand: 'Havells', spec: '2.5 sq mm, Black, 90m', unit: 'Coil', cost: 2100 },
+    { name: 'FR PVC Wire 2.5 sq mm - Green', brand: 'Havells', spec: '2.5 sq mm, Green, 90m', unit: 'Coil', cost: 2100 },
+    { name: 'FR PVC Wire 2.5 sq mm - Yellow', brand: 'Havells', spec: '2.5 sq mm, Yellow, 90m', unit: 'Coil', cost: 2100 },
+    { name: 'FR PVC Wire 4.0 sq mm - Red', brand: 'Havells', spec: '4.0 sq mm, Red, 90m', unit: 'Coil', cost: 3200 },
+    { name: 'FR PVC Wire 4.0 sq mm - Blue', brand: 'Havells', spec: '4.0 sq mm, Blue, 90m', unit: 'Coil', cost: 3200 },
+    { name: 'FR PVC Wire 4.0 sq mm - Black', brand: 'Havells', spec: '4.0 sq mm, Black, 90m', unit: 'Coil', cost: 3200 },
+    { name: 'FR PVC Wire 4.0 sq mm - Green', brand: 'Havells', spec: '4.0 sq mm, Green, 90m', unit: 'Coil', cost: 3200 },
+    { name: 'FR PVC Wire 6.0 sq mm - Red', brand: 'Havells', spec: '6.0 sq mm, Red, 90m', unit: 'Coil', cost: 4800 },
+    { name: 'FR PVC Wire 6.0 sq mm - Blue', brand: 'Havells', spec: '6.0 sq mm, Blue, 90m', unit: 'Coil', cost: 4800 },
+    { name: 'FR PVC Wire 6.0 sq mm - Black', brand: 'Havells', spec: '6.0 sq mm, Black, 90m', unit: 'Coil', cost: 4800 },
+    { name: 'FR PVC Wire 6.0 sq mm - Green', brand: 'Havells', spec: '6.0 sq mm, Green, 90m', unit: 'Coil', cost: 4800 },
+
+    // ========== WIRES - HAVELLS STANDARD ==========
+    { name: 'FR PVC Wire 0.75 sq mm - Red', brand: 'Havells Standard', spec: '0.75 sq mm, Red, 90m', unit: 'Coil', cost: 580 },
+    { name: 'FR PVC Wire 0.75 sq mm - Blue', brand: 'Havells Standard', spec: '0.75 sq mm, Blue, 90m', unit: 'Coil', cost: 580 },
+    { name: 'FR PVC Wire 0.75 sq mm - Black', brand: 'Havells Standard', spec: '0.75 sq mm, Black, 90m', unit: 'Coil', cost: 580 },
+    { name: 'FR PVC Wire 0.75 sq mm - Green', brand: 'Havells Standard', spec: '0.75 sq mm, Green, 90m', unit: 'Coil', cost: 580 },
+    { name: 'FR PVC Wire 1.0 sq mm - Red', brand: 'Havells Standard', spec: '1.0 sq mm, Red, 90m', unit: 'Coil', cost: 750 },
+    { name: 'FR PVC Wire 1.0 sq mm - Blue', brand: 'Havells Standard', spec: '1.0 sq mm, Blue, 90m', unit: 'Coil', cost: 750 },
+    { name: 'FR PVC Wire 1.0 sq mm - Black', brand: 'Havells Standard', spec: '1.0 sq mm, Black, 90m', unit: 'Coil', cost: 750 },
+    { name: 'FR PVC Wire 1.0 sq mm - Green', brand: 'Havells Standard', spec: '1.0 sq mm, Green, 90m', unit: 'Coil', cost: 750 },
+    { name: 'FR PVC Wire 1.5 sq mm - Red', brand: 'Havells Standard', spec: '1.5 sq mm, Red, 90m', unit: 'Coil', cost: 1100 },
+    { name: 'FR PVC Wire 1.5 sq mm - Blue', brand: 'Havells Standard', spec: '1.5 sq mm, Blue, 90m', unit: 'Coil', cost: 1100 },
+    { name: 'FR PVC Wire 1.5 sq mm - Black', brand: 'Havells Standard', spec: '1.5 sq mm, Black, 90m', unit: 'Coil', cost: 1100 },
+    { name: 'FR PVC Wire 1.5 sq mm - Green', brand: 'Havells Standard', spec: '1.5 sq mm, Green, 90m', unit: 'Coil', cost: 1100 },
+    { name: 'FR PVC Wire 2.5 sq mm - Red', brand: 'Havells Standard', spec: '2.5 sq mm, Red, 90m', unit: 'Coil', cost: 1850 },
+    { name: 'FR PVC Wire 2.5 sq mm - Blue', brand: 'Havells Standard', spec: '2.5 sq mm, Blue, 90m', unit: 'Coil', cost: 1850 },
+    { name: 'FR PVC Wire 2.5 sq mm - Black', brand: 'Havells Standard', spec: '2.5 sq mm, Black, 90m', unit: 'Coil', cost: 1850 },
+    { name: 'FR PVC Wire 2.5 sq mm - Green', brand: 'Havells Standard', spec: '2.5 sq mm, Green, 90m', unit: 'Coil', cost: 1850 },
+    { name: 'FR PVC Wire 4.0 sq mm - Red', brand: 'Havells Standard', spec: '4.0 sq mm, Red, 90m', unit: 'Coil', cost: 2800 },
+    { name: 'FR PVC Wire 4.0 sq mm - Blue', brand: 'Havells Standard', spec: '4.0 sq mm, Blue, 90m', unit: 'Coil', cost: 2800 },
+    { name: 'FR PVC Wire 4.0 sq mm - Black', brand: 'Havells Standard', spec: '4.0 sq mm, Black, 90m', unit: 'Coil', cost: 2800 },
+    { name: 'FR PVC Wire 4.0 sq mm - Green', brand: 'Havells Standard', spec: '4.0 sq mm, Green, 90m', unit: 'Coil', cost: 2800 },
+    { name: 'FR PVC Wire 6.0 sq mm - Red', brand: 'Havells Standard', spec: '6.0 sq mm, Red, 90m', unit: 'Coil', cost: 4200 },
+    { name: 'FR PVC Wire 6.0 sq mm - Blue', brand: 'Havells Standard', spec: '6.0 sq mm, Blue, 90m', unit: 'Coil', cost: 4200 },
+    { name: 'FR PVC Wire 6.0 sq mm - Black', brand: 'Havells Standard', spec: '6.0 sq mm, Black, 90m', unit: 'Coil', cost: 4200 },
+    { name: 'FR PVC Wire 6.0 sq mm - Green', brand: 'Havells Standard', spec: '6.0 sq mm, Green, 90m', unit: 'Coil', cost: 4200 },
+
+    // ========== WIRES - POLYCAB ==========
+    { name: 'FR PVC Wire 0.75 sq mm - Red', brand: 'Polycab', spec: '0.75 sq mm, Red, 90m', unit: 'Coil', cost: 620 },
+    { name: 'FR PVC Wire 0.75 sq mm - Blue', brand: 'Polycab', spec: '0.75 sq mm, Blue, 90m', unit: 'Coil', cost: 620 },
+    { name: 'FR PVC Wire 0.75 sq mm - Black', brand: 'Polycab', spec: '0.75 sq mm, Black, 90m', unit: 'Coil', cost: 620 },
+    { name: 'FR PVC Wire 0.75 sq mm - Green', brand: 'Polycab', spec: '0.75 sq mm, Green, 90m', unit: 'Coil', cost: 620 },
+    { name: 'FR PVC Wire 1.0 sq mm - Red', brand: 'Polycab', spec: '1.0 sq mm, Red, 90m', unit: 'Coil', cost: 820 },
+    { name: 'FR PVC Wire 1.5 sq mm - Red', brand: 'Polycab', spec: '1.5 sq mm, Red, 90m', unit: 'Coil', cost: 1200 },
+    { name: 'FR PVC Wire 2.5 sq mm - Red', brand: 'Polycab', spec: '2.5 sq mm, Red, 90m', unit: 'Coil', cost: 2000 },
+    { name: 'FR PVC Wire 4.0 sq mm - Red', brand: 'Polycab', spec: '4.0 sq mm, Red, 90m', unit: 'Coil', cost: 3100 },
+    { name: 'FR PVC Wire 6.0 sq mm - Red', brand: 'Polycab', spec: '6.0 sq mm, Red, 90m', unit: 'Coil', cost: 4600 },
+
+    // ========== WIRES - FINOLEX ==========
+    { name: 'FR PVC Wire 0.75 sq mm - Red', brand: 'Finolex', spec: '0.75 sq mm, Red, 90m', unit: 'Coil', cost: 600 },
+    { name: 'FR PVC Wire 0.75 sq mm - Blue', brand: 'Finolex', spec: '0.75 sq mm, Blue, 90m', unit: 'Coil', cost: 600 },
+    { name: 'FR PVC Wire 0.75 sq mm - Black', brand: 'Finolex', spec: '0.75 sq mm, Black, 90m', unit: 'Coil', cost: 600 },
+    { name: 'FR PVC Wire 0.75 sq mm - Green', brand: 'Finolex', spec: '0.75 sq mm, Green, 90m', unit: 'Coil', cost: 600 },
+    { name: 'FR PVC Wire 1.0 sq mm - Red', brand: 'Finolex', spec: '1.0 sq mm, Red, 90m', unit: 'Coil', cost: 800 },
+    { name: 'FR PVC Wire 1.5 sq mm - Red', brand: 'Finolex', spec: '1.5 sq mm, Red, 90m', unit: 'Coil', cost: 1150 },
+    { name: 'FR PVC Wire 2.5 sq mm - Red', brand: 'Finolex', spec: '2.5 sq mm, Red, 90m', unit: 'Coil', cost: 1950 },
+    { name: 'FR PVC Wire 4.0 sq mm - Red', brand: 'Finolex', spec: '4.0 sq mm, Red, 90m', unit: 'Coil', cost: 3000 },
+    { name: 'FR PVC Wire 6.0 sq mm - Red', brand: 'Finolex', spec: '6.0 sq mm, Red, 90m', unit: 'Coil', cost: 4500 },
+
+    // ========== WIRES - RR KABEL ==========
+    { name: 'FR PVC Wire 0.75 sq mm - Red', brand: 'RR Kabel', spec: '0.75 sq mm, Red, 90m', unit: 'Coil', cost: 610 },
+    { name: 'FR PVC Wire 0.75 sq mm - Blue', brand: 'RR Kabel', spec: '0.75 sq mm, Blue, 90m', unit: 'Coil', cost: 610 },
+    { name: 'FR PVC Wire 0.75 sq mm - Black', brand: 'RR Kabel', spec: '0.75 sq mm, Black, 90m', unit: 'Coil', cost: 610 },
+    { name: 'FR PVC Wire 0.75 sq mm - Green', brand: 'RR Kabel', spec: '0.75 sq mm, Green, 90m', unit: 'Coil', cost: 610 },
+    { name: 'FR PVC Wire 1.0 sq mm - Red', brand: 'RR Kabel', spec: '1.0 sq mm, Red, 90m', unit: 'Coil', cost: 810 },
+    { name: 'FR PVC Wire 1.5 sq mm - Red', brand: 'RR Kabel', spec: '1.5 sq mm, Red, 90m', unit: 'Coil', cost: 1180 },
+    { name: 'FR PVC Wire 2.5 sq mm - Red', brand: 'RR Kabel', spec: '2.5 sq mm, Red, 90m', unit: 'Coil', cost: 1980 },
+    { name: 'FR PVC Wire 4.0 sq mm - Red', brand: 'RR Kabel', spec: '4.0 sq mm, Red, 90m', unit: 'Coil', cost: 3050 },
+    { name: 'FR PVC Wire 6.0 sq mm - Red', brand: 'RR Kabel', spec: '6.0 sq mm, Red, 90m', unit: 'Coil', cost: 4550 },
+
+    // ========== WIRES - V-GUARD ==========
+    { name: 'FR PVC Wire 0.75 sq mm - Red', brand: 'V-Guard', spec: '0.75 sq mm, Red, 90m', unit: 'Coil', cost: 590 },
+    { name: 'FR PVC Wire 0.75 sq mm - Blue', brand: 'V-Guard', spec: '0.75 sq mm, Blue, 90m', unit: 'Coil', cost: 590 },
+    { name: 'FR PVC Wire 0.75 sq mm - Black', brand: 'V-Guard', spec: '0.75 sq mm, Black, 90m', unit: 'Coil', cost: 590 },
+    { name: 'FR PVC Wire 0.75 sq mm - Green', brand: 'V-Guard', spec: '0.75 sq mm, Green, 90m', unit: 'Coil', cost: 590 },
+    { name: 'FR PVC Wire 1.0 sq mm - Red', brand: 'V-Guard', spec: '1.0 sq mm, Red, 90m', unit: 'Coil', cost: 780 },
+    { name: 'FR PVC Wire 1.5 sq mm - Red', brand: 'V-Guard', spec: '1.5 sq mm, Red, 90m', unit: 'Coil', cost: 1120 },
+    { name: 'FR PVC Wire 2.5 sq mm - Red', brand: 'V-Guard', spec: '2.5 sq mm, Red, 90m', unit: 'Coil', cost: 1900 },
+    { name: 'FR PVC Wire 4.0 sq mm - Red', brand: 'V-Guard', spec: '4.0 sq mm, Red, 90m', unit: 'Coil', cost: 2950 },
+    { name: 'FR PVC Wire 6.0 sq mm - Red', brand: 'V-Guard', spec: '6.0 sq mm, Red, 90m', unit: 'Coil', cost: 4400 },
+
+    // ========== PVC CONDUIT PIPES ==========
+    { name: 'PVC Conduit Pipe 20mm (3/4")', brand: 'Supreme/Sudhakar', spec: '20mm, 3m length', unit: 'Pcs', cost: 38 },
+    { name: 'PVC Conduit Pipe 25mm (1")', brand: 'Supreme/Sudhakar', spec: '25mm, 3m length', unit: 'Pcs', cost: 52 },
+    { name: 'PVC Concealer Casing-Capping', brand: 'Supreme/MK', spec: '25x16mm, 3m', unit: 'Pcs', cost: 45 },
+    { name: 'PVC Flexible Pipe 20mm', brand: 'Generic', spec: '20mm, 25m roll', unit: 'Roll', cost: 180 },
+    { name: 'PVC Flexible Pipe 25mm', brand: 'Generic', spec: '25mm, 25m roll', unit: 'Roll', cost: 250 },
+
+    // ========== GI BOXES (Galvanized Iron) ==========
+    { name: 'GI Modular Box 1M/2M', brand: 'Local/Generic', spec: '1/2 Module, MS Box', unit: 'Pcs', cost: 18 },
+    { name: 'GI Modular Box 3M', brand: 'Local/Generic', spec: '3 Module, MS Box', unit: 'Pcs', cost: 22 },
+    { name: 'GI Modular Box 4M', brand: 'Local/Generic', spec: '4 Module, MS Box', unit: 'Pcs', cost: 25 },
+    { name: 'GI Modular Box 6M', brand: 'Local/Generic', spec: '6 Module, MS Box', unit: 'Pcs', cost: 30 },
+    { name: 'GI Modular Box 8M', brand: 'Local/Generic', spec: '8 Module, MS Box', unit: 'Pcs', cost: 38 },
+    { name: 'GI Modular Box 12M', brand: 'Local/Generic', spec: '12 Module, MS Box', unit: 'Pcs', cost: 50 },
+    { name: 'GI Modular Box 18M', brand: 'Local/Generic', spec: '18 Module, MS Box', unit: 'Pcs', cost: 70 },
+    { name: 'GI Junction Box (Square)', brand: 'Local/Generic', spec: '4x4 inch, Deep', unit: 'Pcs', cost: 15 },
+    { name: 'GI Junction Box (Round)', brand: 'Local/Generic', spec: 'Round, Deep type', unit: 'Pcs', cost: 12 },
+    { name: 'GI Fan Box (Octagonal)', brand: 'Local/Generic', spec: 'Octagonal, Heavy Duty', unit: 'Pcs', cost: 20 },
+    { name: 'GI Concealed Box (3x3)', brand: 'Local/Generic', spec: '3x3 inch', unit: 'Pcs', cost: 10 },
+
+    // ========== SWITCHES & SOCKETS - PRECITON ==========
+    { name: 'Modular Switch 6A', brand: 'Preciton', spec: '6A, 1 Way', unit: 'Pcs', cost: 18 },
+    { name: 'Modular Switch 16A', brand: 'Preciton', spec: '16A, 1 Way', unit: 'Pcs', cost: 22 },
+    { name: 'Modular Switch 2-Way 6A', brand: 'Preciton', spec: '6A, 2 Way', unit: 'Pcs', cost: 28 },
+    { name: 'Modular Socket 6A', brand: 'Preciton', spec: '6A, 5-pin', unit: 'Pcs', cost: 25 },
+    { name: 'Modular Socket 16A', brand: 'Preciton', spec: '16A, 3-pin', unit: 'Pcs', cost: 35 },
+    { name: 'Modular Plate 2M', brand: 'Preciton', spec: '2 Module', unit: 'Pcs', cost: 20 },
+    { name: 'Modular Plate 4M', brand: 'Preciton', spec: '4 Module', unit: 'Pcs', cost: 30 },
+    { name: 'Modular Plate 6M', brand: 'Preciton', spec: '6 Module', unit: 'Pcs', cost: 38 },
+    { name: 'Modular Plate 8M', brand: 'Preciton', spec: '8 Module', unit: 'Pcs', cost: 48 },
+    { name: 'Bell Push Switch', brand: 'Preciton', spec: '6A, Bell Push', unit: 'Pcs', cost: 22 },
+    { name: 'Fan Regulator', brand: 'Preciton', spec: '5 Step, Rotary', unit: 'Pcs', cost: 55 },
+    { name: 'Indicator Light (LED)', brand: 'Preciton', spec: 'Neon/LED type', unit: 'Pcs', cost: 15 },
+
+    // ========== SWITCHES & SOCKETS - ANCHOR/HAVELLS ==========
+    { name: 'Modular Switch 6A', brand: 'Anchor/Havells', spec: '6A, 1 Way', unit: 'Pcs', cost: 32 },
+    { name: 'Modular Switch 16A', brand: 'Anchor/Havells', spec: '16A, 1 Way', unit: 'Pcs', cost: 38 },
+    { name: 'Modular Switch 2-Way 6A', brand: 'Anchor/Havells', spec: '6A, 2 Way', unit: 'Pcs', cost: 45 },
+    { name: 'Modular Socket 6A', brand: 'Anchor/Havells', spec: '6A, 5-pin', unit: 'Pcs', cost: 42 },
+    { name: 'Modular Socket 16A', brand: 'Anchor/Havells', spec: '16A, 3-pin', unit: 'Pcs', cost: 55 },
+    { name: 'Modular Plate 2M', brand: 'Anchor/Havells', spec: '2 Module', unit: 'Pcs', cost: 35 },
+    { name: 'Modular Plate 4M', brand: 'Anchor/Havells', spec: '4 Module', unit: 'Pcs', cost: 50 },
+    { name: 'Modular Plate 6M', brand: 'Anchor/Havells', spec: '6 Module', unit: 'Pcs', cost: 65 },
+    { name: 'Modular Plate 8M', brand: 'Anchor/Havells', spec: '8 Module', unit: 'Pcs', cost: 80 },
+    { name: 'Fan Regulator', brand: 'Anchor/Havells', spec: '5 Step, Rotary', unit: 'Pcs', cost: 85 },
+
+    // ========== SWITCHES & SOCKETS - LEGRAND ==========
+    { name: 'Modular Switch 6A', brand: 'Legrand', spec: '6A, 1 Way', unit: 'Pcs', cost: 45 },
+    { name: 'Modular Switch 16A', brand: 'Legrand', spec: '16A, 1 Way', unit: 'Pcs', cost: 52 },
+    { name: 'Modular Socket 6A', brand: 'Legrand', spec: '6A, 5-pin', unit: 'Pcs', cost: 55 },
+    { name: 'Modular Plate 2M', brand: 'Legrand', spec: '2 Module', unit: 'Pcs', cost: 42 },
+    { name: 'Modular Plate 4M', brand: 'Legrand', spec: '4 Module', unit: 'Pcs', cost: 60 },
+
+    // ========== SWITCHES & SOCKETS - SCHNEIDER ==========
+    { name: 'Modular Switch 6A', brand: 'Schneider', spec: '6A, 1 Way, AvatarOn', unit: 'Pcs', cost: 48 },
+    { name: 'Modular Switch 16A', brand: 'Schneider', spec: '16A, 1 Way, AvatarOn', unit: 'Pcs', cost: 55 },
+    { name: 'Modular Socket 6A', brand: 'Schneider', spec: '6A, 5-pin', unit: 'Pcs', cost: 58 },
+    { name: 'Modular Plate 2M', brand: 'Schneider', spec: '2 Module', unit: 'Pcs', cost: 45 },
+    { name: 'Modular Plate 4M', brand: 'Schneider', spec: '4 Module', unit: 'Pcs', cost: 65 },
+
+    // ========== MCB (Miniature Circuit Breaker) ==========
+    { name: 'MCB SP 6A', brand: 'Havells', spec: 'SP, C-Curve, 10kA', unit: 'Pcs', cost: 88 },
+    { name: 'MCB SP 10A', brand: 'Havells', spec: 'SP, C-Curve, 10kA', unit: 'Pcs', cost: 92 },
+    { name: 'MCB SP 16A', brand: 'Havells', spec: 'SP, C-Curve, 10kA', unit: 'Pcs', cost: 95 },
+    { name: 'MCB SP 20A', brand: 'Havells', spec: 'SP, C-Curve, 10kA', unit: 'Pcs', cost: 98 },
+    { name: 'MCB SP 32A', brand: 'Havells', spec: 'SP, C-Curve, 10kA', unit: 'Pcs', cost: 110 },
+    { name: 'MCB DP 32A', brand: 'Havells', spec: 'DP, C-Curve, 10kA', unit: 'Pcs', cost: 220 },
+    { name: 'MCB DP 40A', brand: 'Havells', spec: 'DP, C-Curve, 10kA', unit: 'Pcs', cost: 240 },
+    { name: 'MCB SP 16A', brand: 'Schneider', spec: 'SP, C-Curve, Acti9', unit: 'Pcs', cost: 105 },
+    { name: 'MCB SP 32A', brand: 'Schneider', spec: 'SP, C-Curve, Acti9', unit: 'Pcs', cost: 120 },
+    { name: 'MCB DP 40A', brand: 'Schneider', spec: 'DP, C-Curve, Acti9', unit: 'Pcs', cost: 260 },
+    { name: 'MCB SP 6A/10A/16A', brand: 'Preciton', spec: 'SP, C-Curve', unit: 'Pcs', cost: 55 },
+    { name: 'MCB DP 32A/40A', brand: 'Preciton', spec: 'DP, C-Curve', unit: 'Pcs', cost: 130 },
+    { name: 'MCB SP 16A', brand: 'Legrand', spec: 'SP, C-Curve', unit: 'Pcs', cost: 110 },
+    { name: 'MCB DP 40A', brand: 'Legrand', spec: 'DP, C-Curve', unit: 'Pcs', cost: 250 },
+
+    // ========== RCCB (Residual Current Circuit Breaker) ==========
+    { name: 'RCCB 25A 30mA (2 Pole)', brand: 'Havells', spec: '30mA, DP', unit: 'Pcs', cost: 850 },
+    { name: 'RCCB 40A 30mA (2 Pole)', brand: 'Havells', spec: '30mA, DP', unit: 'Pcs', cost: 900 },
+    { name: 'RCCB 40A 30mA (4 Pole)', brand: 'Havells', spec: '30mA, FP', unit: 'Pcs', cost: 1800 },
+    { name: 'RCCB 25A 30mA (2 Pole)', brand: 'Schneider', spec: '30mA, DP', unit: 'Pcs', cost: 950 },
+    { name: 'RCCB 40A 30mA (2 Pole)', brand: 'Schneider', spec: '30mA, DP', unit: 'Pcs', cost: 1000 },
+    { name: 'RCCB 25A 30mA (2 Pole)', brand: 'Preciton', spec: '30mA, DP', unit: 'Pcs', cost: 550 },
+    { name: 'RCCB 40A 30mA (2 Pole)', brand: 'Legrand', spec: '30mA, DP', unit: 'Pcs', cost: 980 },
+
+    // ========== DISTRIBUTION BOARDS ==========
+    { name: 'DB 4-Way SPN', brand: 'Havells', spec: '4 Way, Single Phase', unit: 'Pcs', cost: 350 },
+    { name: 'DB 8-Way SPN', brand: 'Havells', spec: '8 Way, Single Phase', unit: 'Pcs', cost: 550 },
+    { name: 'DB 12-Way TPN', brand: 'Havells', spec: '12 Way, Three Phase', unit: 'Pcs', cost: 1200 },
+    { name: 'DB 4-Way SPN', brand: 'Schneider', spec: '4 Way, Single Phase', unit: 'Pcs', cost: 400 },
+    { name: 'DB 8-Way SPN', brand: 'Schneider', spec: '8 Way, Single Phase', unit: 'Pcs', cost: 650 },
+    { name: 'DB 4-Way SPN', brand: 'Preciton', spec: '4 Way, Single Phase', unit: 'Pcs', cost: 200 },
+    { name: 'DB 8-Way SPN', brand: 'Preciton', spec: '8 Way, Single Phase', unit: 'Pcs', cost: 350 },
+
+    // ========== CEILING FANS ==========
+    { name: 'Ceiling Fan 1200mm Standard', brand: 'Havells', spec: '1200mm, 75W', unit: 'Pcs', cost: 1200 },
+    { name: 'Ceiling Fan 1200mm Standard', brand: 'Crompton', spec: '1200mm, 75W', unit: 'Pcs', cost: 1100 },
+    { name: 'Ceiling Fan 1200mm Standard', brand: 'Orient', spec: '1200mm, 75W', unit: 'Pcs', cost: 1050 },
+    { name: 'Ceiling Fan 1200mm Standard', brand: 'Bajaj', spec: '1200mm, 75W', unit: 'Pcs', cost: 950 },
+    { name: 'Ceiling Fan BLDC Energy Saver', brand: 'Atomberg', spec: '1200mm, 28W BLDC', unit: 'Pcs', cost: 2800 },
+    { name: 'Ceiling Fan BLDC Energy Saver', brand: 'Havells', spec: '1200mm, 32W BLDC', unit: 'Pcs', cost: 3200 },
+    { name: 'Ceiling Fan BLDC Energy Saver', brand: 'Crompton', spec: '1200mm, 30W BLDC', unit: 'Pcs', cost: 2600 },
+    { name: 'Ceiling Fan Decorative', brand: 'Havells', spec: '1200mm, Decorative', unit: 'Pcs', cost: 2200 },
+    { name: 'Exhaust Fan 6 inch', brand: 'Havells', spec: '150mm, Ventil Air', unit: 'Pcs', cost: 650 },
+    { name: 'Exhaust Fan 9 inch', brand: 'Havells', spec: '225mm, Ventil Air', unit: 'Pcs', cost: 950 },
+    { name: 'Exhaust Fan 12 inch', brand: 'Havells', spec: '300mm, Ventil Air', unit: 'Pcs', cost: 1200 },
+
+    // ========== LED LIGHTS ==========
     { name: 'LED Bulb 9W', brand: 'Philips', spec: 'B22, Cool Daylight', unit: 'Pcs', cost: 65 },
     { name: 'LED Bulb 12W', brand: 'Philips', spec: 'B22, Cool Daylight', unit: 'Pcs', cost: 85 },
-    { name: 'LED Bulb 9W', brand: 'Havells', spec: 'B22, Cool Daylight', unit: 'Pcs', cost: 75 },
-    { name: 'LED Panel Light 12W (Round)', brand: 'Philips', spec: '12W, Recessed, 6"', unit: 'Pcs', cost: 180 },
-    { name: 'LED Panel Light 18W (Round)', brand: 'Philips', spec: '18W, Recessed, 8"', unit: 'Pcs', cost: 250 },
-    { name: 'LED Tube Light 20W (4ft)', brand: 'Philips', spec: '20W, T5/T8, 4 feet', unit: 'Pcs', cost: 150 },
-    { name: 'LED Batten 20W (4ft)', brand: 'Havells', spec: '20W, Surface Mount', unit: 'Pcs', cost: 220 },
-    // -- EXHAUST FANS --
-    { name: 'Exhaust Fan 6" (150mm)', brand: 'Havells', spec: '150mm, Wall Mount', unit: 'Pcs', cost: 550 },
-    { name: 'Exhaust Fan 8" (200mm)', brand: 'Havells', spec: '200mm, Wall Mount', unit: 'Pcs', cost: 750 },
-    { name: 'Exhaust Fan 6" (150mm)', brand: 'Crompton', spec: '150mm, Wall Mount', unit: 'Pcs', cost: 500 },
-    // -- ACCESSORIES --
-    { name: 'Calling Bell (Ding Dong)', brand: 'Anchor/Havells', spec: '220V, Surface Mount', unit: 'Pcs', cost: 120 },
-    { name: 'Junction Box (Deep/Concealed)', brand: 'National/Supreme', spec: '3x3 / 4x4 Concealed', unit: 'Pcs', cost: 12 },
-    { name: 'GI Earth Wire 8 SWG', brand: 'Standard', spec: '8 SWG, per meter', unit: 'Mtr', cost: 18 },
-    { name: 'Copper Earth Wire 4 sq mm', brand: 'Havells/Polycab', spec: 'Green, per meter', unit: 'Mtr', cost: 22 },
-    { name: 'Earth Rod (Copper Bonded)', brand: 'Standard', spec: '17.2mm x 3m', unit: 'Pcs', cost: 1200 },
-    { name: 'Electrical Tape (PVC)', brand: 'Supreme/3M', spec: '18mm x 8m', unit: 'Roll', cost: 15 },
-    { name: 'Cable Clip / Nail Clip', brand: 'National', spec: 'For 1.5/2.5 sq mm wire', unit: 'Pkt(100)', cost: 25 },
-    { name: 'Cable Tie 150mm', brand: 'National/Fivestar', spec: '150mm x 3.6mm', unit: 'Pkt(100)', cost: 30 },
-    { name: 'Geyser / Water Heater 15L', brand: 'Havells/Bajaj', spec: '15 Litre, 2kW', unit: 'Pcs', cost: 4500 },
-    { name: 'Stabilizer (Voltage) 4KVA', brand: 'V-Guard/Microtek', spec: '4 KVA, Wall Mount', unit: 'Pcs', cost: 2800 },
+    { name: 'LED Bulb 15W', brand: 'Philips', spec: 'B22, Cool Daylight', unit: 'Pcs', cost: 110 },
+    { name: 'LED Bulb 9W', brand: 'Havells', spec: 'B22, Cool Daylight', unit: 'Pcs', cost: 70 },
+    { name: 'LED Bulb 12W', brand: 'Havells', spec: 'B22, Cool Daylight', unit: 'Pcs', cost: 90 },
+    { name: 'LED Tube Light 20W (4ft)', brand: 'Philips', spec: '4ft, Cool Daylight', unit: 'Pcs', cost: 180 },
+    { name: 'LED Tube Light 20W (4ft)', brand: 'Havells', spec: '4ft, Cool Daylight', unit: 'Pcs', cost: 200 },
+    { name: 'LED Panel Light 6W (Round)', brand: 'Philips', spec: 'Recessed, Round', unit: 'Pcs', cost: 200 },
+    { name: 'LED Panel Light 12W (Round)', brand: 'Philips', spec: 'Recessed, Round', unit: 'Pcs', cost: 280 },
+    { name: 'LED Panel Light 18W (Round)', brand: 'Philips', spec: 'Recessed, Round', unit: 'Pcs', cost: 350 },
+    { name: 'LED Panel Light 6W (Square)', brand: 'Havells', spec: 'Recessed, Square', unit: 'Pcs', cost: 220 },
+    { name: 'LED Panel Light 12W (Square)', brand: 'Havells', spec: 'Recessed, Square', unit: 'Pcs', cost: 300 },
+    { name: 'LED Downlight 7W', brand: 'Philips', spec: 'Recessed, 3000K/6500K', unit: 'Pcs', cost: 250 },
+    { name: 'LED Downlight 12W', brand: 'Philips', spec: 'Recessed, 3000K/6500K', unit: 'Pcs', cost: 380 },
+    { name: 'LED Flood Light 20W', brand: 'Havells', spec: 'IP65, Outdoor', unit: 'Pcs', cost: 450 },
+    { name: 'LED Flood Light 50W', brand: 'Havells', spec: 'IP65, Outdoor', unit: 'Pcs', cost: 850 },
+    { name: 'LED Strip Light (5m)', brand: 'Generic', spec: '5m roll, 12V, Warm/Cool', unit: 'Roll', cost: 350 },
+    { name: 'LED Batten Light 20W (2ft)', brand: 'Philips', spec: '2ft, Cool Daylight', unit: 'Pcs', cost: 250 },
+    { name: 'LED Batten Light 36W (4ft)', brand: 'Philips', spec: '4ft, Cool Daylight', unit: 'Pcs', cost: 380 },
+
+    // ========== ACCESSORIES & MISCELLANEOUS ==========
+    { name: 'Electrical Tape (PVC)', brand: 'Generic', spec: 'Black, 18mm x 8m', unit: 'Pcs', cost: 12 },
+    { name: 'Cable Tie (100 pcs)', brand: 'Generic', spec: '150mm, Nylon', unit: 'Pkt', cost: 40 },
+    { name: 'Junction Box Lid', brand: 'Generic', spec: 'Round/Square', unit: 'Pcs', cost: 5 },
+    { name: 'PVC Bend 20mm', brand: 'Generic', spec: '90 degree', unit: 'Pcs', cost: 4 },
+    { name: 'PVC Bend 25mm', brand: 'Generic', spec: '90 degree', unit: 'Pcs', cost: 6 },
+    { name: 'Saddle Clamp 20mm', brand: 'Generic', spec: 'PVC, Nail type', unit: 'Pcs', cost: 1.5 },
+    { name: 'Saddle Clamp 25mm', brand: 'Generic', spec: 'PVC, Nail type', unit: 'Pcs', cost: 2 },
+    { name: 'Earth Rod (GI) 4ft', brand: 'Generic', spec: '4ft, 12mm GI Rod', unit: 'Pcs', cost: 180 },
+    { name: 'Earth Wire 8 SWG', brand: 'Generic', spec: '8 SWG, GI, 1kg', unit: 'Kg', cost: 90 },
+    { name: 'Copper Lug (various)', brand: 'Generic', spec: 'Ring type, Tinned', unit: 'Pcs', cost: 8 },
 ];
 
 let materialItems = [];
@@ -984,10 +1096,14 @@ function generateMaterialsQuotation() {
     const opts = { year:'numeric', month:'long', day:'numeric' };
     document.getElementById('mat-pdf-date').textContent = dateObj.toLocaleDateString('en-US', opts);
     const validityDate = new Date(dateObj);
-    validityDate.setDate(validityDate.getDate() + 30);
-    document.getElementById('mat-pdf-validity').textContent = validityDate.toLocaleDateString('en-US', opts);
+    validityDate.setDate(validityDate.getDate() + 15); // Strictly 15 Days validity as requested
+    const validityStr = validityDate.toLocaleDateString('en-US', opts);
+    document.getElementById('mat-pdf-validity').textContent = validityStr;
+    if (document.getElementById('mat-pdf-validity-2')) {
+        document.getElementById('mat-pdf-validity-2').textContent = validityStr;
+    }
     
-    // Fill BOQ Table \u2014 Customer PDF (NO cost price, NO profit %)
+    // Fill BOQ Table â€” Customer PDF (NO cost price, NO profit %)
     const boqTbody = document.getElementById('mat-pdf-boq-tbody');
     boqTbody.innerHTML = '';
     
@@ -1031,15 +1147,40 @@ function generateMaterialsQuotation() {
         discBox.style.display = 'none';
     }
     
-    // GST in PDF
+    // GST & Grand Total in PDF
     document.getElementById('mat-pdf-net-total').textContent = formatCurrency(netTotal);
     document.getElementById('mat-pdf-gst').textContent = formatCurrency(gstAmount);
     document.getElementById('mat-pdf-grand-total').textContent = formatCurrency(grandTotal);
-    document.getElementById('mat-pdf-validity').textContent = validityDate.toLocaleDateString('en-US', opts);
+    
+    // Payment terms & schedule in PDF (100% advance)
+    const advanceAmtEl = document.getElementById('mat-pdf-advance-amt');
+    if (advanceAmtEl) {
+        advanceAmtEl.textContent = formatCurrency(grandTotal);
+    }
+    
+    // Populate Materials Terms & Conditions list
+    const termsInput = document.getElementById('mat-inp-terms');
+    const termsList = document.getElementById('mat-pdf-terms-list');
+    if (termsList && termsInput) {
+        termsList.innerHTML = '';
+        termsInput.value.split('\n').filter(line => line.trim()).forEach(line => {
+            const li = document.createElement('li');
+            let text = line.trim();
+            if (text.startsWith('â€¢') || text.startsWith('-') || text.startsWith('*')) {
+                text = text.substring(1).trim();
+            }
+            const colonIdx = text.indexOf(':');
+            if (colonIdx > 0 && colonIdx < 60) {
+                li.innerHTML = '<strong>' + text.substring(0, colonIdx + 1) + '</strong>' + text.substring(colonIdx + 1);
+            } else {
+                li.textContent = text;
+            }
+            termsList.appendChild(li);
+        });
+    }
     
     goToStep('3m');
 }
-
 function downloadMaterialsPDF() {
     const el = document.getElementById('mat-pdf-document');
     const btn = document.getElementById('mat-download-btn');
