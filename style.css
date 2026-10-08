@@ -206,6 +206,53 @@ body{font-family:'Inter',sans-serif;background:var(--bg-dark);color:var(--text);
 ::-webkit-scrollbar-track{background:rgba(0,0,0,.05);}
 ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px;}
 
+
+/* ===========================================
+   MATERIALS PURCHASE ORDER (PO) STYLES
+   =========================================== */
+.pdf-document.pdf-rendering.pdf-single-page .pdf-page {
+    height: 295mm !important;
+    min-height: 295mm !important;
+    max-height: 295mm !important;
+    padding: 10mm 14mm !important;
+    overflow: hidden !important;
+    page-break-after: avoid !important;
+}
+.pdf-po-badge {
+    background: #4f46e5;
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: .7rem;
+    font-weight: 800;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+}
+.whatsapp-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #16a34a;
+    color: #fff;
+    font-size: .6rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+}
+.blank-ruled-cell {
+    border-bottom: 1px dotted #94a3b8 !important;
+    height: 26px;
+    min-height: 26px;
+}
+[contenteditable="true"]:hover {
+    outline: 1px dashed #6366f1;
+    background: rgba(99, 102, 241, 0.05);
+}
+[contenteditable="true"]:focus {
+    outline: 2px solid #6366f1;
+    background: #fff;
+}
+
 /* Responsive */
 @media(max-width:900px){
     .category-grid{grid-template-columns:repeat(2,1fr);}
@@ -219,8 +266,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg-dark);color:var(--text);
 /* Print Overrides */
 @media print{
     body{background:#fff!important;overflow:visible!important;height:auto!important;}
-    #step-1,#step-2,.preview-topbar{display:none!important;}
-    #step-3{display:block!important;height:auto!important;overflow:visible!important;}
+    #step-1,#step-2,#step-2m,#step-po-form,.preview-topbar{display:none!important;}
+    #step-3,#step-3m,#step-po-pdf{display:block!important;height:auto!important;overflow:visible!important;}
     .preview-scroll-area{background:none!important;padding:0!important;display:block!important;overflow:visible!important;}
     .pdf-page{box-shadow:none!important;margin:0!important;page-break-after:always!important;page-break-inside:avoid!important;}
     .pdf-page:last-child{page-break-after:auto!important;}
