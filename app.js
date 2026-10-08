@@ -1293,6 +1293,8 @@ function clearPOForm() {
     document.getElementById('po-inp-vendor-address').value = '';
     document.getElementById('po-inp-vendor-phone').value = '';
     document.getElementById('po-inp-vendor-gstin').value = '';
+    const compGstEl = document.getElementById('po-inp-company-gstin');
+    if (compGstEl) compGstEl.value = '';
     document.getElementById('po-inp-ref').value = '';
     document.getElementById('po-inp-freight').value = '0';
     poItems = [
@@ -1402,6 +1404,17 @@ function previewPO(isBlank) {
     document.getElementById('po-pdf-vendor-gstin').textContent = vendorGstin;
     document.getElementById('po-pdf-delivery-addr').textContent = deliveryAddr;
     document.getElementById('po-pdf-pay-terms').textContent = payTerms;
+
+    const compGstinInput = document.getElementById('po-inp-company-gstin');
+    const compGstin = compGstinInput ? compGstinInput.value.trim() : '';
+    const compGstinDisplay = document.getElementById('po-pdf-company-gstin');
+    if (compGstinDisplay) {
+        if (compGstin) {
+            compGstinDisplay.textContent = compGstin;
+        } else {
+            compGstinDisplay.textContent = isBlank ? '___________________' : '';
+        }
+    }
 
     const badge = document.getElementById('po-pdf-mode-badge');
     if (badge) {

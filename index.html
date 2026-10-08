@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=20261008_PO">
+    <link rel="stylesheet" href="style.css?v=20261008_V2">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
@@ -90,8 +90,14 @@
                 </div>
             </div>
 
-            <div class="landing-footer">
-                <p>&copy; 2026 AMPEdge Solution | Powering the Edge of Tomorrow.</p>
+            <div class="landing-footer" style="padding:24px 10px;text-align:center;">
+                <p style="font-size:.9rem;font-weight:600;color:var(--text);margin-bottom:6px;">&copy; 2026 AMPEdge Solution | Powering the Edge of Tomorrow.</p>
+                <p style="font-size:.78rem;color:var(--text-muted);line-height:1.6;margin:0;">
+                    &#128205; West Bauria, Chackasi, Palpara, Howrah 711307 &bull; 
+                    &#128222; Contact: +91 91236 67258 | +91 97483 98418 &bull; 
+                    <a href="https://wa.me/919874600265" target="_blank" style="color:#22c55e;text-decoration:none;font-weight:600;"><i class="fa-brands fa-whatsapp"></i> WhatsApp Business: +91 98746 00265</a> &bull; 
+                    &#9993; ampedge.info@gmail.com
+                </p>
             </div>
         </div>
     </div>
@@ -742,14 +748,18 @@
                         <input type="text" id="po-inp-vendor-gstin" value="19AAACE1234F1Z5" placeholder="Supplier GST number">
                     </div>
                 </div>
-                <div class="client-form-grid" style="grid-template-columns:2fr 1fr;margin-top:14px;">
+                <div class="client-form-grid" style="grid-template-columns:1.5fr 1fr 1fr;margin-top:14px;">
                     <div class="form-field">
                         <label>Delivery / Dispatch Location (Site / Warehouse)</label>
-                        <input type="text" id="po-inp-delivery-addr" value="AMPEdge Godown / Site: Howrah, West Bengal - 711101" placeholder="Where materials should be delivered">
+                        <input type="text" id="po-inp-delivery-addr" value="AMPEdge Site / Godown: West Bauria, Chackasi, Palpara, Howrah 711307" placeholder="Where materials should be delivered">
                     </div>
                     <div class="form-field">
                         <label>Payment Terms</label>
                         <input type="text" id="po-inp-pay-terms" value="100% Advance Payment before dispatch" placeholder="e.g. 100% Advance / Net 15 Days">
+                    </div>
+                    <div class="form-field">
+                        <label>Company GSTIN <span class="hint">(Optional &mdash; Blank by default)</span></label>
+                        <input type="text" id="po-inp-company-gstin" value="" placeholder="Leave blank or type manually">
                     </div>
                 </div>
             </div>
@@ -863,11 +873,11 @@
                         </div>
                         <div style="font-size:.62rem;color:#475569;line-height:1.45;text-align:right;">
                             <strong style="color:#0f172a;font-size:.72rem;">AMPEdge Solution</strong><br>
-                            Howrah, West Bengal - 711101, India<br>
-                            <span>&#128222; +91 98300 12345 / +91 98745 67890</span><br>
-                            <span class="whatsapp-pill">&#128172; WhatsApp: +91 98300 12345</span><br>
-                            <span>&#9993; ampedgesolution@gmail.com</span><br>
-                            <strong style="color:#4f46e5;">GSTIN: 19AAHCA9847F1Z3</strong>
+                            <span>West Bauria, Chackasi, Palpara, Howrah 711307</span><br>
+                            <span>&#128222; Contact: +91 91236 67258 | +91 97483 98418</span><br>
+                            <a href="https://wa.me/919874600265" target="_blank" class="whatsapp-pill" style="text-decoration:none;color:#fff;"><i class="fa-brands fa-whatsapp"></i> WhatsApp Business: +91 98746 00265</a><br>
+                            <span>&#9993; ampedge.info@gmail.com</span><br>
+                            <span id="po-pdf-company-gstin-wrap" style="color:#4f46e5;font-weight:700;">GSTIN: <span id="po-pdf-company-gstin" contenteditable="true" style="display:inline-block;min-width:130px;border-bottom:1px dotted #94a3b8;color:#0f172a;"></span></span>
                         </div>
                     </div>
 
@@ -978,6 +988,6 @@
     </div>
 
 
-    <script src="app.js?v=20261008_PO"></script>
+    <script src="app.js?v=20261008_V2"></script>
 </body>
 </html>
