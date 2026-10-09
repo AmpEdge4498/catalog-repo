@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=20261009_V6">
+    <link rel="stylesheet" href="style.css?v=20261009_PAGE_FIX">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
@@ -319,40 +319,8 @@
                     <div class="pdf-page-footer"><span>AMPEdge Solution | Powering the Edge of Tomorrow.</span><span>Page 1 of 3</span></div>
                 </div>
 
-                <!-- PAGE 2: BOQ TABLE -->
-                <div class="pdf-page page-boq">
-                    <div class="pdf-page-header-repeat">
-                        <img src="logo.png" alt="AMPEdge" class="pdf-logo-sm">
-                        <span class="pdf-header-company">AMPEdge Solution</span>
-                        <span class="pdf-header-tag">Powering the Edge of Tomorrow.</span>
-                    </div>
-                    <div class="pdf-section-strip"><h2>2. DETAILED BILL OF QUANTITIES (BOQ) & COMMERCIAL SCHEDULE</h2></div>
-                    <table class="pdf-boq-table">
-                        <thead>
-                            <tr>
-                                <th style="width:35px">ITEM</th>
-                                <th>DESCRIPTION OF WORK</th>
-                                <th class="text-center" style="width:55px">UNIT</th>
-                                <th class="text-right" style="width:70px">RATE (₹)</th>
-                                <th class="text-center" style="width:50px">QTY</th>
-                                <th class="text-right" style="width:70px">DISC (₹)</th>
-                                <th class="text-right" style="width:85px">AMOUNT (₹)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pdf-boq-tbody">
-                            <!-- Dynamically populated -->
-                        </tbody>
-                    </table>
-                    <div class="pdf-discount-summary" id="pdf-discount-box" style="display:none;">
-                        <div class="discount-row"><span>Gross Total (Before Discount):</span><span id="pdf-gross-total" class="font-mono">₹0</span></div>
-                        <div class="discount-row highlight"><span><i class="fa-solid fa-tags"></i> Discount Applied (<span id="pdf-disc-pct">0</span>%):</span><span id="pdf-disc-amt" class="font-mono" style="color:#f59e0b">-₹0</span></div>
-                    </div>
-                    <div class="pdf-grand-total-banner">
-                        <span>GRAND TOTAL CONFIRMED LABOUR COST:</span>
-                        <span class="pdf-grand-value" id="pdf-grand-total">₹0.00</span>
-                    </div>
-                    <div class="pdf-page-footer"><span>AMPEdge Solution | Powering the Edge of Tomorrow.</span><span>Page 2 of 3</span></div>
-                </div>
+                <!-- DYNAMIC BOQ PAGES CONTAINER -->
+                <div id="pdf-boq-pages-container" style="display:contents;"></div>
 
                 <!-- PAGE 3: TERMS & SIGNATURES -->
                 <div class="pdf-page page-terms">
@@ -609,44 +577,8 @@
                     <div class="pdf-page-footer"><span>AMPEdge Solution | Powering the Edge of Tomorrow.</span><span>Page 1</span></div>
                 </div>
 
-                <!-- MAT PAGE 2: MATERIALS BOQ TABLE -->
-                <div class="pdf-page">
-                    <div class="pdf-page-header-repeat">
-                        <img src="logo.png" alt="AMPEdge" class="pdf-logo-sm">
-                        <span class="pdf-header-company">AMPEdge Solution</span>
-                        <span class="pdf-header-tag">Powering the Edge of Tomorrow.</span>
-                    </div>
-                    <div class="pdf-section-strip"><h2><i class="fa-solid fa-boxes-stacked"></i> Materials Bill of Quantities (BOQ)</h2></div>
-                    <table class="pdf-boq-table">
-                        <thead>
-                            <tr>
-                                <th style="width:30px">ITEM</th>
-                                <th>MATERIAL</th>
-                                <th class="text-center" style="width:65px">BRAND</th>
-                                <th class="text-center" style="width:65px">SIZE/SPEC</th>
-                                <th class="text-center" style="width:40px">UNIT</th>
-                                <th class="text-right" style="width:65px">RATE (₹)</th>
-                                <th class="text-center" style="width:35px">QTY</th>
-                                <th class="text-right" style="width:60px">DISC (₹)</th>
-                                <th class="text-right" style="width:75px">AMOUNT (₹)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="mat-pdf-boq-tbody"></tbody>
-                    </table>
-                    <div id="mat-pdf-discount-box" class="pdf-discount-summary" style="display:none;">
-                        <div class="discount-row"><span>Gross Total</span><span id="mat-pdf-gross-total">₹0</span></div>
-                        <div class="discount-row"><span>Discount (<span id="mat-pdf-disc-pct">0</span>%)</span><span id="mat-pdf-disc-amt">-₹0</span></div>
-                    </div>
-                    <div class="pdf-discount-summary" style="display:block;margin-top:4px;">
-                        <div class="discount-row"><span>Net Total</span><span id="mat-pdf-net-total">₹0</span></div>
-                        <div class="discount-row"><span>GST @ 18%</span><span id="mat-pdf-gst" style="color:#f59e0b;">₹0</span></div>
-                    </div>
-                    <div class="pdf-grand-total-banner">
-                        <span>GRAND TOTAL incl. GST (Materials)</span>
-                        <span class="pdf-grand-value" id="mat-pdf-grand-total">₹0.00</span>
-                    </div>
-                    <div class="pdf-page-footer"><span>AMPEdge Solution | Powering the Edge of Tomorrow.</span><span>Page 2</span></div>
-                </div>
+                <!-- DYNAMIC MATERIALS BOQ PAGES CONTAINER -->
+                <div id="mat-pdf-boq-pages-container" style="display:contents;"></div>
 
                 <!-- MAT PAGE 3: TERMS & SIGNATURES -->
                 <div class="pdf-page page-terms">
@@ -1327,6 +1259,6 @@
     </div>
 
 
-    <script src="app.js?v=20261009_V6"></script>
+    <script src="app.js?v=20261009_PAGE_FIX"></script>
 </body>
 </html>

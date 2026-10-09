@@ -530,18 +530,16 @@ function addCustomRow() {
 
 // ====== STEP 3: GENERATE QUOTATION & PDF PREVIEW ======
 function generateQuotation() {
-    const units = parseInt(document.getElementById('inp-units').value) || 1;
     const client = document.getElementById('inp-client').value || 'Client';
     const project = document.getElementById('inp-project').value || 'Project';
     const address = document.getElementById('inp-address').value || EMDASH;
     const quoteno = document.getElementById('inp-quoteno').value || EMDASH;
     const dateVal = document.getElementById('inp-date').value;
+    const units = parseInt(document.getElementById('inp-units').value) || 1;
     
-    // Only include items with qty > 0
-    const activeItems = configItems.filter(i => i.qty > 0);
-    
+    const activeItems = pointsData.filter(i => i.qty > 0);
     if (activeItems.length === 0) {
-        alert('Please enter quantity for at least one item before generating the quotation.');
+        alert('Please enter quantity for at least one electrical point before generating the quotation.');
         return;
     }
     
@@ -559,52 +557,136 @@ function generateQuotation() {
     const validityDate = new Date(dateObj);
     validityDate.setDate(validityDate.getDate() + 30);
     document.getElementById('pdf-validity').textContent = validityDate.toLocaleDateString('en-US', opts);
-    
-    // Fill BOQ Table
-    const boqTbody = document.getElementById('pdf-boq-tbody');
-    boqTbody.innerHTML = '';
-    
+
+    // =====================================================================
+    // DYNAMIC BOQ PAGINATION (Max 20 items per page as requested)
+    // =====================================================================
+    const BOQ_PER_PAGE = 20;
+    const chunks = [];
+    for (let i = 0; i < activeItems.length; i += BOQ_PER_PAGE) {
+        chunks.push(activeItems.slice(i, i + BOQ_PER_PAGE));
+    }
+    if (chunks.length === 0) chunks.push([]);
+
+    const totalPages = 1 + chunks.length + 1; // Cover (1) + BOQ pages (N) + Terms (1)
+
+    // Update Cover Page Footer
+    const coverFooter = document.querySelector('#pdf-document .page-cover .pdf-page-footer');
+    if (coverFooter) {
+        coverFooter.innerHTML = `<span>AMPEdge Solution | Powering the Edge of Tomorrow.</span><span>Page 1 of ${totalPages}</span>`;
+    }
+
+    // Precalculate Totals
     let grossTotal = 0;
     let totalDiscount = 0;
-    
-    activeItems.forEach((item, idx) => {
+    activeItems.forEach(item => {
         const totalQty = item.qty * units;
         const itemDisc = item.discount || 0;
         const effectiveRate = Math.max(0, item.rate - itemDisc);
-        const amount = totalQty * effectiveRate;
         grossTotal += totalQty * item.rate;
         totalDiscount += totalQty * itemDisc;
-        
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td class="text-center font-bold">${idx + 1}</td>
-            <td>${item.name}</td>
-            <td class="text-center">${item.unit}</td>
-            <td class="text-right">${RUPEE}${item.rate.toLocaleString('en-IN')}</td>
-            <td class="text-center font-bold">${totalQty}${units > 1 ? ` (${item.qty}${MULTIPLY}${units})` : ''}</td>
-            <td class="text-right" style="color:#d97706;">${itemDisc > 0 ? RUPEE + itemDisc.toLocaleString('en-IN') : EMDASH}</td>
-            <td class="text-right font-mono font-bold">${formatCurrency(amount)}</td>
-        `;
-        boqTbody.appendChild(tr);
     });
-    
-    // Discount summary
+
     const grandTotal = Math.max(0, grossTotal - totalDiscount);
     const discPct = grossTotal > 0 ? ((totalDiscount / grossTotal) * 100).toFixed(1) : 0;
-    
-    // Show/hide discount box in PDF
-    const discBox = document.getElementById('pdf-discount-box');
-    if (totalDiscount > 0) {
-        discBox.style.display = 'block';
-        document.getElementById('pdf-gross-total').textContent = formatCurrency(grossTotal);
-        document.getElementById('pdf-disc-pct').textContent = discPct;
-        document.getElementById('pdf-disc-amt').textContent = '-' + formatCurrency(totalDiscount);
-    } else {
-        discBox.style.display = 'none';
+
+    // Render Paginated BOQ Pages
+    const boqContainer = document.getElementById('pdf-boq-pages-container');
+    boqContainer.innerHTML = '';
+
+    chunks.forEach((chunk, chunkIdx) => {
+        const currentPageNum = chunkIdx + 2;
+        const isFirstBOQ = (chunkIdx === 0);
+        const isLastBOQ = (chunkIdx === chunks.length - 1);
+        const startIndex = chunkIdx * BOQ_PER_PAGE;
+
+        const pageDiv = document.createElement('div');
+        pageDiv.className = 'pdf-page page-boq';
+
+        let pageHtml = `
+            <div class="pdf-page-header-repeat">
+                <img src="logo.png" alt="AMPEdge" class="pdf-logo-sm">
+                <span class="pdf-header-company">AMPEdge Solution</span>
+                <span class="pdf-header-tag">Powering the Edge of Tomorrow.</span>
+            </div>
+            <div class="pdf-section-strip">
+                <h2>${isFirstBOQ ? '2. DETAILED BILL OF QUANTITIES (BOQ) &amp; COMMERCIAL SCHEDULE' : `2. BILL OF QUANTITIES (BOQ) &amp; COMMERCIAL SCHEDULE (CONT. &mdash; PART ${chunkIdx + 1})`}</h2>
+            </div>
+            <table class="pdf-boq-table">
+                <thead>
+                    <tr>
+                        <th style="width:35px" class="text-center">ITEM</th>
+                        <th>DESCRIPTION OF WORK</th>
+                        <th class="text-center" style="width:55px">UNIT</th>
+                        <th class="text-right" style="width:70px">RATE (${RUPEE})</th>
+                        <th class="text-center" style="width:50px">QTY</th>
+                        <th class="text-right" style="width:70px">DISC (${RUPEE})</th>
+                        <th class="text-right" style="width:85px">AMOUNT (${RUPEE})</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        chunk.forEach((item, rIdx) => {
+            const itemNumber = startIndex + rIdx + 1;
+            const totalQty = item.qty * units;
+            const itemDisc = item.discount || 0;
+            const effectiveRate = Math.max(0, item.rate - itemDisc);
+            const amount = totalQty * effectiveRate;
+
+            pageHtml += `
+                <tr>
+                    <td class="text-center font-bold">${itemNumber}</td>
+                    <td><strong>${item.name}</strong></td>
+                    <td class="text-center">${item.unit}</td>
+                    <td class="text-right">${RUPEE}${item.rate.toLocaleString('en-IN')}</td>
+                    <td class="text-center font-bold">${totalQty}${units > 1 ? ` (${item.qty}${MULTIPLY}${units})` : ''}</td>
+                    <td class="text-right" style="color:#d97706;">${itemDisc > 0 ? RUPEE + itemDisc.toLocaleString('en-IN') : EMDASH}</td>
+                    <td class="text-right font-mono font-bold">${formatCurrency(amount)}</td>
+                </tr>
+            `;
+        });
+
+        pageHtml += `
+                </tbody>
+            </table>
+        `;
+
+        // If it's the last BOQ page, append Discount Box and Grand Total Banner
+        if (isLastBOQ) {
+            if (totalDiscount > 0) {
+                pageHtml += `
+                    <div class="pdf-discount-summary" style="margin-top:10px;">
+                        <div class="discount-row"><span>Gross Total (Before Discount):</span><span class="font-mono">${formatCurrency(grossTotal)}</span></div>
+                        <div class="discount-row highlight"><span><i class="fa-solid fa-tags"></i> Discount Applied (${discPct}%):</span><span class="font-mono" style="color:#f59e0b">-${formatCurrency(totalDiscount)}</span></div>
+                    </div>
+                `;
+            }
+            pageHtml += `
+                <div class="pdf-grand-total-banner" style="margin-top:10px;">
+                    <span>GRAND TOTAL CONFIRMED LABOUR COST:</span>
+                    <span class="pdf-grand-value">${formatCurrency(grandTotal)}</span>
+                </div>
+            `;
+        }
+
+        // Page Footer
+        pageHtml += `
+            <div class="pdf-page-footer">
+                <span>AMPEdge Solution | Powering the Edge of Tomorrow.</span>
+                <span>Page ${currentPageNum} of ${totalPages}</span>
+            </div>
+        `;
+
+        pageDiv.innerHTML = pageHtml;
+        boqContainer.appendChild(pageDiv);
+    });
+
+    // Update Terms Page Footer
+    const termsFooter = document.querySelector('#pdf-document .page-terms .pdf-page-footer');
+    if (termsFooter) {
+        termsFooter.innerHTML = `<span>AMPEdge Solution | Powering the Edge of Tomorrow.</span><span>Page ${totalPages} of ${totalPages}</span>`;
     }
-    
-    // Grand total (after discount)
-    document.getElementById('pdf-grand-total').textContent = formatCurrency(grandTotal);
     
     // Editable Payment milestones
     const ms1Pct = parseFloat(document.getElementById('inp-ms1-pct').value) || 0;
@@ -627,12 +709,10 @@ function generateQuotation() {
     termsList.innerHTML = '';
     termsText.split('\n').filter(line => line.trim()).forEach(line => {
         const li = document.createElement('li');
-        // Remove leading bullet character if present
         let text = line.trim();
         if (text.startsWith('\u2022') || text.startsWith('-') || text.startsWith('*')) {
             text = text.substring(1).trim();
         }
-        // Bold the part before the first colon
         const colonIdx = text.indexOf(':');
         if (colonIdx > 0 && colonIdx < 60) {
             li.innerHTML = '<strong>' + text.substring(0, colonIdx + 1) + '</strong>' + text.substring(colonIdx + 1);
@@ -645,7 +725,6 @@ function generateQuotation() {
     goToStep(3);
 }
 
-// ====== PDF DOWNLOAD ======
 function downloadPDF() {
     const el = document.getElementById('pdf-document');
     const btn = document.getElementById('download-btn');
@@ -1135,91 +1214,175 @@ function generateMaterialsQuotation() {
     const opts = { year:'numeric', month:'long', day:'numeric' };
     document.getElementById('mat-pdf-date').textContent = dateObj.toLocaleDateString('en-US', opts);
     const validityDate = new Date(dateObj);
-    validityDate.setDate(validityDate.getDate() + 15); // Strictly 15 Days validity as requested
+    validityDate.setDate(validityDate.getDate() + 15);
     const validityStr = validityDate.toLocaleDateString('en-US', opts);
     document.getElementById('mat-pdf-validity').textContent = validityStr;
     if (document.getElementById('mat-pdf-validity-2')) {
         document.getElementById('mat-pdf-validity-2').textContent = validityStr;
     }
-    
-    // Fill BOQ Table â€” Customer PDF (NO cost price, NO profit %)
-    const boqTbody = document.getElementById('mat-pdf-boq-tbody');
-    boqTbody.innerHTML = '';
-    
+
+    // =====================================================================
+    // DYNAMIC MATERIALS BOQ PAGINATION (Max 20 items per page)
+    // =====================================================================
+    const MAT_PER_PAGE = 20;
+    const chunks = [];
+    for (let i = 0; i < activeItems.length; i += MAT_PER_PAGE) {
+        chunks.push(activeItems.slice(i, i + MAT_PER_PAGE));
+    }
+    if (chunks.length === 0) chunks.push([]);
+
+    const totalPages = 1 + chunks.length + 1; // Cover (1) + BOQ pages (N) + Terms (1)
+
+    const coverFooter = document.querySelector('#mat-pdf-document .page-cover .pdf-page-footer');
+    if (coverFooter) {
+        coverFooter.innerHTML = `<span>AMPEdge Solution | Powering the Edge of Tomorrow.</span><span>Page 1 of ${totalPages}</span>`;
+    }
+
+    // Precalculate Totals
     let grossTotal = 0;
     let totalDiscount = 0;
-    
-    activeItems.forEach((item, idx) => {
+    activeItems.forEach(item => {
         const sellingPrice = item.sellPriceOverride || Math.round(item.cost * (1 + item.profit / 100));
-        const effectivePrice = Math.max(0, sellingPrice - item.discount);
-        const amount = item.qty * effectivePrice;
         grossTotal += item.qty * sellingPrice;
-        totalDiscount += item.qty * item.discount;
-        
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td class="text-center font-bold">${idx + 1}</td>
-            <td>${item.name}</td>
-            <td class="text-center" style="font-size:.6rem">${item.brand}</td>
-            <td class="text-center" style="font-size:.6rem">${item.spec}</td>
-            <td class="text-center">${item.unit}</td>
-            <td class="text-right">${RUPEE}${sellingPrice.toLocaleString('en-IN')}</td>
-            <td class="text-center font-bold">${item.qty}</td>
-            <td class="text-right" style="color:#d97706;">${item.discount > 0 ? RUPEE + item.discount.toLocaleString('en-IN') : EMDASH}</td>
-            <td class="text-right font-mono font-bold">${formatCurrency(amount)}</td>
-        `;
-        boqTbody.appendChild(tr);
+        totalDiscount += item.qty * (item.discount || 0);
     });
-    
+
     const netTotal = Math.max(0, grossTotal - totalDiscount);
     const gstAmount = Math.round(netTotal * 0.18);
-    const grandTotal = netTotal + gstAmount;
+    const grandWithGST = netTotal + gstAmount;
     const discPct = grossTotal > 0 ? ((totalDiscount / grossTotal) * 100).toFixed(1) : 0;
-    
-    const discBox = document.getElementById('mat-pdf-discount-box');
-    if (totalDiscount > 0) {
-        discBox.style.display = 'block';
-        document.getElementById('mat-pdf-gross-total').textContent = formatCurrency(grossTotal);
-        document.getElementById('mat-pdf-disc-pct').textContent = discPct;
-        document.getElementById('mat-pdf-disc-amt').textContent = '-' + formatCurrency(totalDiscount);
-    } else {
-        discBox.style.display = 'none';
-    }
-    
-    // GST & Grand Total in PDF
-    document.getElementById('mat-pdf-net-total').textContent = formatCurrency(netTotal);
-    document.getElementById('mat-pdf-gst').textContent = formatCurrency(gstAmount);
-    document.getElementById('mat-pdf-grand-total').textContent = formatCurrency(grandTotal);
-    
-    // Payment terms & schedule in PDF (100% advance)
-    const advanceAmtEl = document.getElementById('mat-pdf-advance-amt');
-    if (advanceAmtEl) {
-        advanceAmtEl.textContent = formatCurrency(grandTotal);
-    }
-    
-    // Populate Materials Terms & Conditions list
-    const termsInput = document.getElementById('mat-inp-terms');
-    const termsList = document.getElementById('mat-pdf-terms-list');
-    if (termsList && termsInput) {
-        termsList.innerHTML = '';
-        termsInput.value.split('\n').filter(line => line.trim()).forEach(line => {
-            const li = document.createElement('li');
-            let text = line.trim();
-            if (text.startsWith('â€¢') || text.startsWith('-') || text.startsWith('*')) {
-                text = text.substring(1).trim();
-            }
-            const colonIdx = text.indexOf(':');
-            if (colonIdx > 0 && colonIdx < 60) {
-                li.innerHTML = '<strong>' + text.substring(0, colonIdx + 1) + '</strong>' + text.substring(colonIdx + 1);
-            } else {
-                li.textContent = text;
-            }
-            termsList.appendChild(li);
+
+    const boqContainer = document.getElementById('mat-pdf-boq-pages-container');
+    boqContainer.innerHTML = '';
+
+    chunks.forEach((chunk, chunkIdx) => {
+        const currentPageNum = chunkIdx + 2;
+        const isFirstBOQ = (chunkIdx === 0);
+        const isLastBOQ = (chunkIdx === chunks.length - 1);
+        const startIndex = chunkIdx * MAT_PER_PAGE;
+
+        const pageDiv = document.createElement('div');
+        pageDiv.className = 'pdf-page page-boq';
+
+        let pageHtml = `
+            <div class="pdf-page-header-repeat">
+                <img src="logo.png" alt="AMPEdge" class="pdf-logo-sm">
+                <span class="pdf-header-company">AMPEdge Solution</span>
+                <span class="pdf-header-tag">Powering the Edge of Tomorrow.</span>
+            </div>
+            <div class="pdf-section-strip">
+                <h2><i class="fa-solid fa-boxes-stacked"></i> ${isFirstBOQ ? 'Materials Bill of Quantities (BOQ)' : `Materials Bill of Quantities (BOQ) (CONT. &mdash; PART ${chunkIdx + 1})`}</h2>
+            </div>
+            <table class="pdf-boq-table">
+                <thead>
+                    <tr>
+                        <th style="width:30px" class="text-center">ITEM</th>
+                        <th>MATERIAL</th>
+                        <th class="text-center" style="width:65px">BRAND</th>
+                        <th class="text-center" style="width:75px">SIZE/SPEC</th>
+                        <th class="text-center" style="width:40px">UNIT</th>
+                        <th class="text-right" style="width:65px">RATE (${RUPEE})</th>
+                        <th class="text-center" style="width:35px">QTY</th>
+                        <th class="text-right" style="width:60px">DISC (${RUPEE})</th>
+                        <th class="text-right" style="width:75px">AMOUNT (${RUPEE})</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        chunk.forEach((item, rIdx) => {
+            const itemNumber = startIndex + rIdx + 1;
+            const sellingPrice = item.sellPriceOverride || Math.round(item.cost * (1 + item.profit / 100));
+            const itemDisc = item.discount || 0;
+            const effectivePrice = Math.max(0, sellingPrice - itemDisc);
+            const amount = item.qty * effectivePrice;
+
+            pageHtml += `
+                <tr>
+                    <td class="text-center font-bold">${itemNumber}</td>
+                    <td><strong>${item.name}</strong></td>
+                    <td class="text-center">${item.brand || EMDASH}</td>
+                    <td class="text-center" style="font-size:.65rem;color:#64748b;">${item.spec || EMDASH}</td>
+                    <td class="text-center">${item.unit}</td>
+                    <td class="text-right font-mono">${RUPEE}${sellingPrice.toLocaleString('en-IN')}</td>
+                    <td class="text-center font-bold font-mono">${item.qty}</td>
+                    <td class="text-right" style="color:#d97706;">${itemDisc > 0 ? RUPEE + itemDisc.toLocaleString('en-IN') : EMDASH}</td>
+                    <td class="text-right font-mono font-bold">${formatCurrency(amount)}</td>
+                </tr>
+            `;
         });
+
+        pageHtml += `
+                </tbody>
+            </table>
+        `;
+
+        // If last BOQ page, add summary and totals
+        if (isLastBOQ) {
+            if (totalDiscount > 0) {
+                pageHtml += `
+                    <div class="pdf-discount-summary" style="margin-top:8px;">
+                        <div class="discount-row"><span>Gross Total</span><span class="font-mono">${formatCurrency(grossTotal)}</span></div>
+                        <div class="discount-row highlight"><span>Discount (${discPct}%)</span><span class="font-mono" style="color:#f59e0b">-${formatCurrency(totalDiscount)}</span></div>
+                    </div>
+                `;
+            }
+            pageHtml += `
+                <div class="pdf-discount-summary" style="margin-top:4px;">
+                    <div class="discount-row"><span>Net Total</span><span class="font-mono">${formatCurrency(netTotal)}</span></div>
+                    <div class="discount-row highlight"><span>GST @ 18%</span><span class="font-mono" style="color:#f59e0b;">${formatCurrency(gstAmount)}</span></div>
+                </div>
+                <div class="pdf-grand-total-banner" style="margin-top:8px;">
+                    <span>GRAND TOTAL incl. GST (Materials):</span>
+                    <span class="pdf-grand-value">${formatCurrency(grandWithGST)}</span>
+                </div>
+            `;
+        }
+
+        pageHtml += `
+            <div class="pdf-page-footer">
+                <span>AMPEdge Solution | Powering the Edge of Tomorrow.</span>
+                <span>Page ${currentPageNum} of ${totalPages}</span>
+            </div>
+        `;
+
+        pageDiv.innerHTML = pageHtml;
+        boqContainer.appendChild(pageDiv);
+    });
+
+    // Update Terms Page Footer
+    const termsFooter = document.querySelector('#mat-pdf-document .page-terms .pdf-page-footer');
+    if (termsFooter) {
+        termsFooter.innerHTML = `<span>AMPEdge Solution | Powering the Edge of Tomorrow.</span><span>Page ${totalPages} of ${totalPages}</span>`;
     }
-    
+
+    // Terms & Conditions list
+    const termsText = document.getElementById('mat-inp-terms').value;
+    const termsList = document.getElementById('mat-pdf-terms-list');
+    termsList.innerHTML = '';
+    termsText.split('\n').filter(line => line.trim()).forEach(line => {
+        const li = document.createElement('li');
+        let text = line.trim();
+        if (text.startsWith('\u2022') || text.startsWith('-') || text.startsWith('*')) {
+            text = text.substring(1).trim();
+        }
+        const colonIdx = text.indexOf(':');
+        if (colonIdx > 0 && colonIdx < 60) {
+            li.innerHTML = '<strong>' + text.substring(0, colonIdx + 1) + '</strong>' + text.substring(colonIdx + 1);
+        } else {
+            li.textContent = text;
+        }
+        termsList.appendChild(li);
+    });
+
+    // Payment milestone (100% advance)
+    if (document.getElementById('mat-pdf-ms1')) {
+        document.getElementById('mat-pdf-ms1').textContent = formatCurrency(grandWithGST);
+    }
+
     goToStep('3m');
 }
+
 function downloadMaterialsPDF() {
     const el = document.getElementById('mat-pdf-document');
     const btn = document.getElementById('mat-download-btn');
