@@ -537,7 +537,7 @@ function generateQuotation() {
     const dateVal = document.getElementById('inp-date').value;
     const units = parseInt(document.getElementById('inp-units').value) || 1;
     
-    const activeItems = pointsData.filter(i => i.qty > 0);
+    const activeItems = configItems.filter(i => i.qty > 0);
     if (activeItems.length === 0) {
         alert('Please enter quantity for at least one electrical point before generating the quotation.');
         return;
@@ -741,7 +741,7 @@ function downloadPDF() {
         image: { type:'jpeg', quality:0.98 },
         html2canvas: { scale:2, useCORS:true, letterRendering:true },
         jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
-        pagebreak: { mode: ['css'] }
+        pagebreak: { mode: ['css', 'legacy'], after: '.pdf-page:not(:last-child)' }
     }).from(el).save().then(() => {
         btn.innerHTML = orig;
         btn.disabled = false;
@@ -1399,7 +1399,7 @@ function downloadMaterialsPDF() {
         image: { type:'jpeg', quality:0.98 },
         html2canvas: { scale:2, useCORS:true, letterRendering:true },
         jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
-        pagebreak: { mode: ['css'] }
+        pagebreak: { mode: ['css', 'legacy'], after: '.pdf-page:not(:last-child)' }
     }).from(el).save().then(() => {
         btn.innerHTML = orig;
         btn.disabled = false;
