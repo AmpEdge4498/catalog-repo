@@ -681,6 +681,45 @@ function formatCurrency(v) {
     return RUPEE + v.toLocaleString('en-IN', { maximumFractionDigits:2, minimumFractionDigits:2 });
 }
 
+// Indian Numbering System to Words Converter
+function numberToWordsINR(num) {
+    if (isNaN(num) || num <= 0) return 'Rupees Zero Only';
+    const a = ['', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '];
+    const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+    function inWords(n) {
+        let str = '';
+        if (n > 99) {
+            str += a[Math.floor(n / 100)] + 'Hundred ';
+            n %= 100;
+            if (n > 0) str += 'and ';
+        }
+        if (n > 19) {
+            str += b[Math.floor(n / 10)] + ' ' + a[n % 10];
+        } else if (n > 0) {
+            str += a[n];
+        }
+        return str;
+    }
+
+    num = Math.floor(num);
+    let crore = Math.floor(num / 10000000);
+    num %= 10000000;
+    let lakh = Math.floor(num / 100000);
+    num %= 100000;
+    let thousand = Math.floor(num / 1000);
+    num %= 1000;
+    let remainder = num;
+
+    let res = 'Rupees ';
+    if (crore > 0) res += inWords(crore) + 'Crore ';
+    if (lakh > 0) res += inWords(lakh) + 'Lakh ';
+    if (thousand > 0) res += inWords(thousand) + 'Thousand ';
+    if (remainder > 0) res += inWords(remainder);
+    return res.trim() + ' Only';
+}
+
+
 // Keyboard shortcut: Enter to generate
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && document.getElementById('step-2').classList.contains('active')) {
@@ -1965,6 +2004,20 @@ function previewCommercialDoc() {
     }
 
     goToStep('doc-pdf');
+}
+
+
+function downloadDirectDocPDF(e) {
+    if (e && e.stopPropagation) e.stopPropagation();
+    try {
+        previewCommercialDoc();
+        setTimeout(() => {
+            downloadCommercialDocPDF();
+        }, 350);
+    } catch (err) {
+        console.error('Direct download error:', err);
+        alert('Could not generate document: ' + err.message);
+    }
 }
 
 function downloadCommercialDocPDF() {
