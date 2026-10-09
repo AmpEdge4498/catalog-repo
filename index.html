@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=20261008_V2">
+    <link rel="stylesheet" href="style.css?v=20261009_V3">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
@@ -778,12 +778,9 @@
                             <tr>
                                 <th style="width:35px;" class="text-center">#</th>
                                 <th>Material Description &amp; Specification</th>
-                                <th style="width:110px;">Make / Brand</th>
-                                <th style="width:90px;" class="text-center">HSN Code</th>
-                                <th style="width:85px;" class="text-center">Unit</th>
-                                <th style="width:80px;" class="text-center">Qty</th>
-                                <th style="width:110px;" class="text-right">Purchase Rate (&#8377;)</th>
-                                <th style="width:120px;" class="text-right">Amount (&#8377;)</th>
+                                <th style="width:160px;">Make / Brand</th>
+                                <th style="width:100px;" class="text-center">Unit</th>
+                                <th style="width:110px;" class="text-center">Qty</th>
                                 <th style="width:45px;" class="text-center"></th>
                             </tr>
                         </thead>
@@ -792,31 +789,17 @@
                 </div>
             </div>
 
-            <!-- Taxes, Freight & Total -->
+            <!-- Order Quantity Summary -->
             <div class="config-section">
-                <h2 class="config-section-title"><i class="fa-solid fa-calculator"></i> Taxes, Freight &amp; Order Total</h2>
-                <div class="client-form-grid" style="grid-template-columns:repeat(4,1fr);align-items:end;">
+                <h2 class="config-section-title"><i class="fa-solid fa-boxes-stacked"></i> Order Quantity Summary</h2>
+                <div class="client-form-grid" style="grid-template-columns:1fr 1fr;">
                     <div class="form-field">
-                        <label>Taxable Subtotal (&#8377;)</label>
-                        <input type="text" id="po-subtotal-display" value="&#8377;0.00" readonly style="color:var(--text);font-weight:700;">
+                        <label>Total Items Listed</label>
+                        <input type="text" id="po-summary-items" value="5 Items" readonly style="color:var(--text);font-weight:700;">
                     </div>
                     <div class="form-field">
-                        <label>GST Rate</label>
-                        <select id="po-inp-gst-rate" onchange="recalcPOTotals()" style="width:100%;background:var(--bg-card);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;">
-                            <option value="18" selected>GST @ 18% (Standard Electricals)</option>
-                            <option value="12">GST @ 12%</option>
-                            <option value="5">GST @ 5%</option>
-                            <option value="28">GST @ 28%</option>
-                            <option value="0">0% (Nil / Exempted)</option>
-                        </select>
-                    </div>
-                    <div class="form-field">
-                        <label>Freight / Transit Charges (&#8377;)</label>
-                        <input type="number" id="po-inp-freight" value="0" min="0" oninput="recalcPOTotals()">
-                    </div>
-                    <div class="form-field">
-                        <label style="color:#818cf8;font-size:.9rem;">Grand Total incl. Taxes (&#8377;)</label>
-                        <input type="text" id="po-grand-display" value="&#8377;0.00" readonly style="color:#818cf8;font-weight:700;font-size:1.15rem;">
+                        <label>Total Quantity Ordered</label>
+                        <input type="text" id="po-summary-qty" value="98 Total Qty" readonly style="color:#818cf8;font-weight:700;font-size:1.1rem;">
                     </div>
                 </div>
             </div>
@@ -913,44 +896,28 @@
                     </div>
 
                     <!-- Items Table -->
-                    <table class="pdf-boq-table" style="margin-bottom:6px;">
+                    <table class="pdf-boq-table" style="margin-bottom:8px;">
                         <thead>
                             <tr>
-                                <th style="width:28px;" class="text-center">#</th>
+                                <th style="width:32px;" class="text-center">#</th>
                                 <th>MATERIAL DESCRIPTION &amp; SPECIFICATION</th>
-                                <th style="width:70px;" class="text-center">MAKE</th>
-                                <th style="width:65px;" class="text-center">HSN</th>
-                                <th style="width:45px;" class="text-center">QTY</th>
-                                <th style="width:50px;" class="text-center">UNIT</th>
-                                <th style="width:75px;" class="text-right">RATE (&#8377;)</th>
-                                <th style="width:85px;" class="text-right">AMOUNT (&#8377;)</th>
+                                <th style="width:130px;" class="text-center">MAKE / BRAND</th>
+                                <th style="width:90px;" class="text-center">UNIT</th>
+                                <th style="width:80px;" class="text-center">QTY</th>
                             </tr>
                         </thead>
                         <tbody id="po-pdf-tbody"></tbody>
                     </table>
 
-                    <!-- Totals & Calculation Summary -->
-                    <div style="display:flex;gap:10px;margin-top:6px;">
-                        <div style="flex:1;">
-                            <div style="background:#f8fafc;border:1px dashed #cbd5e1;border-radius:4px;padding:5px 8px;font-size:.64rem;color:#334155;margin-bottom:6px;">
-                                <strong>Amount in Words:</strong> <span id="po-pdf-words">-</span>
-                            </div>
-                            <div style="font-size:.56rem;color:#475569;line-height:1.35;background:#fafafa;border:1px solid #e2e8f0;border-radius:4px;padding:6px 8px;">
-                                <strong style="color:#0f172a;display:block;margin-bottom:2px;">ORDER TERMS &amp; CONDITIONS:</strong>
-                                <div id="po-pdf-terms-view">• Goods must be 100% brand-new, ISI certified factory stock with valid warranty.<br>• Defective / damaged materials will be rejected upon site verification.<br>• Original Tax Invoice must accompany the dispatch. Disputes subject to Howrah / Kolkata jurisdiction.</div>
-                            </div>
-                        </div>
-                        <div style="width:220px;">
-                            <div class="pdf-discount-summary" style="margin-top:0;padding:6px 10px;font-size:.66rem;">
-                                <div class="discount-row"><span>Taxable Subtotal</span><span id="po-pdf-subtotal">&#8377;0.00</span></div>
-                                <div class="discount-row highlight"><span>GST (<span id="po-pdf-gst-pct">18</span>%)</span><span id="po-pdf-gst">&#8377;0.00</span></div>
-                                <div class="discount-row" id="po-pdf-freight-row" style="display:none;"><span>Freight / Transit</span><span id="po-pdf-freight">&#8377;0.00</span></div>
-                            </div>
-                            <div class="pdf-grand-total-banner" style="margin-top:4px;padding:7px 10px;border-radius:5px;">
-                                <span style="font-size:.68rem;">PURCHASE TOTAL:</span>
-                                <span class="pdf-grand-value" id="po-pdf-grand" style="font-size:1.05rem;color:#818cf8;">&#8377;0.00</span>
-                            </div>
-                        </div>
+                    <!-- Order Summary & Terms -->
+                    <div style="display:flex;justify-content:space-between;align-items:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:5px;padding:6px 12px;margin-bottom:8px;">
+                        <span style="font-size:.68rem;font-weight:700;color:#0f172a;" id="po-pdf-summary-badge">Total Items: 5 | Total Ordered Quantity: 98</span>
+                        <span style="font-size:.62rem;color:#64748b;font-weight:600;">Verified Materials Procurement List</span>
+                    </div>
+
+                    <div style="font-size:.58rem;color:#475569;line-height:1.45;background:#fafafa;border:1px solid #e2e8f0;border-radius:5px;padding:8px 12px;margin-bottom:8px;">
+                        <strong style="color:#0f172a;display:block;margin-bottom:3px;font-size:.62rem;letter-spacing:.3px;">ORDER TERMS &amp; CONDITIONS:</strong>
+                        <div id="po-pdf-terms-view">• Goods must be 100% brand-new, ISI certified factory stock with valid manufacturer warranty.<br>• Defective / damaged materials will be rejected upon site verification and must be replaced at vendor's cost.<br>• Original Tax Invoice must accompany the dispatch. Disputes subject to Howrah / Kolkata jurisdiction.</div>
                     </div>
 
                     <!-- Dual Director Signatures & Company Seal -->
@@ -988,6 +955,6 @@
     </div>
 
 
-    <script src="app.js?v=20261008_V2"></script>
+    <script src="app.js?v=20261009_V3"></script>
 </body>
 </html>

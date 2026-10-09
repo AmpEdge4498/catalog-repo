@@ -1229,25 +1229,23 @@ function openPOForm() {
     if (delInput && !delInput.value) delInput.value = delDate;
 
     if (poItems.length === 0) {
-        // If materialItems has active items (from materials config), load them
         const activeMatItems = materialItems.filter(i => (i.qty || 0) > 0);
         if (activeMatItems.length > 0) {
             loadCurrentMaterialsIntoPO();
         } else {
-            // Default sample items for purchase
             poItems = [
-                { name: 'FR PVC Wire 1.5 sq mm - Red (90m Coil)', brand: 'Havells', hsn: '8544', unit: 'Coil', qty: 10, rate: 1250 },
-                { name: 'FR PVC Wire 2.5 sq mm - Red (90m Coil)', brand: 'Havells', hsn: '8544', unit: 'Coil', qty: 6, rate: 1950 },
-                { name: 'Modular GI Box - 8 Module (Heavy Gauge)', brand: 'AMPEdge GI', hsn: '8538', unit: 'Pcs', qty: 20, rate: 95 },
-                { name: '10A 1-Way Modular Switch', brand: 'Preciton', hsn: '8536', unit: 'Pcs', qty: 50, rate: 26 },
-                { name: '16A SP MCB C-Curve 10kA', brand: 'Legrand', hsn: '8536', unit: 'Pcs', qty: 12, rate: 145 }
+                { name: 'FR PVC Wire 1.5 sq mm - Red (90m Coil)', brand: 'Havells', unit: 'Coil', qty: 10 },
+                { name: 'FR PVC Wire 2.5 sq mm - Red (90m Coil)', brand: 'Havells', unit: 'Coil', qty: 6 },
+                { name: 'Modular GI Box - 8 Module (Heavy Gauge)', brand: 'AMPEdge GI', unit: 'Pcs', qty: 20 },
+                { name: '10A 1-Way Modular Switch', brand: 'Preciton', unit: 'Pcs', qty: 50 },
+                { name: '16A SP MCB C-Curve 10kA', brand: 'Legrand', unit: 'Pcs', qty: 12 }
             ];
             renderPOItemsTable();
-            recalcPOTotals();
+            updatePOSummary();
         }
     } else {
         renderPOItemsTable();
-        recalcPOTotals();
+        updatePOSummary();
     }
     goToStep('po-form');
 }
@@ -1263,29 +1261,16 @@ function loadCurrentMaterialsIntoPO() {
         poItems = activeMatItems.map(i => ({
             name: i.name,
             brand: i.brand || 'Standard',
-            hsn: getHSNForCategory(i.name),
             unit: i.unit || 'Pcs',
-            qty: i.qty,
-            rate: i.cost || 0
+            qty: i.qty
         }));
     } else {
         poItems = [
-            { name: 'FR PVC Wire 1.5 sq mm - Red (90m Coil)', brand: 'Havells', hsn: '8544', unit: 'Coil', qty: 5, rate: 1250 }
+            { name: 'FR PVC Wire 1.5 sq mm - Red (90m Coil)', brand: 'Havells', unit: 'Coil', qty: 5 }
         ];
     }
     renderPOItemsTable();
-    recalcPOTotals();
-}
-
-function getHSNForCategory(name) {
-    const n = (name || '').toLowerCase();
-    if (n.includes('wire') || n.includes('cable')) return '8544';
-    if (n.includes('switch') || n.includes('socket') || n.includes('mcb') || n.includes('rccb')) return '8536';
-    if (n.includes('gi box') || n.includes('box') || n.includes('board') || n.includes('enclosure')) return '8538';
-    if (n.includes('light') || n.includes('led') || n.includes('bulb') || n.includes('batten') || n.includes('panel')) return '8539';
-    if (n.includes('fan')) return '8414';
-    if (n.includes('pipe') || n.includes('conduit')) return '3917';
-    return '8538';
+    updatePOSummary();
 }
 
 function clearPOForm() {
@@ -1296,38 +1281,37 @@ function clearPOForm() {
     const compGstEl = document.getElementById('po-inp-company-gstin');
     if (compGstEl) compGstEl.value = '';
     document.getElementById('po-inp-ref').value = '';
-    document.getElementById('po-inp-freight').value = '0';
     poItems = [
-        { name: '', brand: '', hsn: '8544', unit: 'Pcs', qty: 0, rate: 0 }
+        { name: '', brand: '', unit: 'Pcs', qty: 0 }
     ];
     renderPOItemsTable();
-    recalcPOTotals();
+    updatePOSummary();
 }
 
 function addPORow() {
-    poItems.push({ name: '', brand: '', hsn: '8544', unit: 'Pcs', qty: 1, rate: 0 });
+    poItems.push({ name: '', brand: '', unit: 'Pcs', qty: 1 });
     renderPOItemsTable();
-    recalcPOTotals();
+    updatePOSummary();
 }
 
 function removePORow(idx) {
     if (poItems.length <= 1) {
-        poItems = [{ name: '', brand: '', hsn: '8544', unit: 'Pcs', qty: 0, rate: 0 }];
+        poItems = [{ name: '', brand: '', unit: 'Pcs', qty: 0 }];
     } else {
         poItems.splice(idx, 1);
     }
     renderPOItemsTable();
-    recalcPOTotals();
+    updatePOSummary();
 }
 
 function updatePOItem(idx, field, val) {
     if (!poItems[idx]) return;
-    if (field === 'qty' || field === 'rate') {
+    if (field === 'qty') {
         poItems[idx][field] = parseFloat(val) || 0;
     } else {
         poItems[idx][field] = val;
     }
-    recalcPOTotals();
+    updatePOSummary();
 }
 
 function renderPOItemsTable() {
@@ -1336,13 +1320,11 @@ function renderPOItemsTable() {
     tbody.innerHTML = '';
 
     poItems.forEach((item, idx) => {
-        const amt = (item.qty || 0) * (item.rate || 0);
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td class="text-center font-bold">${idx + 1}</td>
             <td><input type="text" class="name-input" value="${item.name || ''}" placeholder="Material specification / description" oninput="updatePOItem(${idx}, 'name', this.value)"></td>
             <td><input type="text" value="${item.brand || ''}" placeholder="Brand / Make" style="width:100%;text-align:left;" oninput="updatePOItem(${idx}, 'brand', this.value)"></td>
-            <td><input type="text" value="${item.hsn || '8544'}" style="width:100%;text-align:center;" oninput="updatePOItem(${idx}, 'hsn', this.value)"></td>
             <td>
                 <select onchange="updatePOItem(${idx}, 'unit', this.value)" style="width:100%;background:var(--bg-card);color:var(--text);border:1px solid var(--border);padding:5px;border-radius:4px;font-size:.8rem;">
                     <option value="Coil" ${item.unit === 'Coil' ? 'selected' : ''}>Coil</option>
@@ -1354,28 +1336,28 @@ function renderPOItemsTable() {
                     <option value="Lot" ${item.unit === 'Lot' ? 'selected' : ''}>Lot</option>
                 </select>
             </td>
-            <td><input type="number" min="0" value="${item.qty || 0}" style="width:100%;text-align:center;" oninput="updatePOItem(${idx}, 'qty', this.value)"></td>
-            <td><input type="number" min="0" value="${item.rate || 0}" style="width:100%;text-align:right;" oninput="updatePOItem(${idx}, 'rate', this.value)"></td>
-            <td class="text-right font-mono font-bold" style="color:#818cf8;">${formatCurrency(amt)}</td>
+            <td><input type="number" min="0" value="${item.qty || 0}" style="width:100%;text-align:center;font-weight:700;" oninput="updatePOItem(${idx}, 'qty', this.value)"></td>
             <td class="text-center"><button class="del-btn" onclick="removePORow(${idx})" title="Delete row"><i class="fa-solid fa-trash-can"></i></button></td>
         `;
         tbody.appendChild(tr);
     });
 }
 
-function recalcPOTotals() {
-    let subtotal = 0;
+function updatePOSummary() {
+    let totalItems = 0;
+    let totalQty = 0;
     poItems.forEach(i => {
-        subtotal += (i.qty || 0) * (i.rate || 0);
+        if ((i.name && i.name.trim()) || i.qty > 0) {
+            totalItems++;
+            totalQty += (i.qty || 0);
+        }
     });
 
-    const gstRate = parseFloat(document.getElementById('po-inp-gst-rate').value) || 0;
-    const freight = parseFloat(document.getElementById('po-inp-freight').value) || 0;
-    const gstAmt = Math.round(subtotal * (gstRate / 100));
-    const grandTotal = subtotal + gstAmt + freight;
+    const itemsEl = document.getElementById('po-summary-items');
+    if (itemsEl) itemsEl.value = totalItems + ' Items';
 
-    document.getElementById('po-subtotal-display').value = formatCurrency(subtotal);
-    document.getElementById('po-grand-display').value = formatCurrency(grandTotal);
+    const qtyEl = document.getElementById('po-summary-qty');
+    if (qtyEl) qtyEl.value = totalQty + ' Total Qty';
 }
 
 function previewPO(isBlank) {
@@ -1424,9 +1406,11 @@ function previewPO(isBlank) {
     const tbody = document.getElementById('po-pdf-tbody');
     tbody.innerHTML = '';
 
-    let subtotal = 0;
+    let totalQty = 0;
+    let totalCount = 0;
+
     if (isBlank) {
-        for (let i = 1; i <= 8; i++) {
+        for (let i = 1; i <= 9; i++) {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td class="text-center font-bold" style="color:#64748b;">${i}</td>
@@ -1434,57 +1418,35 @@ function previewPO(isBlank) {
                 <td class="text-center blank-ruled-cell">&nbsp;</td>
                 <td class="text-center blank-ruled-cell">&nbsp;</td>
                 <td class="text-center blank-ruled-cell">&nbsp;</td>
-                <td class="text-center blank-ruled-cell">&nbsp;</td>
-                <td class="text-right blank-ruled-cell">&nbsp;</td>
-                <td class="text-right blank-ruled-cell">&nbsp;</td>
             `;
             tbody.appendChild(tr);
         }
-        document.getElementById('po-pdf-words').textContent = 'Rupees ____________________________________________________________________ Only';
-        document.getElementById('po-pdf-subtotal').textContent = RUPEE + ' ____________';
-        document.getElementById('po-pdf-gst').textContent = RUPEE + ' ____________';
-        document.getElementById('po-pdf-grand').textContent = RUPEE + ' ____________';
-        document.getElementById('po-pdf-freight-row').style.display = 'none';
+        const summaryBadge = document.getElementById('po-pdf-summary-badge');
+        if (summaryBadge) {
+            summaryBadge.textContent = 'Total Items: ___ | Total Quantity: ___';
+        }
     } else {
         const activeItems = poItems.filter(i => (i.name && i.name.trim()) || i.qty > 0);
         const displayItems = activeItems.length > 0 ? activeItems : poItems;
 
         displayItems.forEach((item, idx) => {
-            const amt = (item.qty || 0) * (item.rate || 0);
-            subtotal += amt;
+            totalCount++;
+            totalQty += (item.qty || 0);
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td class="text-center font-bold">${idx + 1}</td>
                 <td><strong>${item.name || 'Electrical Material Item'}</strong></td>
                 <td class="text-center">${item.brand || EMDASH}</td>
-                <td class="text-center mono">${item.hsn || '8544'}</td>
-                <td class="text-center font-bold font-mono">${item.qty || 0}</td>
                 <td class="text-center">${item.unit || 'Pcs'}</td>
-                <td class="text-right font-mono">${RUPEE}${(item.rate || 0).toLocaleString('en-IN')}</td>
-                <td class="text-right font-mono font-bold">${formatCurrency(amt)}</td>
+                <td class="text-center font-bold font-mono">${item.qty || 0}</td>
             `;
             tbody.appendChild(tr);
         });
 
-        const gstRate = parseFloat(document.getElementById('po-inp-gst-rate').value) || 0;
-        const freight = parseFloat(document.getElementById('po-inp-freight').value) || 0;
-        const gstAmt = Math.round(subtotal * (gstRate / 100));
-        const grandTotal = subtotal + gstAmt + freight;
-
-        document.getElementById('po-pdf-subtotal').textContent = formatCurrency(subtotal);
-        document.getElementById('po-pdf-gst-pct').textContent = gstRate;
-        document.getElementById('po-pdf-gst').textContent = formatCurrency(gstAmt);
-        document.getElementById('po-pdf-grand').textContent = formatCurrency(grandTotal);
-
-        const freightRow = document.getElementById('po-pdf-freight-row');
-        if (freight > 0) {
-            freightRow.style.display = 'flex';
-            document.getElementById('po-pdf-freight').textContent = formatCurrency(freight);
-        } else {
-            freightRow.style.display = 'none';
+        const summaryBadge = document.getElementById('po-pdf-summary-badge');
+        if (summaryBadge) {
+            summaryBadge.textContent = 'Total Items: ' + totalCount + ' | Total Ordered Quantity: ' + totalQty;
         }
-
-        document.getElementById('po-pdf-words').textContent = numberToWordsINR(grandTotal);
     }
 
     const termsVal = document.getElementById('po-inp-terms').value;
@@ -1537,42 +1499,4 @@ function downloadPODirectBlank(e) {
     setTimeout(() => {
         downloadPOPDF();
     }, 350);
-}
-
-// Indian Numbering System to Words Converter
-function numberToWordsINR(num) {
-    if (isNaN(num) || num <= 0) return 'Rupees Zero Only';
-    const a = ['', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '];
-    const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-
-    function inWords(n) {
-        let str = '';
-        if (n > 99) {
-            str += a[Math.floor(n / 100)] + 'Hundred ';
-            n %= 100;
-            if (n > 0) str += 'and ';
-        }
-        if (n > 19) {
-            str += b[Math.floor(n / 10)] + ' ' + a[n % 10];
-        } else if (n > 0) {
-            str += a[n];
-        }
-        return str;
-    }
-
-    num = Math.floor(num);
-    let crore = Math.floor(num / 10000000);
-    num %= 10000000;
-    let lakh = Math.floor(num / 100000);
-    num %= 100000;
-    let thousand = Math.floor(num / 1000);
-    num %= 1000;
-    let remainder = num;
-
-    let res = 'Rupees ';
-    if (crore > 0) res += inWords(crore) + 'Crore ';
-    if (lakh > 0) res += inWords(lakh) + 'Lakh ';
-    if (thousand > 0) res += inWords(thousand) + 'Thousand ';
-    if (remainder > 0) res += inWords(remainder);
-    return res.trim() + ' Only';
 }
