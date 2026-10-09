@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=20261009_V4">
+    <link rel="stylesheet" href="style.css?v=20261009_V5">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
@@ -86,6 +86,30 @@
                     <div class="card-icon" style="background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;"><i class="fa-solid fa-file-invoice"></i></div>
                     <h3>Materials Purchase Order (PO)</h3>
                     <p>Official Purchase Order (PO) for suppliers &amp; vendors &mdash; editable item typing, cost rates, GST, WhatsApp contacts &amp; dual director signatures.</p>
+                    <span class="card-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                </div>
+            </div>
+
+            
+            <!-- Commercial Documents: Bill, Challan & Payment Receipt -->
+            <div class="landing-divider"><span>Billing &amp; Commercial Documents (बिल, चालान व रसीद)</span></div>
+            <div class="category-grid" style="grid-template-columns:repeat(3,1fr);">
+                <div class="category-card" onclick="openCommercialDoc('bill')">
+                    <div class="card-icon" style="background:linear-gradient(135deg,#0284c7,#0369a1);color:#fff;"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                    <h3>Bill / Tax Invoice</h3>
+                    <p>Generate editable commercial bills &amp; tax invoices for electrical service &amp; material supply with GST, bank details &amp; signatures.</p>
+                    <span class="card-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                </div>
+                <div class="category-card" onclick="openCommercialDoc('challan')">
+                    <div class="card-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;"><i class="fa-solid fa-truck-ramp-box"></i></div>
+                    <h3>Delivery / Work Challan</h3>
+                    <p>Official material dispatch &amp; site execution challan with vehicle no, item quantities, site location &amp; receiver confirmation.</p>
+                    <span class="card-arrow"><i class="fa-solid fa-arrow-right"></i></span>
+                </div>
+                <div class="category-card" onclick="openCommercialDoc('receipt')">
+                    <div class="card-icon" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;"><i class="fa-solid fa-receipt"></i></div>
+                    <h3>Payment Receipt</h3>
+                    <p>Official payment acknowledgment receipt with amount in words, payment mode (UPI/Cash/Bank), Txn ID &amp; dual director signatures.</p>
                     <span class="card-arrow"><i class="fa-solid fa-arrow-right"></i></span>
                 </div>
             </div>
@@ -957,6 +981,349 @@
     </div>
 
 
-    <script src="app.js?v=20261009_V4"></script>
+
+    <!-- ==========================================================================
+         STEP: COMMERCIAL DOCUMENTS (BILL, CHALLAN, RECEIPT) CONFIGURATION FORM
+         ========================================================================== -->
+    <div id="step-doc-form" class="step">
+        <div class="config-container">
+            <div class="config-topbar">
+                <button class="back-btn" onclick="goToStep(1)"><i class="fa-solid fa-arrow-left"></i> Home</button>
+                <div class="topbar-logo"><img src="logo.png" alt="AMPEdge" class="topbar-logo-img"></div>
+                <div class="selected-category-badge" id="doc-form-badge" style="background:rgba(2,132,199,.15);border-color:#0284c7;color:#38bdf8;">
+                    <i class="fa-solid fa-file-invoice-dollar"></i> <span id="doc-badge-title">Commercial Bill / Invoice</span>
+                </div>
+            </div>
+
+            <!-- Document Switcher Tabs -->
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:18px 30px;background:var(--bg-card);padding:14px 18px;border-radius:10px;border:1px solid var(--border);">
+                <span style="font-size:.8rem;font-weight:700;color:var(--text-muted);margin-right:4px;">DOCUMENT TYPE:</span>
+                <button class="doc-tab-btn" id="tab-btn-bill" onclick="switchDocType('bill')"><i class="fa-solid fa-file-invoice-dollar"></i> Bill / Tax Invoice</button>
+                <button class="doc-tab-btn" id="tab-btn-challan" onclick="switchDocType('challan')"><i class="fa-solid fa-truck-ramp-box"></i> Delivery / Work Challan</button>
+                <button class="doc-tab-btn" id="tab-btn-receipt" onclick="switchDocType('receipt')"><i class="fa-solid fa-receipt"></i> Payment Receipt</button>
+                
+                <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+                    <span style="font-size:.76rem;color:var(--text-muted);">Preset:</span>
+                    <button class="doc-sub-btn" id="preset-service" onclick="applyDocPreset('service')">⚡ Service</button>
+                    <button class="doc-sub-btn" id="preset-material" onclick="applyDocPreset('material')">📦 Material</button>
+                    <button class="doc-sub-btn" id="preset-both" onclick="applyDocPreset('both')">⚡+📦 Both</button>
+                </div>
+            </div>
+
+            <!-- Client & Document Meta Details -->
+            <div class="config-section">
+                <h2 class="config-section-title"><i class="fa-solid fa-user-tie"></i> Client &amp; Document Information</h2>
+                <div class="client-form-grid" style="grid-template-columns:repeat(4,1fr);">
+                    <div class="form-field">
+                        <label id="doc-lbl-num">Document / Bill No</label>
+                        <input type="text" id="doc-inp-no" value="AMP/INV/2026/001">
+                    </div>
+                    <div class="form-field">
+                        <label>Issue Date</label>
+                        <input type="date" id="doc-inp-date">
+                    </div>
+                    <div class="form-field" id="doc-field-due-date">
+                        <label id="doc-lbl-due-date">Due / Delivery Date</label>
+                        <input type="date" id="doc-inp-due-date">
+                    </div>
+                    <div class="form-field">
+                        <label>Reference / PO / Order No</label>
+                        <input type="text" id="doc-inp-ref" value="WO-2026/045" placeholder="Work Order / Ref">
+                    </div>
+                </div>
+
+                <div class="client-form-grid" style="grid-template-columns:1.5fr 1.5fr 1fr 1fr;margin-top:14px;">
+                    <div class="form-field">
+                        <label id="doc-lbl-client">Client / Customer / Consignee Name</label>
+                        <input type="text" id="doc-inp-client" value="Sun Construction &amp; Developers" placeholder="Client Name">
+                    </div>
+                    <div class="form-field">
+                        <label>Site / Billing Address</label>
+                        <input type="text" id="doc-inp-address" value="Salt Lake Sector V, Kolkata - 700091" placeholder="Address">
+                    </div>
+                    <div class="form-field">
+                        <label>Contact / Phone</label>
+                        <input type="text" id="doc-inp-phone" value="+91 98310 98765" placeholder="Phone">
+                    </div>
+                    <div class="form-field">
+                        <label>Client GSTIN <span class="hint">(Optional)</span></label>
+                        <input type="text" id="doc-inp-gstin" value="" placeholder="Leave blank or enter GSTIN">
+                    </div>
+                </div>
+
+                <!-- Challan Specific Fields -->
+                <div id="doc-challan-extra-fields" class="client-form-grid" style="grid-template-columns:1fr 1fr 1.5fr;margin-top:14px;display:none;">
+                    <div class="form-field">
+                        <label>Dispatched Via / Vehicle No</label>
+                        <input type="text" id="doc-inp-vehicle" value="WB-11-AB-4589 (Tata Ace)" placeholder="Vehicle No">
+                    </div>
+                    <div class="form-field">
+                        <label>Driver / Supervisor Name &amp; Contact</label>
+                        <input type="text" id="doc-inp-supervisor" value="Raju Shaw (+91 98300 44556)" placeholder="Supervisor / Driver">
+                    </div>
+                    <div class="form-field">
+                        <label>Dispatch Purpose / Remarks</label>
+                        <input type="text" id="doc-inp-dispatch-purpose" value="Delivery for Electrical Contracting &amp; Installation at Site" placeholder="Purpose of dispatch">
+                    </div>
+                </div>
+
+                <!-- Receipt Specific Fields -->
+                <div id="doc-receipt-extra-fields" class="client-form-grid" style="grid-template-columns:1.5fr 1fr 1.5fr 1fr;margin-top:14px;display:none;">
+                    <div class="form-field">
+                        <label style="color:#10b981;font-weight:700;">Amount Received (&#8377;)</label>
+                        <input type="number" id="doc-inp-received-amount" value="25000" min="0" oninput="recalcReceipt()" style="color:#10b981;font-weight:700;font-size:1.15rem;">
+                    </div>
+                    <div class="form-field">
+                        <label>Payment Mode</label>
+                        <select id="doc-inp-pay-mode" style="width:100%;background:var(--bg-card);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;">
+                            <option value="UPI / Online Transfer" selected>UPI (Google Pay / PhonePe / Paytm)</option>
+                            <option value="NEFT / RTGS / IMPS">NEFT / RTGS / Net Banking</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Cheque / DD">Cheque / Demand Draft</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Transaction ID / UTR / Cheque No</label>
+                        <input type="text" id="doc-inp-txn-id" value="UPI/9874600265/20261009/8841" placeholder="Txn ID / UTR / Cheque No">
+                    </div>
+                    <div class="form-field">
+                        <label>Total Bill Amount (&#8377;)</label>
+                        <input type="number" id="doc-inp-total-bill" value="35000" min="0" oninput="recalcReceipt()">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Section (For Bill and Challan) -->
+            <div class="config-section" id="doc-table-section">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <h2 class="config-section-title" id="doc-table-title" style="margin-bottom:0;"><i class="fa-solid fa-list-check"></i> Description of Items &amp; Work Done (Editable)</h2>
+                    <div style="display:flex;gap:8px;">
+                        <button class="apply-all-btn" style="background:#0284c7;" onclick="addDocRow()"><i class="fa-solid fa-plus"></i> Add Item / Work Row</button>
+                    </div>
+                </div>
+                <div class="points-table-wrapper">
+                    <table class="config-points-table">
+                        <thead id="doc-table-thead">
+                            <!-- Dynamic Header according to Bill / Challan -->
+                        </thead>
+                        <tbody id="doc-items-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Bill Calculations (Only for Bill) -->
+            <div class="config-section" id="doc-bill-calc-section">
+                <h2 class="config-section-title"><i class="fa-solid fa-calculator"></i> Invoice Calculation &amp; Taxes</h2>
+                <div class="client-form-grid" style="grid-template-columns:repeat(4,1fr);align-items:end;">
+                    <div class="form-field">
+                        <label>Subtotal (&#8377;)</label>
+                        <input type="text" id="doc-subtotal-display" value="&#8377;0.00" readonly style="font-weight:700;">
+                    </div>
+                    <div class="form-field">
+                        <label>GST Rate</label>
+                        <select id="doc-inp-gst-rate" onchange="recalcDocTotals()" style="width:100%;background:var(--bg-card);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;">
+                            <option value="18" selected>GST @ 18%</option>
+                            <option value="12">GST @ 12%</option>
+                            <option value="5">GST @ 5%</option>
+                            <option value="0">0% (Nil / Exempted)</option>
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label>Discount / Round Off (&#8377;)</label>
+                        <input type="number" id="doc-inp-discount" value="0" min="0" oninput="recalcDocTotals()">
+                    </div>
+                    <div class="form-field">
+                        <label style="color:#38bdf8;font-size:.9rem;">Grand Total (&#8377;)</label>
+                        <input type="text" id="doc-grand-display" value="&#8377;0.00" readonly style="color:#38bdf8;font-weight:700;font-size:1.15rem;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terms & Notes -->
+            <div class="config-section">
+                <h2 class="config-section-title"><i class="fa-solid fa-file-contract"></i> Terms, Instructions &amp; Bank Details <span class="hint">(Editable)</span></h2>
+                <div class="form-field">
+                    <textarea id="doc-inp-terms" rows="5" style="width:100%;background:var(--bg-card);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;font-size:.82rem;line-height:1.5;">• Payment Terms: Please make payment within stipulated terms. All payments subject to realization.
+• Bank Details for Transfer: State Bank of India | A/C No: 41238955214 | IFSC: SBIN0001234 | UPI: 9874600265@upi
+• Warranty: Standard OEM manufacturer warranty on supplied equipment; 1-year service workmanship guarantee.
+• Jurisdiction: All disputes subject to Howrah / Kolkata jurisdiction only.</textarea>
+                </div>
+            </div>
+
+            <div class="generate-section" style="display:flex;gap:12px;justify-content:center;">
+                <button class="generate-btn" id="doc-gen-btn" style="background:linear-gradient(135deg,#0284c7,#0369a1);" onclick="previewCommercialDoc()">
+                    <i class="fa-solid fa-file-pdf"></i> Generate &amp; Preview Document
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================================================
+         STEP: COMMERCIAL DOCUMENTS PDF PREVIEW
+         ========================================================================== -->
+    <div id="step-doc-pdf" class="step">
+        <div class="preview-topbar">
+            <button class="back-btn" onclick="goToStep('doc-form')"><i class="fa-solid fa-arrow-left"></i> Edit Document</button>
+            <div class="topbar-logo"><img src="logo.png" alt="AMPEdge" class="topbar-logo-img"></div>
+            <div class="preview-actions">
+                <button class="action-btn edit-btn" onclick="goToStep('doc-form')"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+                <button class="action-btn print-btn" onclick="window.print()"><i class="fa-solid fa-print"></i> Print</button>
+                <button class="action-btn download-btn" id="doc-download-btn" onclick="downloadCommercialDocPDF()"><i class="fa-solid fa-file-pdf"></i> Download PDF</button>
+            </div>
+        </div>
+
+        <div class="preview-scroll-area">
+            <div id="doc-pdf-document" class="pdf-document">
+                <div class="pdf-page">
+                    <!-- Brand Header with Full Company Details -->
+                    <div class="pdf-brand-header" style="margin-bottom:12px;padding-bottom:10px;">
+                        <div class="pdf-brand-left">
+                            <img src="logo.png" alt="AMPEdge" class="pdf-logo-img">
+                            <div>
+                                <h1 class="pdf-brand-title">AMPEdge Solution</h1>
+                                <p class="pdf-brand-tagline">Powering the Edge of Tomorrow. | Electrical Engineering &amp; Materials</p>
+                            </div>
+                        </div>
+                        <div style="font-size:.62rem;color:#475569;line-height:1.45;text-align:right;">
+                            <strong style="color:#0f172a;font-size:.72rem;">AMPEdge Solution</strong><br>
+                            <span>West Bauria, Chackasi, Palpara, Howrah 711307</span><br>
+                            <span>&#128222; Contact: +91 91236 67258 | +91 97483 98418</span><br>
+                            <a href="https://wa.me/919874600265" target="_blank" class="whatsapp-pill" style="text-decoration:none;color:#fff;"><i class="fa-brands fa-whatsapp"></i> WhatsApp Business: +91 98746 00265</a><br>
+                            <span>&#9993; ampedge.info@gmail.com</span><br>
+                            <span style="color:#0284c7;font-weight:700;">GSTIN: <span id="doc-pdf-company-gstin" contenteditable="true" style="display:inline-block;min-width:130px;border-bottom:1px dotted #94a3b8;color:#0f172a;"></span></span>
+                        </div>
+                    </div>
+
+                    <!-- Title Strip -->
+                    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #0284c7;padding-bottom:4px;margin-bottom:10px;">
+                        <div style="font-family:'Outfit',sans-serif;font-size:1.25rem;font-weight:800;color:#0f172a;letter-spacing:.5px;" id="doc-pdf-heading-title">
+                            <i class="fa-solid fa-file-invoice-dollar" style="color:#0284c7;"></i> TAX INVOICE
+                        </div>
+                        <span class="pdf-doc-badge" id="doc-pdf-type-badge">OFFICIAL BILL</span>
+                    </div>
+
+                    <!-- Metadata Grid -->
+                    <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:10px;margin-bottom:10px;">
+                        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:8px 10px;font-size:.66rem;">
+                            <h4 style="font-size:.64rem;font-weight:700;color:#0284c7;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;border-bottom:1px solid #e2e8f0;padding-bottom:2px;" id="doc-pdf-client-header">
+                                <i class="fa-solid fa-user-check"></i> BILLED TO / CLIENT DETAILS
+                            </h4>
+                            <div style="display:flex;justify-content:space-between;padding:1.5px 0;"><span style="color:#64748b;">Client Name:</span><span style="color:#0f172a;font-weight:700;" id="doc-pdf-client" contenteditable="true">-</span></div>
+                            <div style="display:flex;justify-content:space-between;padding:1.5px 0;"><span style="color:#64748b;">Address:</span><span style="color:#0f172a;font-weight:600;" id="doc-pdf-address" contenteditable="true">-</span></div>
+                            <div style="display:flex;justify-content:space-between;padding:1.5px 0;"><span style="color:#64748b;">Phone:</span><span style="color:#0f172a;font-weight:600;" id="doc-pdf-phone" contenteditable="true">-</span></div>
+                            <div style="display:flex;justify-content:space-between;padding:1.5px 0;"><span style="color:#64748b;">GSTIN:</span><span class="mono" style="color:#0f172a;font-weight:700;" id="doc-pdf-gstin" contenteditable="true">-</span></div>
+                        </div>
+                        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:8px 10px;font-size:.66rem;">
+                            <h4 style="font-size:.64rem;font-weight:700;color:#0284c7;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;border-bottom:1px solid #e2e8f0;padding-bottom:2px;">
+                                <i class="fa-solid fa-file-lines"></i> DOCUMENT SPECIFICATIONS
+                            </h4>
+                            <div style="display:flex;justify-content:space-between;padding:1.5px 0;"><span style="color:#64748b;" id="doc-pdf-num-label">Invoice No:</span><span class="mono" style="color:#0284c7;font-weight:800;" id="doc-pdf-no" contenteditable="true">-</span></div>
+                            <div style="display:flex;justify-content:space-between;padding:1.5px 0;"><span style="color:#64748b;">Date:</span><span style="color:#0f172a;font-weight:600;" id="doc-pdf-date" contenteditable="true">-</span></div>
+                            <div style="display:flex;justify-content:space-between;padding:1.5px 0;" id="doc-pdf-due-row"><span style="color:#64748b;" id="doc-pdf-due-label">Due Date:</span><span style="color:#0f172a;font-weight:600;" id="doc-pdf-due-date" contenteditable="true">-</span></div>
+                            <div style="display:flex;justify-content:space-between;padding:1.5px 0;"><span style="color:#64748b;">Ref / Order No:</span><span style="color:#0f172a;font-weight:600;" id="doc-pdf-ref" contenteditable="true">-</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Challan Transport Info (Displayed only if Challan) -->
+                    <div id="doc-pdf-challan-info" style="display:none;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:6px 10px;font-size:.64rem;margin-bottom:8px;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+                            <div><span style="color:#92400e;font-weight:700;">Vehicle / Transport:</span> <span id="doc-pdf-vehicle" style="color:#0f172a;font-weight:600;" contenteditable="true">-</span></div>
+                            <div><span style="color:#92400e;font-weight:700;">Supervisor / Driver:</span> <span id="doc-pdf-supervisor" style="color:#0f172a;font-weight:600;" contenteditable="true">-</span></div>
+                            <div><span style="color:#92400e;font-weight:700;">Dispatch Purpose:</span> <span id="doc-pdf-purpose" style="color:#0f172a;font-weight:600;" contenteditable="true">-</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Receipt Prominent Box (Displayed only if Receipt) -->
+                    <div id="doc-pdf-receipt-box" style="display:none;background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;padding:10px 14px;margin-bottom:10px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                            <div>
+                                <span style="font-size:.68rem;font-weight:700;color:#166534;text-transform:uppercase;letter-spacing:.5px;">OFFICIAL AMOUNT RECEIVED</span>
+                                <div style="font-size:1.45rem;font-weight:800;color:#15803d;font-family:'Outfit',sans-serif;" id="doc-pdf-receipt-amt">&#8377;25,000.00</div>
+                            </div>
+                            <div style="text-align:right;">
+                                <span class="sig-stamp" style="font-size:.6rem;padding:4px 8px;background:#dcfce7;color:#15803d;border:1px solid #86efac;">&#10003; PAYMENT RECEIVED</span>
+                            </div>
+                        </div>
+                        <div style="background:#fff;border:1px dashed #bbf7d0;border-radius:5px;padding:6px 10px;font-size:.66rem;color:#1e293b;margin-bottom:6px;">
+                            <strong>Amount in Words:</strong> <span id="doc-pdf-receipt-words">-</span>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:8px;font-size:.64rem;color:#334155;border-top:1px solid #bbf7d0;padding-top:6px;">
+                            <div><strong>Payment Mode:</strong> <span id="doc-pdf-receipt-mode" contenteditable="true">-</span></div>
+                            <div><strong>Txn / Cheque Ref:</strong> <span id="doc-pdf-receipt-txn" class="mono" contenteditable="true">-</span></div>
+                            <div><strong>Balance Due:</strong> <span id="doc-pdf-receipt-bal" style="color:#dc2626;font-weight:700;" contenteditable="true">&#8377;0.00</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Items Table (For Bill & Challan) -->
+                    <table class="pdf-boq-table" id="doc-pdf-table" style="margin-bottom:6px;">
+                        <thead id="doc-pdf-thead"></thead>
+                        <tbody id="doc-pdf-tbody"></tbody>
+                    </table>
+
+                    <!-- Bill Totals Section (Displayed only if Bill) -->
+                    <div id="doc-pdf-bill-totals" style="display:flex;gap:10px;margin-top:4px;">
+                        <div style="flex:1;">
+                            <div style="background:#f8fafc;border:1px dashed #cbd5e1;border-radius:4px;padding:5px 8px;font-size:.64rem;color:#334155;margin-bottom:4px;">
+                                <strong>Amount in Words:</strong> <span id="doc-pdf-bill-words">-</span>
+                            </div>
+                            <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:4px;padding:5px 8px;font-size:.6rem;color:#0369a1;">
+                                <strong>Bank Transfer Details:</strong> State Bank of India | A/C: AMPEdge Solution | A/C No: 41238955214 | IFSC: SBIN0001234 | UPI: 9874600265@upi
+                            </div>
+                        </div>
+                        <div style="width:220px;">
+                            <div class="pdf-discount-summary" style="margin-top:0;padding:5px 10px;font-size:.66rem;">
+                                <div class="discount-row"><span>Subtotal:</span><span id="doc-pdf-subtotal">&#8377;0.00</span></div>
+                                <div class="discount-row highlight"><span>GST (<span id="doc-pdf-gst-pct">18</span>%):</span><span id="doc-pdf-gst">&#8377;0.00</span></div>
+                                <div class="discount-row" id="doc-pdf-discount-row" style="display:none;"><span>Discount:</span><span id="doc-pdf-discount">-&#8377;0.00</span></div>
+                            </div>
+                            <div class="pdf-grand-total-banner" style="margin-top:3px;padding:6px 10px;border-radius:5px;background:#0284c7;">
+                                <span style="font-size:.68rem;">GRAND TOTAL:</span>
+                                <span class="pdf-grand-value" id="doc-pdf-grand" style="font-size:1.05rem;color:#fff;">&#8377;0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Terms & Conditions Box -->
+                    <div style="font-size:.56rem;color:#475569;line-height:1.35;background:#fafafa;border:1px solid #e2e8f0;border-radius:4px;padding:6px 8px;margin-top:6px;">
+                        <strong style="color:#0f172a;display:block;margin-bottom:2px;" id="doc-pdf-terms-title">TERMS &amp; CONDITIONS:</strong>
+                        <div id="doc-pdf-terms-view">• Payment terms as stipulated above.<br>• Standard OEM warranty on materials; 1-year service warranty.<br>• Disputes subject to Howrah / Kolkata jurisdiction only.</div>
+                    </div>
+
+                    <!-- Dual Director Signatures & Company Seal -->
+                    <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:10px;margin-top:8px;">
+                        <div style="border:1px dashed #cbd5e1;border-radius:4px;padding:6px 10px;background:#fcfcfc;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <span style="font-size:.58rem;font-weight:700;color:#0f172a;">ISSUED BY: AMPEdge Solution</span>
+                                <span class="sig-stamp" id="doc-pdf-stamp" style="font-size:.5rem;padding:2px 6px;">&#10003; AUTHORISED SIGNATORY</span>
+                            </div>
+                            <div class="sig-images-row" style="margin:4px 0;">
+                                <img src="sig1.png" alt="Sayantam Pal" class="sig-img" style="height:32px;">
+                                <img src="sig2.png" alt="Rittick Das" class="sig-img" style="height:32px;">
+                            </div>
+                            <p class="sig-company" style="font-size:.66rem;margin-bottom:1px;">Sayantam Pal &amp; Rittick Das</p>
+                            <p class="sig-dept" style="font-size:.56rem;color:#64748b;">Partners &amp; Directors — AMPEdge Solution</p>
+                        </div>
+                        <div style="border:1px dashed #cbd5e1;border-radius:4px;padding:6px 10px;background:#fcfcfc;display:flex;flex-direction:column;justify-content:space-between;">
+                            <div>
+                                <span style="font-size:.58rem;font-weight:700;color:#0f172a;" id="doc-pdf-receiver-title">CLIENT / RECEIVER ACKNOWLEDGMENT</span>
+                                <p style="font-size:.54rem;color:#64748b;margin-top:2px;" id="doc-pdf-receiver-note">Acknowledged receipt of invoice / goods / payment confirmation.</p>
+                            </div>
+                            <div style="border-top:1px dashed #cbd5e1;padding-top:4px;margin-top:10px;">
+                                <p style="font-size:.56rem;color:#64748b;">Authorised Signature &amp; Stamp<br>Date: ________________________</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pdf-page-footer">
+                        <span>AMPEdge Solution | Powering the Edge of Tomorrow.</span>
+                        <span id="doc-pdf-footer-tag">Official Document &bull; Page 1 of 1</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="app.js?v=20261009_V5"></script>
 </body>
 </html>

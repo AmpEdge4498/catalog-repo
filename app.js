@@ -1504,3 +1504,500 @@ function downloadPODirectBlank(e) {
         downloadPOPDF();
     }, 350);
 }
+
+
+
+// ==========================================================================
+// COMMERCIAL DOCUMENTS LOGIC (BILL, CHALLAN, PAYMENT RECEIPT)
+// ==========================================================================
+let currentDocType = 'bill'; // 'bill', 'challan', 'receipt'
+let currentDocPreset = 'service'; // 'service', 'material', 'both'
+let docItems = [];
+
+function openCommercialDoc(type) {
+    if (type) currentDocType = type;
+    const today = new Date().toISOString().split('T')[0];
+    const dueDate = new Date(Date.now() + 15 * 86400000).toISOString().split('T')[0];
+
+    const dateInp = document.getElementById('doc-inp-date');
+    if (dateInp && !dateInp.value) dateInp.value = today;
+
+    const dueInp = document.getElementById('doc-inp-due-date');
+    if (dueInp && !dueInp.value) dueInp.value = dueDate;
+
+    switchDocType(currentDocType);
+    goToStep('doc-form');
+}
+
+function switchDocType(type) {
+    currentDocType = type;
+    
+    // Update active tab buttons
+    ['bill', 'challan', 'receipt'].forEach(t => {
+        const btn = document.getElementById('tab-btn-' + t);
+        if (btn) {
+            if (t === type) btn.classList.add('active');
+            else btn.classList.remove('active');
+        }
+    });
+
+    const badgeTitle = document.getElementById('doc-badge-title');
+    const badge = document.getElementById('doc-form-badge');
+    const lblNum = document.getElementById('doc-lbl-num');
+    const inpNo = document.getElementById('doc-inp-no');
+    const lblDueDate = document.getElementById('doc-lbl-due-date');
+    const fieldDueDate = document.getElementById('doc-field-due-date');
+    const lblClient = document.getElementById('doc-lbl-client');
+    const tableSection = document.getElementById('doc-table-section');
+    const billCalcSection = document.getElementById('doc-bill-calc-section');
+    const challanExtra = document.getElementById('doc-challan-extra-fields');
+    const receiptExtra = document.getElementById('doc-receipt-extra-fields');
+
+    if (type === 'bill') {
+        if (badgeTitle) badgeTitle.textContent = 'Commercial Bill / Tax Invoice';
+        if (badge) { badge.style.color = '#38bdf8'; badge.style.borderColor = '#0284c7'; }
+        if (lblNum) lblNum.textContent = 'Invoice / Bill Number';
+        if (inpNo && inpNo.value.startsWith('AMP/')) inpNo.value = 'AMP/INV/2026/001';
+        if (lblDueDate) lblDueDate.textContent = 'Payment Due Date';
+        if (fieldDueDate) fieldDueDate.style.display = 'block';
+        if (lblClient) lblClient.textContent = 'Billed To (Client / Customer Name)';
+        if (tableSection) tableSection.style.display = 'block';
+        if (billCalcSection) billCalcSection.style.display = 'block';
+        if (challanExtra) challanExtra.style.display = 'none';
+        if (receiptExtra) receiptExtra.style.display = 'none';
+    } else if (type === 'challan') {
+        if (badgeTitle) badgeTitle.textContent = 'Delivery / Work Challan';
+        if (badge) { badge.style.color = '#fbbf24'; badge.style.borderColor = '#f59e0b'; }
+        if (lblNum) lblNum.textContent = 'Challan Number';
+        if (inpNo && inpNo.value.startsWith('AMP/')) inpNo.value = 'AMP/CH/2026/001';
+        if (lblDueDate) lblDueDate.textContent = 'Expected Delivery Date';
+        if (fieldDueDate) fieldDueDate.style.display = 'block';
+        if (lblClient) lblClient.textContent = 'Consignee / Client Site Name';
+        if (tableSection) tableSection.style.display = 'block';
+        if (billCalcSection) billCalcSection.style.display = 'none';
+        if (challanExtra) challanExtra.style.display = 'grid';
+        if (receiptExtra) receiptExtra.style.display = 'none';
+    } else if (type === 'receipt') {
+        if (badgeTitle) badgeTitle.textContent = 'Official Payment Receipt';
+        if (badge) { badge.style.color = '#34d399'; badge.style.borderColor = '#10b981'; }
+        if (lblNum) lblNum.textContent = 'Receipt Number';
+        if (inpNo && inpNo.value.startsWith('AMP/')) inpNo.value = 'AMP/REC/2026/001';
+        if (fieldDueDate) fieldDueDate.style.display = 'none';
+        if (lblClient) lblClient.textContent = 'Received From (Payer / Client Name)';
+        if (tableSection) tableSection.style.display = 'none';
+        if (billCalcSection) billCalcSection.style.display = 'none';
+        if (challanExtra) challanExtra.style.display = 'none';
+        if (receiptExtra) receiptExtra.style.display = 'grid';
+    }
+
+    if (docItems.length === 0) {
+        applyDocPreset(currentDocPreset);
+    } else {
+        renderDocTable();
+    }
+}
+
+function applyDocPreset(preset) {
+    currentDocPreset = preset;
+    ['service', 'material', 'both'].forEach(p => {
+        const btn = document.getElementById('preset-' + p);
+        if (btn) {
+            if (p === preset) btn.classList.add('active');
+            else btn.classList.remove('active');
+        }
+    });
+
+    if (preset === 'service') {
+        docItems = [
+            { desc: 'Complete Concealed Conduit Pipe & Wall Chasing', spec: 'Concealed PVC Piping with Accessories', qty: 1200, unit: 'Sq.Ft', rate: 7 },
+            { desc: 'Light & Ceiling Fan Point Wiring with Earthing', spec: 'Modular Wiring with 1.5 sq mm FRLS Copper Wire', qty: 35, unit: 'Points', rate: 350 },
+            { desc: '16A Power Plug Points for AC & Kitchen Appliances', spec: 'Heavy Duty 4.0 sq mm line with dedicated Earth', qty: 8, unit: 'Points', rate: 550 },
+            { desc: 'Main Distribution Board & MCB Installation with Testing', spec: '8-Way SPN DB with 40A Isolator & MCBs', qty: 1, unit: 'Set', rate: 2200 }
+        ];
+    } else if (preset === 'material') {
+        docItems = [
+            { desc: 'Havells FR PVC Insulated Copper Wire - Red', spec: '1.5 sq mm, 90m Coil, IS:694', qty: 6, unit: 'Coil', rate: 1450 },
+            { desc: 'Havells FR PVC Insulated Copper Wire - Blue', spec: '2.5 sq mm, 90m Coil, IS:694', qty: 4, unit: 'Coil', rate: 2250 },
+            { desc: 'Modular GI Concealed Switch Box', spec: '8 Module, 18-Gauge Zinc Coated Heavy Sheet', qty: 15, unit: 'Pcs', rate: 110 },
+            { desc: 'Preciton 10A 1-Way Modular Switch', spec: '10A 240V, Silver Contacts, ISI Marked', qty: 40, unit: 'Pcs', rate: 32 },
+            { desc: 'Legrand 16A Single Pole MCB C-Curve', spec: '16A 240V, 10kA Breaking Capacity', qty: 8, unit: 'Pcs', rate: 175 }
+        ];
+    } else if (preset === 'both') {
+        docItems = [
+            { desc: 'Electrical Wiring Labor & Installation Works', spec: 'Full flat wiring, points, distribution setup', qty: 1, unit: 'Lot', rate: 18500 },
+            { desc: 'Supplied Electrical Materials & Hardware (Havells/Polycab)', spec: 'Wires, Modular Switches, GI Boxes, MCBs as per BOQ', qty: 1, unit: 'Lot', rate: 24500 }
+        ];
+    }
+
+    renderDocTable();
+}
+
+function addDocRow() {
+    docItems.push({ desc: '', spec: '', qty: 1, unit: 'Pcs', rate: 0 });
+    renderDocTable();
+}
+
+function removeDocRow(idx) {
+    if (docItems.length <= 1) {
+        docItems = [{ desc: '', spec: '', qty: 0, unit: 'Pcs', rate: 0 }];
+    } else {
+        docItems.splice(idx, 1);
+    }
+    renderDocTable();
+}
+
+function updateDocItem(idx, field, val) {
+    if (!docItems[idx]) return;
+    if (field === 'qty' || field === 'rate') {
+        docItems[idx][field] = parseFloat(val) || 0;
+    } else {
+        docItems[idx][field] = val;
+    }
+    recalcDocTotals();
+}
+
+function renderDocTable() {
+    const thead = document.getElementById('doc-table-thead');
+    const tbody = document.getElementById('doc-items-tbody');
+    if (!tbody || !thead) return;
+
+    if (currentDocType === 'bill') {
+        thead.innerHTML = `
+            <tr>
+                <th style="width:35px;" class="text-center">#</th>
+                <th>Description of Goods / Service</th>
+                <th style="width:200px;">Specification / Details</th>
+                <th style="width:80px;" class="text-center">Qty</th>
+                <th style="width:85px;" class="text-center">Unit</th>
+                <th style="width:110px;" class="text-right">Rate (&#8377;)</th>
+                <th style="width:120px;" class="text-right">Amount (&#8377;)</th>
+                <th style="width:45px;" class="text-center"></th>
+            </tr>
+        `;
+        tbody.innerHTML = '';
+        docItems.forEach((item, idx) => {
+            const amt = (item.qty || 0) * (item.rate || 0);
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="text-center font-bold">${idx + 1}</td>
+                <td><input type="text" class="name-input" value="${item.desc || ''}" placeholder="Description of service / material" oninput="updateDocItem(${idx}, 'desc', this.value)"></td>
+                <td><input type="text" value="${item.spec || ''}" placeholder="Specification" style="width:100%;text-align:left;" oninput="updateDocItem(${idx}, 'spec', this.value)"></td>
+                <td><input type="number" min="0" value="${item.qty || 0}" style="width:100%;text-align:center;font-weight:700;" oninput="updateDocItem(${idx}, 'qty', this.value)"></td>
+                <td>
+                    <select onchange="updateDocItem(${idx}, 'unit', this.value)" style="width:100%;background:var(--bg-card);color:var(--text);border:1px solid var(--border);padding:5px;border-radius:4px;font-size:.8rem;">
+                        <option value="Points" ${item.unit === 'Points' ? 'selected' : ''}>Points</option>
+                        <option value="Sq.Ft" ${item.unit === 'Sq.Ft' ? 'selected' : ''}>Sq.Ft</option>
+                        <option value="Coil" ${item.unit === 'Coil' ? 'selected' : ''}>Coil</option>
+                        <option value="Pcs" ${item.unit === 'Pcs' ? 'selected' : ''}>Pcs</option>
+                        <option value="Set" ${item.unit === 'Set' ? 'selected' : ''}>Set</option>
+                        <option value="Box" ${item.unit === 'Box' ? 'selected' : ''}>Box</option>
+                        <option value="Mtr" ${item.unit === 'Mtr' ? 'selected' : ''}>Mtr</option>
+                        <option value="Lot" ${item.unit === 'Lot' ? 'selected' : ''}>Lot</option>
+                    </select>
+                </td>
+                <td><input type="number" min="0" value="${item.rate || 0}" style="width:100%;text-align:right;" oninput="updateDocItem(${idx}, 'rate', this.value)"></td>
+                <td class="text-right font-mono font-bold" style="color:#38bdf8;">${formatCurrency(amt)}</td>
+                <td class="text-center"><button class="del-btn" onclick="removeDocRow(${idx})" title="Delete row"><i class="fa-solid fa-trash-can"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+        recalcDocTotals();
+    } else if (currentDocType === 'challan') {
+        thead.innerHTML = `
+            <tr>
+                <th style="width:35px;" class="text-center">#</th>
+                <th>Material / Equipment Description</th>
+                <th style="width:240px;">Specification / Model</th>
+                <th style="width:90px;" class="text-center">Unit</th>
+                <th style="width:100px;" class="text-center">Qty Dispatched</th>
+                <th style="width:45px;" class="text-center"></th>
+            </tr>
+        `;
+        tbody.innerHTML = '';
+        docItems.forEach((item, idx) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="text-center font-bold">${idx + 1}</td>
+                <td><input type="text" class="name-input" value="${item.desc || ''}" placeholder="Material description" oninput="updateDocItem(${idx}, 'desc', this.value)"></td>
+                <td><input type="text" value="${item.spec || ''}" placeholder="Specification / Model" style="width:100%;text-align:left;" oninput="updateDocItem(${idx}, 'spec', this.value)"></td>
+                <td>
+                    <select onchange="updateDocItem(${idx}, 'unit', this.value)" style="width:100%;background:var(--bg-card);color:var(--text);border:1px solid var(--border);padding:5px;border-radius:4px;font-size:.8rem;">
+                        <option value="Coil" ${item.unit === 'Coil' ? 'selected' : ''}>Coil</option>
+                        <option value="Pcs" ${item.unit === 'Pcs' ? 'selected' : ''}>Pcs</option>
+                        <option value="Points" ${item.unit === 'Points' ? 'selected' : ''}>Points</option>
+                        <option value="Sq.Ft" ${item.unit === 'Sq.Ft' ? 'selected' : ''}>Sq.Ft</option>
+                        <option value="Set" ${item.unit === 'Set' ? 'selected' : ''}>Set</option>
+                        <option value="Box" ${item.unit === 'Box' ? 'selected' : ''}>Box</option>
+                        <option value="Mtr" ${item.unit === 'Mtr' ? 'selected' : ''}>Mtr</option>
+                        <option value="Lot" ${item.unit === 'Lot' ? 'selected' : ''}>Lot</option>
+                    </select>
+                </td>
+                <td><input type="number" min="0" value="${item.qty || 0}" style="width:100%;text-align:center;font-weight:700;" oninput="updateDocItem(${idx}, 'qty', this.value)"></td>
+                <td class="text-center"><button class="del-btn" onclick="removeDocRow(${idx})" title="Delete row"><i class="fa-solid fa-trash-can"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+}
+
+function recalcDocTotals() {
+    if (currentDocType !== 'bill') return;
+    let subtotal = 0;
+    docItems.forEach(i => {
+        subtotal += (i.qty || 0) * (i.rate || 0);
+    });
+
+    const gstRate = parseFloat(document.getElementById('doc-inp-gst-rate').value) || 0;
+    const discount = parseFloat(document.getElementById('doc-inp-discount').value) || 0;
+    const gstAmt = Math.round(subtotal * (gstRate / 100));
+    const grandTotal = Math.max(0, subtotal + gstAmt - discount);
+
+    const subEl = document.getElementById('doc-subtotal-display');
+    if (subEl) subEl.value = formatCurrency(subtotal);
+
+    const grandEl = document.getElementById('doc-grand-display');
+    if (grandEl) grandEl.value = formatCurrency(grandTotal);
+}
+
+function recalcReceipt() {
+    // Just helper trigger
+}
+
+function previewCommercialDoc() {
+    const docNo = document.getElementById('doc-inp-no').value || 'AMP/DOC/2026/001';
+    const dateVal = document.getElementById('doc-inp-date').value || new Date().toISOString().split('T')[0];
+    const dueDateVal = document.getElementById('doc-inp-due-date').value || dateVal;
+    const refNo = document.getElementById('doc-inp-ref').value || EMDASH;
+
+    const client = document.getElementById('doc-inp-client').value || 'Client / M/S Construction';
+    const address = document.getElementById('doc-inp-address').value || EMDASH;
+    const phone = document.getElementById('doc-inp-phone').value || EMDASH;
+    const gstin = document.getElementById('doc-inp-gstin').value || EMDASH;
+
+    const opts = { year: 'numeric', month: 'long', day: 'numeric' };
+    const dateFormatted = new Date(dateVal).toLocaleDateString('en-US', opts);
+    const dueDateFormatted = new Date(dueDateVal).toLocaleDateString('en-US', opts);
+
+    // Common PDF Meta
+    document.getElementById('doc-pdf-no').textContent = docNo;
+    document.getElementById('doc-pdf-date').textContent = dateFormatted;
+    document.getElementById('doc-pdf-ref').textContent = refNo;
+    document.getElementById('doc-pdf-client').textContent = client;
+    document.getElementById('doc-pdf-address').textContent = address;
+    document.getElementById('doc-pdf-phone').textContent = phone;
+    document.getElementById('doc-pdf-gstin').textContent = gstin;
+
+    // Company GSTIN
+    const compGstin = document.getElementById('po-inp-company-gstin') ? document.getElementById('po-inp-company-gstin').value.trim() : '';
+    const compGstinEl = document.getElementById('doc-pdf-company-gstin');
+    if (compGstinEl) compGstinEl.textContent = compGstin;
+
+    // Mode-specific rendering
+    const heading = document.getElementById('doc-pdf-heading-title');
+    const badge = document.getElementById('doc-pdf-type-badge');
+    const clientHeader = document.getElementById('doc-pdf-client-header');
+    const dueRow = document.getElementById('doc-pdf-due-row');
+    const numLabel = document.getElementById('doc-pdf-num-label');
+    const challanBox = document.getElementById('doc-pdf-challan-info');
+    const receiptBox = document.getElementById('doc-pdf-receipt-box');
+    const tableEl = document.getElementById('doc-pdf-table');
+    const theadEl = document.getElementById('doc-pdf-thead');
+    const tbodyEl = document.getElementById('doc-pdf-tbody');
+    const billTotals = document.getElementById('doc-pdf-bill-totals');
+    const termsTitle = document.getElementById('doc-pdf-terms-title');
+    const termsView = document.getElementById('doc-pdf-terms-view');
+    const stampEl = document.getElementById('doc-pdf-stamp');
+    const receiverTitle = document.getElementById('doc-pdf-receiver-title');
+    const receiverNote = document.getElementById('doc-pdf-receiver-note');
+    const footerTag = document.getElementById('doc-pdf-footer-tag');
+
+    // Terms text
+    const termsInput = document.getElementById('doc-inp-terms').value;
+    if (termsView && termsInput) {
+        termsView.innerHTML = termsInput.replace(/\n/g, '<br>');
+    }
+
+    if (currentDocType === 'bill') {
+        heading.innerHTML = '<i class="fa-solid fa-file-invoice-dollar" style="color:#0284c7;"></i> TAX INVOICE / BILL';
+        badge.textContent = 'COMMERCIAL INVOICE';
+        badge.style.background = '#e0f2fe';
+        badge.style.color = '#0369a1';
+        clientHeader.innerHTML = '<i class="fa-solid fa-user-check"></i> BILLED TO / CLIENT DETAILS';
+        numLabel.textContent = 'Invoice No:';
+        dueRow.style.display = 'flex';
+        document.getElementById('doc-pdf-due-label').textContent = 'Due Date:';
+        document.getElementById('doc-pdf-due-date').textContent = dueDateFormatted;
+        challanBox.style.display = 'none';
+        receiptBox.style.display = 'none';
+        tableEl.style.display = 'table';
+        billTotals.style.display = 'flex';
+        termsTitle.textContent = 'INVOICE TERMS & PAYMENT CONDITIONS:';
+        stampEl.textContent = '✓ AUTHORISED BILL';
+        receiverTitle.textContent = 'CLIENT ACCEPTANCE & CONFIRMATION';
+        receiverNote.textContent = 'Certified that service & materials received and bill accepted.';
+        footerTag.textContent = 'Tax Invoice • Page 1 of 1';
+
+        theadEl.innerHTML = `
+            <tr>
+                <th style="width:28px;" class="text-center">#</th>
+                <th>DESCRIPTION OF GOODS / SERVICES</th>
+                <th style="width:160px;">SPECIFICATION</th>
+                <th style="width:50px;" class="text-center">QTY</th>
+                <th style="width:55px;" class="text-center">UNIT</th>
+                <th style="width:75px;" class="text-right">RATE (&#8377;)</th>
+                <th style="width:85px;" class="text-right">AMOUNT (&#8377;)</th>
+            </tr>
+        `;
+        tbodyEl.innerHTML = '';
+        let subtotal = 0;
+        docItems.forEach((item, idx) => {
+            const amt = (item.qty || 0) * (item.rate || 0);
+            subtotal += amt;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="text-center font-bold">${idx + 1}</td>
+                <td><strong>${item.desc || 'Electrical Works'}</strong></td>
+                <td style="font-size:.65rem;color:#475569;">${item.spec || EMDASH}</td>
+                <td class="text-center font-bold font-mono">${item.qty || 0}</td>
+                <td class="text-center">${item.unit || 'Pcs'}</td>
+                <td class="text-right font-mono">${RUPEE}${(item.rate || 0).toLocaleString('en-IN')}</td>
+                <td class="text-right font-mono font-bold">${formatCurrency(amt)}</td>
+            `;
+            tbodyEl.appendChild(tr);
+        });
+
+        const gstRate = parseFloat(document.getElementById('doc-inp-gst-rate').value) || 0;
+        const discount = parseFloat(document.getElementById('doc-inp-discount').value) || 0;
+        const gstAmt = Math.round(subtotal * (gstRate / 100));
+        const grandTotal = Math.max(0, subtotal + gstAmt - discount);
+
+        document.getElementById('doc-pdf-subtotal').textContent = formatCurrency(subtotal);
+        document.getElementById('doc-pdf-gst-pct').textContent = gstRate;
+        document.getElementById('doc-pdf-gst').textContent = formatCurrency(gstAmt);
+        document.getElementById('doc-pdf-grand').textContent = formatCurrency(grandTotal);
+
+        const discRow = document.getElementById('doc-pdf-discount-row');
+        if (discount > 0) {
+            discRow.style.display = 'flex';
+            document.getElementById('doc-pdf-discount').textContent = '-' + formatCurrency(discount);
+        } else {
+            discRow.style.display = 'none';
+        }
+
+        document.getElementById('doc-pdf-bill-words').textContent = numberToWordsINR(grandTotal);
+
+    } else if (currentDocType === 'challan') {
+        heading.innerHTML = '<i class="fa-solid fa-truck-ramp-box" style="color:#d97706;"></i> DELIVERY / WORK CHALLAN';
+        badge.textContent = 'OFFICIAL CHALLAN';
+        badge.style.background = '#fef3c7';
+        badge.style.color = '#b45309';
+        clientHeader.innerHTML = '<i class="fa-solid fa-location-dot"></i> CONSIGNEE / SITE DELIVERY LOCATION';
+        numLabel.textContent = 'Challan No:';
+        dueRow.style.display = 'flex';
+        document.getElementById('doc-pdf-due-label').textContent = 'Delivery Date:';
+        document.getElementById('doc-pdf-due-date').textContent = dueDateFormatted;
+        
+        challanBox.style.display = 'block';
+        document.getElementById('doc-pdf-vehicle').textContent = document.getElementById('doc-inp-vehicle').value || EMDASH;
+        document.getElementById('doc-pdf-supervisor').textContent = document.getElementById('doc-inp-supervisor').value || EMDASH;
+        document.getElementById('doc-pdf-purpose').textContent = document.getElementById('doc-inp-dispatch-purpose').value || EMDASH;
+
+        receiptBox.style.display = 'none';
+        tableEl.style.display = 'table';
+        billTotals.style.display = 'none';
+        termsTitle.textContent = 'CHALLAN TERMS & INSPECTION CONDITIONS:';
+        stampEl.textContent = '✓ DISPATCH AUTHORISED';
+        receiverTitle.textContent = 'RECEIVED IN GOOD CONDITION BY';
+        receiverNote.textContent = 'Received the materials/work in sound order and correct count.';
+        footerTag.textContent = 'Delivery Challan • Page 1 of 1';
+
+        theadEl.innerHTML = `
+            <tr>
+                <th style="width:30px;" class="text-center">#</th>
+                <th>MATERIAL / EQUIPMENT DESCRIPTION</th>
+                <th style="width:190px;">SPECIFICATION / MODEL</th>
+                <th style="width:80px;" class="text-center">UNIT</th>
+                <th style="width:90px;" class="text-center">QTY DISPATCHED</th>
+            </tr>
+        `;
+        tbodyEl.innerHTML = '';
+        docItems.forEach((item, idx) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="text-center font-bold">${idx + 1}</td>
+                <td><strong>${item.desc || 'Electrical Material'}</strong></td>
+                <td style="font-size:.65rem;color:#475569;">${item.spec || EMDASH}</td>
+                <td class="text-center">${item.unit || 'Pcs'}</td>
+                <td class="text-center font-bold font-mono" style="font-size:.76rem;">${item.qty || 0}</td>
+            `;
+            tbodyEl.appendChild(tr);
+        });
+
+    } else if (currentDocType === 'receipt') {
+        heading.innerHTML = '<i class="fa-solid fa-receipt" style="color:#059669;"></i> PAYMENT RECEIPT';
+        badge.textContent = 'MONEY RECEIPT';
+        badge.style.background = '#dcfce7';
+        badge.style.color = '#15803d';
+        clientHeader.innerHTML = '<i class="fa-solid fa-user-check"></i> RECEIVED FROM (PAYER DETAILS)';
+        numLabel.textContent = 'Receipt No:';
+        dueRow.style.display = 'none';
+        challanBox.style.display = 'none';
+        receiptBox.style.display = 'block';
+        tableEl.style.display = 'none';
+        billTotals.style.display = 'none';
+        termsTitle.textContent = 'RECEIPT TERMS & ACKNOWLEDGMENT:';
+        stampEl.textContent = '✓ PAYMENT ACKNOWLEDGED';
+        receiverTitle.textContent = 'PAYER SIGNATURE / VERIFICATION';
+        receiverNote.textContent = 'Payment acknowledged against mentioned invoice / works.';
+        footerTag.textContent = 'Money Receipt • Page 1 of 1';
+
+        const recAmt = parseFloat(document.getElementById('doc-inp-received-amount').value) || 0;
+        const totalBill = parseFloat(document.getElementById('doc-inp-total-bill').value) || recAmt;
+        const balDue = Math.max(0, totalBill - recAmt);
+        const mode = document.getElementById('doc-inp-pay-mode').value;
+        const txnId = document.getElementById('doc-inp-txn-id').value || 'CASH / N/A';
+
+        document.getElementById('doc-pdf-receipt-amt').textContent = formatCurrency(recAmt);
+        document.getElementById('doc-pdf-receipt-words').textContent = numberToWordsINR(recAmt);
+        document.getElementById('doc-pdf-receipt-mode').textContent = mode;
+        document.getElementById('doc-pdf-receipt-txn').textContent = txnId;
+        document.getElementById('doc-pdf-receipt-bal').textContent = formatCurrency(balDue);
+    }
+
+    goToStep('doc-pdf');
+}
+
+function downloadCommercialDocPDF() {
+    const el = document.getElementById('doc-pdf-document');
+    const btn = document.getElementById('doc-download-btn');
+    const orig = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Generating...';
+        btn.disabled = true;
+    }
+
+    const docNo = document.getElementById('doc-pdf-no').textContent.replace(/[^\w-]/g, '_');
+    el.classList.add('pdf-rendering', 'pdf-single-page');
+
+    html2pdf().set({
+        margin: 0,
+        filename: 'AMPEdge_' + currentDocType.toUpperCase() + '_' + docNo + '.pdf',
+        image: { type:'jpeg', quality:0.98 },
+        html2canvas: { scale:2, useCORS:true, letterRendering:true, scrollY:0 },
+        jsPDF: { unit:'mm', format:'a4', orientation:'portrait' }
+    }).from(el).save().then(() => {
+        if (btn) {
+            btn.innerHTML = orig;
+            btn.disabled = false;
+        }
+        el.classList.remove('pdf-rendering', 'pdf-single-page');
+    }).catch(err => {
+        console.error(err);
+        if (btn) {
+            btn.innerHTML = orig;
+            btn.disabled = false;
+        }
+        el.classList.remove('pdf-rendering', 'pdf-single-page');
+        alert("PDF generation failed. Try Ctrl+P and select 'Save as PDF'.");
+    });
+}
