@@ -1234,11 +1234,11 @@ function openPOForm() {
             loadCurrentMaterialsIntoPO();
         } else {
             poItems = [
-                { name: 'FR PVC Wire 1.5 sq mm - Red (90m Coil)', brand: 'Havells', unit: 'Coil', qty: 10 },
-                { name: 'FR PVC Wire 2.5 sq mm - Red (90m Coil)', brand: 'Havells', unit: 'Coil', qty: 6 },
-                { name: 'Modular GI Box - 8 Module (Heavy Gauge)', brand: 'AMPEdge GI', unit: 'Pcs', qty: 20 },
-                { name: '10A 1-Way Modular Switch', brand: 'Preciton', unit: 'Pcs', qty: 50 },
-                { name: '16A SP MCB C-Curve 10kA', brand: 'Legrand', unit: 'Pcs', qty: 12 }
+                { name: 'FR PVC Copper Wire', spec: '1.5 sq mm, Red, 90m Coil', brand: 'Havells', unit: 'Coil', qty: 10 },
+                { name: 'FR PVC Copper Wire', spec: '2.5 sq mm, Red, 90m Coil', brand: 'Havells', unit: 'Coil', qty: 6 },
+                { name: 'Modular GI Concealed Box', spec: '8 Module, 18-Gauge Heavy Metal', brand: 'AMPEdge GI', unit: 'Pcs', qty: 20 },
+                { name: '1-Way Modular Switch', spec: '10A 240V, ISI Marked', brand: 'Preciton', unit: 'Pcs', qty: 50 },
+                { name: 'Single Pole MCB', spec: '16A C-Curve, 10kA Breaking Capacity', brand: 'Legrand', unit: 'Pcs', qty: 12 }
             ];
             renderPOItemsTable();
             updatePOSummary();
@@ -1260,13 +1260,14 @@ function loadCurrentMaterialsIntoPO() {
     if (activeMatItems.length > 0) {
         poItems = activeMatItems.map(i => ({
             name: i.name,
+            spec: i.spec || i.name,
             brand: i.brand || 'Standard',
             unit: i.unit || 'Pcs',
             qty: i.qty
         }));
     } else {
         poItems = [
-            { name: 'FR PVC Wire 1.5 sq mm - Red (90m Coil)', brand: 'Havells', unit: 'Coil', qty: 5 }
+            { name: 'FR PVC Copper Wire', spec: '1.5 sq mm, Red, 90m Coil', brand: 'Havells', unit: 'Coil', qty: 5 }
         ];
     }
     renderPOItemsTable();
@@ -1282,21 +1283,21 @@ function clearPOForm() {
     if (compGstEl) compGstEl.value = '';
     document.getElementById('po-inp-ref').value = '';
     poItems = [
-        { name: '', brand: '', unit: 'Pcs', qty: 0 }
+        { name: '', spec: '', brand: '', unit: 'Pcs', qty: 0 }
     ];
     renderPOItemsTable();
     updatePOSummary();
 }
 
 function addPORow() {
-    poItems.push({ name: '', brand: '', unit: 'Pcs', qty: 1 });
+    poItems.push({ name: '', spec: '', brand: '', unit: 'Pcs', qty: 1 });
     renderPOItemsTable();
     updatePOSummary();
 }
 
 function removePORow(idx) {
     if (poItems.length <= 1) {
-        poItems = [{ name: '', brand: '', unit: 'Pcs', qty: 0 }];
+        poItems = [{ name: '', spec: '', brand: '', unit: 'Pcs', qty: 0 }];
     } else {
         poItems.splice(idx, 1);
     }
@@ -1323,7 +1324,8 @@ function renderPOItemsTable() {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td class="text-center font-bold">${idx + 1}</td>
-            <td><input type="text" class="name-input" value="${item.name || ''}" placeholder="Material specification / description" oninput="updatePOItem(${idx}, 'name', this.value)"></td>
+            <td><input type="text" class="name-input" value="${item.name || ''}" placeholder="Material description (e.g. FR PVC Wire)" oninput="updatePOItem(${idx}, 'name', this.value)"></td>
+            <td><input type="text" value="${item.spec || ''}" placeholder="Specification (e.g. 2.5 sq mm, Red, 90m)" style="width:100%;text-align:left;" oninput="updatePOItem(${idx}, 'spec', this.value)"></td>
             <td><input type="text" value="${item.brand || ''}" placeholder="Brand / Make" style="width:100%;text-align:left;" oninput="updatePOItem(${idx}, 'brand', this.value)"></td>
             <td>
                 <select onchange="updatePOItem(${idx}, 'unit', this.value)" style="width:100%;background:var(--bg-card);color:var(--text);border:1px solid var(--border);padding:5px;border-radius:4px;font-size:.8rem;">
@@ -1415,6 +1417,7 @@ function previewPO(isBlank) {
             tr.innerHTML = `
                 <td class="text-center font-bold" style="color:#64748b;">${i}</td>
                 <td class="blank-ruled-cell">&nbsp;</td>
+                <td class="blank-ruled-cell">&nbsp;</td>
                 <td class="text-center blank-ruled-cell">&nbsp;</td>
                 <td class="text-center blank-ruled-cell">&nbsp;</td>
                 <td class="text-center blank-ruled-cell">&nbsp;</td>
@@ -1436,9 +1439,10 @@ function previewPO(isBlank) {
             tr.innerHTML = `
                 <td class="text-center font-bold">${idx + 1}</td>
                 <td><strong>${item.name || 'Electrical Material Item'}</strong></td>
-                <td class="text-center">${item.brand || EMDASH}</td>
-                <td class="text-center">${item.unit || 'Pcs'}</td>
-                <td class="text-center font-bold font-mono">${item.qty || 0}</td>
+                <td style="font-size:.65rem;color:#334155;">${item.spec || EMDASH}</td>
+                <td class="text-center" style="font-size:.66rem;">${item.brand || EMDASH}</td>
+                <td class="text-center" style="font-size:.66rem;">${item.unit || 'Pcs'}</td>
+                <td class="text-center font-bold font-mono" style="font-size:.72rem;">${item.qty || 0}</td>
             `;
             tbody.appendChild(tr);
         });
