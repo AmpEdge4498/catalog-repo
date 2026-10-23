@@ -2094,6 +2094,23 @@ function openHistoryItem(id) {
             renderMaterialsTable();
         }
         generateMaterialsQuotation(true);
+    } else if (item.type === 'workorder') {
+        if (item.formData) {
+            if (item.formData.woNo) document.getElementById('elec-inp-wo-no').value = item.formData.woNo;
+            if (item.formData.date) document.getElementById('elec-inp-date').value = item.formData.date;
+            if (item.formData.targetDate) document.getElementById('elec-inp-target-date').value = item.formData.targetDate;
+            if (item.formData.project) document.getElementById('elec-inp-project').value = item.formData.project;
+            if (item.formData.address) document.getElementById('elec-inp-address').value = item.formData.address;
+            if (item.formData.contractor) document.getElementById('elec-inp-contractor').value = item.formData.contractor;
+            if (item.formData.phone) document.getElementById('elec-inp-phone').value = item.formData.phone;
+            if (item.formData.supervisor) document.getElementById('elec-inp-supervisor').value = item.formData.supervisor;
+            if (item.formData.instructions) document.getElementById('elec-inp-instructions').value = item.formData.instructions;
+        }
+        if (item.items && Array.isArray(item.items)) {
+            electricianItems = JSON.parse(JSON.stringify(item.items));
+            renderElectricianTable();
+        }
+        generateElectricianWorkOrder(true);
     } else if (item.type === 'po') {
         if (item.formData) {
             if (item.formData.no) document.getElementById('po-inp-no').value = item.formData.no;
@@ -2694,6 +2711,754 @@ function downloadCommercialDocPDF() {
     });
 }
 
+
+
+// ==========================================================================
+// ELECTRICIAN WORK ORDER & WIRE GAUGE ESTIMATION MODULE
+// ==========================================================================
+let electricianItems = []; // { name, room, unit, qty, wireSize, conduitSpec }
+
+function openElectricianModule() {
+    const today = new Date().toISOString().split('T')[0];
+    const targetDate = new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0];
+
+    const dateInput = document.getElementById('elec-inp-date');
+    if (dateInput && !dateInput.value) dateInput.value = today;
+
+    const targetInput = document.getElementById('elec-inp-target-date');
+    if (targetInput && !targetInput.value) targetInput.value = targetDate;
+
+    populateHistoryDropdown();
+
+    if (electricianItems.length === 0) {
+        // Try importing from active service configuration if any active items
+        const activeItems = configItems.filter(i => (i.qty || 0) > 0);
+        if (activeItems.length > 0) {
+            loadFromCurrentActiveConfig();
+        } else {
+            // Default starter template
+            electricianItems = [
+                { name: 'Master Bedroom — AC Power Point (16A)', room: 'Master Bedroom', unit: 'Point', qty: 1, wireSize: '4.0 mm²', conduitSpec: 'Dedicated 20A MCB, 25mm Conduit' },
+                { name: 'Master Bedroom — Ceiling Fan Points', room: 'Master Bedroom', unit: 'Point', qty: 2, wireSize: '1.0 mm²', conduitSpec: '6A Lighting Loop, 20mm Conduit' },
+                { name: 'Master Bedroom — Ceiling Light Points', room: 'Master Bedroom', unit: 'Point', qty: 4, wireSize: '1.0 mm²', conduitSpec: '6A Lighting Loop, 20mm Conduit' },
+                { name: 'Living Room — 5A Socket Outlet (TV/Router)', room: 'Living Room', unit: 'Point', qty: 3, wireSize: '1.5 mm²', conduitSpec: '10A Utility Loop, 20mm Conduit' },
+                { name: 'Kitchen — Refrigerator Socket (16A)', room: 'Kitchen', unit: 'Point', qty: 1, wireSize: '2.5 mm²', conduitSpec: '16A Power Circuit, 20mm Conduit' },
+                { name: 'Toilet 1 — Geyser Point (25L)', room: 'Toilet 1', unit: 'Point', qty: 1, wireSize: '4.0 mm²', conduitSpec: 'Dedicated 20A MCB, 20mm Conduit' }
+            ];
+            renderElectricianTable();
+        }
+    } else {
+        renderElectricianTable();
+    }
+
+    goToStep('elec-form');
+}
+
+function inferWireDetails(name) {
+    const n = (name || '').toLowerCase();
+    
+    // AC (Air Conditioner)
+    if (n.includes('ac ') || n.includes('air conditioner') || n.includes('ac power') || n.includes('precision ac') || n.includes('ac isolator')) {
+        return {
+            wireSize: '4.0 mm²',
+            wireDesc: '4.0 sq mm Phase/Neutral + 2.5 sq mm Earth',
+            conduitSpec: 'Dedicated 20A MCB, 20mm/25mm Rigid Conduit',
+            tag: 'AC Power (Heavy)'
+        };
+    }
+    // Geyser / Water Heater
+    if (n.includes('geyser') || n.includes('water heater') || n.includes('boiler')) {
+        return {
+            wireSize: '4.0 mm²',
+            wireDesc: '4.0 sq mm Phase/Neutral + 2.5 sq mm Earth',
+            conduitSpec: 'Dedicated 16A/20A MCB, 20mm Conduit',
+            tag: 'Geyser / Heating'
+        };
+    }
+    // Heavy 16A Power Sockets / Appliances
+    if (n.includes('16a') || n.includes('power point') || n.includes('washing machine') || n.includes('refrigerator') || n.includes('fridge') || n.includes('microwave') || n.includes('oven') || n.includes('otg') || n.includes('dishwasher') || n.includes('water cooler') || n.includes('chimney') || n.includes('rack power')) {
+        return {
+            wireSize: '2.5 mm²',
+            wireDesc: '2.5 sq mm Phase/Neutral + 1.5 sq mm Earth',
+            conduitSpec: '16A Power Circuit, 16A MCB, 20mm Conduit',
+            tag: '16A Power Sockets'
+        };
+    }
+    // 3-Phase / Industrial / Motors
+    if (n.includes('industrial socket') || n.includes('32a') || n.includes('63a') || n.includes('machinery') || n.includes('motor') || n.includes('starter') || n.includes('crane') || n.includes('hoist') || n.includes('busbar') || n.includes('lt panel')) {
+        return {
+            wireSize: '6.0 mm² / 10.0 mm²',
+            wireDesc: '6.0 sq mm to 10.0 sq mm 4-Core Copper Cable',
+            conduitSpec: '32A/63A Industrial Isolator / MCB / Cable Tray',
+            tag: 'Industrial / 3-Phase'
+        };
+    }
+    // Incomer / DB / Meter / Panel
+    if (n.includes('meter') || n.includes('distribution board') || n.includes('panel board') || n.includes('sub-distribution') || n.includes('sub-main') || n.includes('mccb') || n.includes('rccb') || n.includes('elcb') || n.includes('generator') || n.includes('dg set')) {
+        return {
+            wireSize: '6.0 mm² / 10.0 mm²',
+            wireDesc: '6.0 sq mm or 10.0 sq mm Incomer Feed',
+            conduitSpec: '32A/40A DP or 4-Pole MCB / Isolator Trunking',
+            tag: 'DB / Incomer Feed'
+        };
+    }
+    // Earthing
+    if (n.includes('earthing') || n.includes('earth pit') || n.includes('gi strip')) {
+        return {
+            wireSize: '8 SWG / 10.0 mm²',
+            wireDesc: '8 SWG GI Wire or 10.0 sq mm Copper / 25x3mm GI Strip',
+            conduitSpec: 'Direct Ground to Earth Pit (IS 3043)',
+            tag: 'Earthing Protection'
+        };
+    }
+    // Inverter / UPS Line
+    if (n.includes('inverter') || n.includes('ups')) {
+        return {
+            wireSize: '2.5 mm²',
+            wireDesc: '2.5 sq mm Phase/Neutral + 1.5 sq mm Earth',
+            conduitSpec: 'Inverter Backed Circuit, 16A MCB',
+            tag: 'Inverter / Backup'
+        };
+    }
+    // Data / LAN / CCTV / Telephone / HDMI
+    if (n.includes('lan') || n.includes('data') || n.includes('cat6') || n.includes('cctv') || n.includes('camera') || n.includes('hdmi') || n.includes('projector') || n.includes('telephone') || n.includes('video doorbell')) {
+        return {
+            wireSize: 'CAT6 / Shielded',
+            wireDesc: '4-Pair CAT6 UTP / Shielded Signal Cable',
+            conduitSpec: 'Low Voltage 20mm Conduit (Separate from Power)',
+            tag: 'Networking / Low Voltage'
+        };
+    }
+    // 5A General Utility Sockets
+    if (n.includes('5a') || n.includes('socket') || n.includes('charging') || n.includes('usb') || n.includes('tv') || n.includes('multi-socket') || n.includes('outlet') || n.includes('purifier') || n.includes('ro point') || n.includes('mixer')) {
+        return {
+            wireSize: '1.5 mm²',
+            wireDesc: '1.5 sq mm Phase/Neutral + 1.0 sq mm Earth',
+            conduitSpec: '6A/10A Utility Circuit, 20mm Conduit',
+            tag: '5A General Sockets'
+        };
+    }
+    // Fan (Ceiling fan, exhaust fan)
+    if (n.includes('fan') || n.includes('exhaust') || n.includes('blower')) {
+        return {
+            wireSize: '1.0 mm²',
+            wireDesc: '1.0 sq mm Point Wire (Fixture) / 1.5 sq mm Loop Feed',
+            conduitSpec: '6A Circuit with Fan Step Regulator, 20mm Conduit',
+            tag: 'Ceiling / Exhaust Fans'
+        };
+    }
+    // Lighting / Lamp / Chandelier / Spot / Profile / Downlight / Night light
+    if (n.includes('light') || n.includes('lamp') || n.includes('downlight') || n.includes('spotlight') || n.includes('cove') || n.includes('chandelier') || n.includes('footlight') || n.includes('panel light') || n.includes('high-bay') || n.includes('floodlight') || n.includes('doorbell') || n.includes('point')) {
+        return {
+            wireSize: '1.0 mm²',
+            wireDesc: '1.0 sq mm Point Wire (Switch to Fixture) / 1.5 sq mm Feed',
+            conduitSpec: '6A Lighting Circuit, 20mm Conduit',
+            tag: 'Lighting Points'
+        };
+    }
+    // Conduit laying
+    if (n.includes('conduit') || n.includes('casing') || n.includes('pipe')) {
+        return {
+            wireSize: 'PVC Conduit',
+            wireDesc: '20mm / 25mm Heavy Duty Rigid PVC (IS 9537)',
+            conduitSpec: 'Wall Chase / Slab Laying, Saddled every 600mm',
+            tag: 'Conduit Piping'
+        };
+    }
+
+    // Default fallback
+    return {
+        wireSize: '1.5 mm²',
+        wireDesc: '1.5 sq mm Phase/Neutral + 1.0 sq mm Earth',
+        conduitSpec: 'Standard General Circuit, 20mm Conduit',
+        tag: 'General Electrical'
+    };
+}
+
+function extractRoomFromName(name) {
+    if (!name) return 'General';
+    const parts = name.split(/[\u2014\-:]/);
+    if (parts.length > 1) {
+        return parts[0].trim();
+    }
+    return 'Site General';
+}
+
+function populateHistoryDropdown() {
+    const sel = document.getElementById('elec-history-select');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">📋 Select from Saved Quotations...</option>';
+    
+    const history = getHistory().filter(h => h.type === 'service');
+    history.forEach(h => {
+        const opt = document.createElement('option');
+        opt.value = h.id;
+        opt.textContent = `${h.docNo || 'No Number'} — ${h.client || 'Client'} (${h.itemCount || 0} pts)`;
+        sel.appendChild(opt);
+    });
+}
+
+function loadFromHistorySelection(id) {
+    if (!id) return;
+    const history = getHistory();
+    const item = history.find(h => String(h.id) === String(id));
+    if (!item) return;
+
+    if (item.formData) {
+        if (item.formData.project) document.getElementById('elec-inp-project').value = item.formData.project;
+        if (item.formData.address) document.getElementById('elec-inp-address').value = item.formData.address;
+    }
+
+    const items = item.items || [];
+    const active = items.filter(i => (i.qty || 0) > 0);
+    
+    electricianItems = (active.length > 0 ? active : items).map(i => {
+        const inferred = inferWireDetails(i.name);
+        return {
+            name: i.name,
+            room: extractRoomFromName(i.name),
+            unit: i.unit || 'Point',
+            qty: i.qty || 1,
+            wireSize: inferred.wireSize,
+            conduitSpec: inferred.conduitSpec
+        };
+    });
+
+    renderElectricianTable();
+    alert(`Loaded ${electricianItems.length} points from quotation ${item.docNo}!`);
+}
+
+function loadFromCurrentActiveConfig() {
+    const active = configItems.filter(i => (i.qty || 0) > 0);
+    if (active.length === 0) {
+        alert('No electrical points with quantity > 0 found in current service configuration. Please select a category and enter quantities first.');
+        return;
+    }
+
+    const client = document.getElementById('inp-client') ? document.getElementById('inp-client').value : '';
+    const proj = document.getElementById('inp-project') ? document.getElementById('inp-project').value : '';
+    const addr = document.getElementById('inp-address') ? document.getElementById('inp-address').value : '';
+    const units = parseInt(document.getElementById('inp-units') ? document.getElementById('inp-units').value : '1') || 1;
+
+    if (proj) document.getElementById('elec-inp-project').value = proj;
+    if (addr) document.getElementById('elec-inp-address').value = addr;
+
+    electricianItems = active.map(i => {
+        const inferred = inferWireDetails(i.name);
+        return {
+            name: i.name,
+            room: extractRoomFromName(i.name),
+            unit: i.unit || 'Point',
+            qty: (i.qty || 1) * units,
+            wireSize: inferred.wireSize,
+            conduitSpec: inferred.conduitSpec
+        };
+    });
+
+    renderElectricianTable();
+    alert(`Successfully imported ${electricianItems.length} active service points with recommended wire sizes!`);
+}
+
+async function handlePDFUpload(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+
+    if (!window.pdfjsLib) {
+        alert('PDF parser library is still loading. Please try again in a few seconds.');
+        return;
+    }
+
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        
+        let fullText = '';
+        for (let p = 1; p <= pdf.numPages; p++) {
+            const page = await pdf.getPage(p);
+            const content = await page.getTextContent();
+            const pageStr = content.items.map(item => item.str).join(' ');
+            fullText += ' ' + pageStr;
+        }
+
+        // Try extracting project and client name
+        const clientMatch = fullText.match(/PREPARED FOR:?\s*([A-Za-z0-9\s,\.]+?)(?=\s*PROJECT|\s*SITE|\s*DATE)/i);
+        if (clientMatch && clientMatch[1]) {
+            const clientVal = clientMatch[1].trim();
+            if (clientVal) document.getElementById('elec-inp-project').value = clientVal;
+        }
+
+        const addrMatch = fullText.match(/SITE LOCATION:?\s*([A-Za-z0-9\s,\.\-]+?)(?=\s*QUOTATION NO|\s*DATE)/i);
+        if (addrMatch && addrMatch[1]) {
+            const addrVal = addrMatch[1].trim();
+            if (addrVal) document.getElementById('elec-inp-address').value = addrVal;
+        }
+
+        // Parse table rows from extracted text
+        const parsedItems = [];
+
+        // Comprehensive regex looking for electrical points in text
+        const pointPattern = /([A-Za-z0-9\s\/\(\)\u2014\-\&\+]+?)\s+(Point|Nos|Set|Board|Sq\.Ft|Rft|Pit)\s+(?:[₹\d,\.]+\s+)?(\d+)/gi;
+        let match;
+        while ((match = pointPattern.exec(fullText)) !== null) {
+            let desc = match[1].trim();
+            // clean up leading item numbers or headers
+            desc = desc.replace(/^(\d+\s*)+/, '').trim();
+            if (desc.length > 4 && !desc.toLowerCase().includes('gross total') && !desc.toLowerCase().includes('discount')) {
+                const unit = match[2];
+                const qty = parseInt(match[3]) || 1;
+                const inferred = inferWireDetails(desc);
+                parsedItems.push({
+                    name: desc,
+                    room: extractRoomFromName(desc),
+                    unit: unit,
+                    qty: qty,
+                    wireSize: inferred.wireSize,
+                    conduitSpec: inferred.conduitSpec
+                });
+            }
+        }
+
+        if (parsedItems.length > 0) {
+            electricianItems = parsedItems;
+            renderElectricianTable();
+            alert(`Successfully extracted ${parsedItems.length} electrical points from PDF!`);
+        } else {
+            // Fallback: prompt user
+            alert('PDF text was read, but could not automatically match point table structure. You can use "Load Active Service Points" or "Select from History".');
+        }
+    } catch (err) {
+        console.error('PDF parsing error:', err);
+        alert('Failed to read PDF file. Please ensure it is a valid PDF document or use History Import.');
+    }
+}
+
+function addElectricianRow() {
+    electricianItems.push({
+        name: '',
+        room: 'General',
+        unit: 'Point',
+        qty: 1,
+        wireSize: '1.5 mm²',
+        conduitSpec: '20mm Rigid Conduit'
+    });
+    renderElectricianTable();
+}
+
+function removeElectricianRow(idx) {
+    if (electricianItems.length <= 1) {
+        electricianItems = [{ name: '', room: 'General', unit: 'Point', qty: 0, wireSize: '1.5 mm²', conduitSpec: '20mm Conduit' }];
+    } else {
+        electricianItems.splice(idx, 1);
+    }
+    renderElectricianTable();
+}
+
+function updateElectricianItem(idx, field, val) {
+    if (!electricianItems[idx]) return;
+    if (field === 'qty') {
+        electricianItems[idx][field] = parseFloat(val) || 0;
+    } else if (field === 'name') {
+        electricianItems[idx][field] = val;
+        // Auto-infer wire if not manually changed
+        const inferred = inferWireDetails(val);
+        electricianItems[idx].wireSize = inferred.wireSize;
+        electricianItems[idx].conduitSpec = inferred.conduitSpec;
+        electricianItems[idx].room = extractRoomFromName(val);
+        renderElectricianTable();
+        return;
+    } else {
+        electricianItems[idx][field] = val;
+    }
+    updateElectricianSummary();
+}
+
+function renderElectricianTable() {
+    const tbody = document.getElementById('elec-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    if (electricianItems.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted);">No points loaded yet. Upload a service quotation PDF, select from history, or click "Add Point".</td></tr>';
+        updateElectricianSummary();
+        return;
+    }
+
+    electricianItems.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td class="text-center font-bold" style="color:var(--text-muted);font-size:.78rem;">${idx + 1}</td>
+            <td><input type="text" value="${item.name || ''}" placeholder="e.g. Master Bedroom — AC Power Point" style="width:100%;font-weight:600;" onchange="updateElectricianItem(${idx}, 'name', this.value)"></td>
+            <td><input type="text" value="${item.room || 'General'}" placeholder="Room/Area" style="width:100%;" oninput="updateElectricianItem(${idx}, 'room', this.value)"></td>
+            <td class="text-center">
+                <select onchange="updateElectricianItem(${idx}, 'unit', this.value)" style="width:100%;background:var(--bg-card);color:var(--text);border:1px solid var(--border);padding:5px;border-radius:4px;font-size:.78rem;">
+                    <option value="Point" ${item.unit === 'Point' ? 'selected' : ''}>Point</option>
+                    <option value="Nos" ${item.unit === 'Nos' ? 'selected' : ''}>Nos</option>
+                    <option value="Set" ${item.unit === 'Set' ? 'selected' : ''}>Set</option>
+                    <option value="Board" ${item.unit === 'Board' ? 'selected' : ''}>Board</option>
+                    <option value="Sq.Ft" ${item.unit === 'Sq.Ft' ? 'selected' : ''}>Sq.Ft</option>
+                    <option value="Rft" ${item.unit === 'Rft' ? 'selected' : ''}>Rft</option>
+                </select>
+            </td>
+            <td><input type="number" min="0" value="${item.qty || 0}" style="width:100%;text-align:center;font-weight:700;" oninput="updateElectricianItem(${idx}, 'qty', this.value)"></td>
+            <td>
+                <select onchange="updateElectricianItem(${idx}, 'wireSize', this.value)" style="width:100%;background:var(--bg-card);color:#38bdf8;font-weight:700;border:1px solid var(--border);padding:5px;border-radius:4px;font-size:.78rem;">
+                    <option value="1.0 mm²" ${item.wireSize === '1.0 mm²' ? 'selected' : ''}>1.0 mm² (Light/Fan)</option>
+                    <option value="1.5 mm²" ${item.wireSize === '1.5 mm²' ? 'selected' : ''}>1.5 mm² (5A Socket)</option>
+                    <option value="2.5 mm²" ${item.wireSize === '2.5 mm²' ? 'selected' : ''}>2.5 mm² (16A Power)</option>
+                    <option value="4.0 mm²" ${item.wireSize === '4.0 mm²' ? 'selected' : ''}>4.0 mm² (AC/Geyser)</option>
+                    <option value="6.0 mm²" ${item.wireSize === '6.0 mm²' ? 'selected' : ''}>6.0 mm² (Heavy Line)</option>
+                    <option value="10.0 mm²" ${item.wireSize === '10.0 mm²' ? 'selected' : ''}>10.0 mm² (Main Incomer)</option>
+                    <option value="CAT6 / Shielded" ${item.wireSize === 'CAT6 / Shielded' ? 'selected' : ''}>CAT6 / Shielded (LAN)</option>
+                    <option value="8 SWG / GI" ${item.wireSize === '8 SWG / GI' ? 'selected' : ''}>8 SWG GI (Earth)</option>
+                    <option value="PVC Conduit" ${item.wireSize === 'PVC Conduit' ? 'selected' : ''}>PVC Conduit Only</option>
+                </select>
+            </td>
+            <td><input type="text" value="${item.conduitSpec || '20mm Conduit'}" placeholder="Conduit / MCB spec" style="width:100%;font-size:.78rem;" oninput="updateElectricianItem(${idx}, 'conduitSpec', this.value)"></td>
+            <td class="text-center"><button class="del-btn" onclick="removeElectricianRow(${idx})" title="Delete"><i class="fa-solid fa-trash-can"></i></button></td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    updateElectricianSummary();
+}
+
+function updateElectricianSummary() {
+    let totalPoints = 0;
+    electricianItems.forEach(i => {
+        if ((i.name && i.name.trim()) || i.qty > 0) {
+            totalPoints += (i.qty || 0);
+        }
+    });
+
+    const badge = document.getElementById('elec-summary-badge');
+    if (badge) {
+        badge.textContent = `Total Points / Quantity: ${totalPoints}`;
+    }
+}
+
+function clearElectricianForm() {
+    electricianItems = [
+        { name: '', room: 'General', unit: 'Point', qty: 0, wireSize: '1.5 mm²', conduitSpec: '20mm Conduit' }
+    ];
+    renderElectricianTable();
+}
+
+function generateElectricianWorkOrder(fromHistory) {
+    const woNo = document.getElementById('elec-inp-wo-no').value || 'AMP/WO/2026/001';
+    const dateVal = document.getElementById('elec-inp-date').value || new Date().toISOString().split('T')[0];
+    const targetDateVal = document.getElementById('elec-inp-target-date').value || dateVal;
+    const project = document.getElementById('elec-inp-project').value || 'Residential / Commercial Site';
+    const address = document.getElementById('elec-inp-address').value || EMDASH;
+    const contractor = document.getElementById('elec-inp-contractor').value || 'Lead Site Electrician';
+    const phone = document.getElementById('elec-inp-phone').value || EMDASH;
+    const supervisor = document.getElementById('elec-inp-supervisor').value || 'AMPEdge Project Engineer';
+    const instructions = document.getElementById('elec-inp-instructions').value || '';
+
+    const opts = { year: 'numeric', month: 'long', day: 'numeric' };
+    const dateFormatted = new Date(dateVal).toLocaleDateString('en-US', opts);
+    const targetFormatted = new Date(targetDateVal).toLocaleDateString('en-US', opts);
+
+    const activeItems = electricianItems.filter(i => (i.name && i.name.trim()) || (i.qty > 0));
+    if (activeItems.length === 0) {
+        alert('Please add at least one electrical point with quantity > 0 before generating the work order.');
+        return;
+    }
+
+    // Pagination: max 20 items per page
+    const ELEC_PER_PAGE = 20;
+    const chunks = [];
+    for (let i = 0; i < activeItems.length; i += ELEC_PER_PAGE) {
+        chunks.push(activeItems.slice(i, i + ELEC_PER_PAGE));
+    }
+    if (chunks.length === 0) chunks.push([]);
+
+    const totalPages = chunks.length;
+
+    // Calculate Wire & Points Statistics
+    let totalQty = 0;
+    let acCount = 0;
+    let power16aCount = 0;
+    let lightFanCount = 0;
+    let socket5aCount = 0;
+
+    activeItems.forEach(i => {
+        const q = (i.qty || 0);
+        totalQty += q;
+        const w = (i.wireSize || '');
+        if (w.includes('4.0')) acCount += q;
+        else if (w.includes('2.5')) power16aCount += q;
+        else if (w.includes('1.5')) socket5aCount += q;
+        else if (w.includes('1.0')) lightFanCount += q;
+    });
+
+    // Wire estimation formula (approximate meters based on standard room wiring runs)
+    const est1mmCoils = Math.max(1, Math.ceil((lightFanCount * 12) / 90));
+    const est1_5mmCoils = Math.max(1, Math.ceil((socket5aCount * 15 + lightFanCount * 8) / 90));
+    const est2_5mmCoils = Math.max(1, Math.ceil((power16aCount * 18) / 90));
+    const est4mmCoils = Math.max(1, Math.ceil((acCount * 22) / 90));
+
+    const instructionsHtml = instructions 
+        ? instructions.replace(/\n/g, '<br>')
+        : '&bull; Adhere strictly to IS 732 color code: Red/Yellow/Blue (Phase), Black (Neutral), Green (Earth).<br>&bull; No jointing allowed inside conduits. Joints permitted only in modular back-boxes.';
+
+    const bottomBlockHtml = `
+        <!-- Wire Estimation Summary Box -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;margin-bottom:8px;">
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:6px 10px;font-size:.65rem;">
+                <h4 style="font-size:.64rem;font-weight:700;color:#0284c7;text-transform:uppercase;margin-bottom:4px;border-bottom:1px solid #e2e8f0;padding-bottom:2px;">
+                    <i class="fa-solid fa-calculator"></i> TOTAL POINTS SUMMARY
+                </h4>
+                <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">Light / Fan Points:</span><span style="font-weight:700;color:#0f172a;">${lightFanCount} Pts</span></div>
+                <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">5A / 6A Utility Sockets:</span><span style="font-weight:700;color:#0f172a;">${socket5aCount} Pts</span></div>
+                <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">16A Power / Kitchen Points:</span><span style="font-weight:700;color:#0f172a;">${power16aCount} Pts</span></div>
+                <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">AC &amp; Geyser Heavy Points:</span><span style="font-weight:700;color:#0f172a;">${acCount} Pts</span></div>
+                <div style="display:flex;justify-content:space-between;padding:2px 0;margin-top:2px;border-top:1px dashed #cbd5e1;font-weight:800;color:#0284c7;">
+                    <span>TOTAL ORDERED POINTS:</span><span>${totalQty} Points</span>
+                </div>
+            </div>
+
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:6px 10px;font-size:.65rem;">
+                <h4 style="font-size:.64rem;font-weight:700;color:#059669;text-transform:uppercase;margin-bottom:4px;border-bottom:1px solid #e2e8f0;padding-bottom:2px;">
+                    <i class="fa-solid fa-boxes-stacked"></i> ESTIMATED WIRE REQUIREMENT (90m COILS)
+                </h4>
+                <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">1.0 mm² FR Copper (Lights/Fans):</span><span class="mono" style="font-weight:700;color:#0f172a;">~${est1mmCoils} Coils</span></div>
+                <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">1.5 mm² FR Copper (5A Sockets/Feed):</span><span class="mono" style="font-weight:700;color:#0f172a;">~${est1_5mmCoils} Coils</span></div>
+                <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">2.5 mm² FR Copper (16A Power):</span><span class="mono" style="font-weight:700;color:#0f172a;">~${est2_5mmCoils} Coils</span></div>
+                <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">4.0 mm² FR Copper (AC/Geysers):</span><span class="mono" style="font-weight:700;color:#0f172a;">~${est4mmCoils} Coils</span></div>
+                <div style="display:flex;justify-content:space-between;padding:2px 0;margin-top:2px;border-top:1px dashed #cbd5e1;font-size:.58rem;color:#64748b;">
+                    <span>*Approximate site estimate &bull; Verify against exact conduit layout</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Site Execution Guidelines -->
+        <div style="font-size:.56rem;color:#475569;line-height:1.4;background:#fafafa;border:1px solid #e2e8f0;border-radius:5px;padding:6px 10px;margin-bottom:8px;">
+            <strong style="color:#0f172a;display:block;margin-bottom:2px;font-size:.6rem;letter-spacing:.3px;">SITE EXECUTION INSTRUCTIONS FOR ELECTRICIAN:</strong>
+            <div>${instructionsHtml}</div>
+        </div>
+
+        <!-- Signatures Block -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;">
+            <div style="border:1px dashed #cbd5e1;border-radius:4px;padding:5px 8px;background:#fcfcfc;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:.56rem;font-weight:700;color:#0f172a;">ISSUED BY (SUPERVISING ENGINEER)</span>
+                    <span class="sig-stamp" style="font-size:.48rem;padding:2px 5px;background:#e0f2fe;color:#0369a1;">&#10003; WORK ORDER ISSUED</span>
+                </div>
+                <div class="sig-images-row" style="margin:3px 0;">
+                    <img src="sig1.png" alt="Sayantam Pal" class="sig-img" style="height:30px;">
+                    <img src="sig2.png" alt="Rittick Das" class="sig-img" style="height:30px;">
+                </div>
+                <p class="sig-company" style="font-size:.62rem;margin-bottom:1px;">Sayantam Pal &amp; Rittick Das</p>
+                <p class="sig-dept" style="font-size:.54rem;color:#64748b;">Project Directors &bull; AMPEdge Solution</p>
+            </div>
+            <div style="border:1px dashed #cbd5e1;border-radius:4px;padding:5px 8px;background:#fcfcfc;display:flex;flex-direction:column;justify-content:space-between;">
+                <div>
+                    <span style="font-size:.56rem;font-weight:700;color:#0f172a;">RECEIVED &amp; CONFIRMED BY ELECTRICIAN</span>
+                    <p style="font-size:.52rem;color:#64748b;margin-top:2px;">I confirm receipt of points schedule and agree to execute wiring as per specified wire gauges.</p>
+                </div>
+                <div style="border-top:1px dashed #cbd5e1;padding-top:3px;margin-top:6px;">
+                    <p style="font-size:.54rem;color:#64748b;">Electrician Signature &bull; ${contractor}<br>Date: ________________________</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const container = document.getElementById('elec-pdf-pages-container');
+    container.innerHTML = '';
+
+    let itemNumberOffset = 0;
+
+    chunks.forEach((chunk, pageIdx) => {
+        const pageNum = pageIdx + 1;
+        const isFirstPage = (pageIdx === 0);
+        const isLastPage = (pageIdx === chunks.length - 1);
+
+        const pageDiv = document.createElement('div');
+        pageDiv.className = 'pdf-page page-elec';
+
+        let pageHtml = '';
+
+        if (isFirstPage) {
+            pageHtml += `
+                <!-- Brand Header -->
+                <div class="pdf-brand-header" style="margin-bottom:10px;padding-bottom:8px;">
+                    <div class="pdf-brand-left">
+                        <img src="logo.png" alt="AMPEdge" class="pdf-logo-img">
+                        <div>
+                            <h1 class="pdf-brand-title">AMPEdge Solution</h1>
+                            <p class="pdf-brand-tagline">Powering the Edge of Tomorrow. | Electrical Engineering &amp; Site Execution</p>
+                        </div>
+                    </div>
+                    <div style="font-size:.62rem;color:#475569;line-height:1.45;text-align:right;">
+                        <strong style="color:#0f172a;font-size:.72rem;">AMPEdge Solution</strong><br>
+                        <span>West Bauria, Chackasi, Palpara, Howrah 711307</span><br>
+                        <span>&#128222; Contact: +91 91236 67258 | +91 97483 98418</span><br>
+                        <span>&#9993; ampedge.info@gmail.com</span><br>
+                        <span style="color:#0284c7;font-weight:700;">INTERNAL SITE EXECUTION SCHEDULE</span>
+                    </div>
+                </div>
+
+                <!-- Title Strip -->
+                <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #0284c7;padding-bottom:4px;margin-bottom:8px;">
+                    <div style="font-family:'Outfit',sans-serif;font-size:1.2rem;font-weight:800;color:#0f172a;letter-spacing:.5px;">
+                        <i class="fa-solid fa-screwdriver-wrench" style="color:#0284c7;"></i> ELECTRICIAN WORK ORDER &amp; POINT SCHEDULE
+                    </div>
+                    <span class="pdf-po-badge" style="background:#0284c7;color:#fff;">SITE EXECUTION (NO PRICES)</span>
+                </div>
+
+                <!-- Site & Work Order Metadata -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;">
+                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:6px 10px;font-size:.65rem;">
+                        <h4 style="font-size:.64rem;font-weight:700;color:#0284c7;text-transform:uppercase;margin-bottom:4px;border-bottom:1px solid #e2e8f0;padding-bottom:2px;">
+                            <i class="fa-solid fa-location-dot"></i> SITE &amp; PROJECT LOCATION
+                        </h4>
+                        <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">Project Title:</span><span style="color:#0f172a;font-weight:700;">${project}</span></div>
+                        <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">Site Address:</span><span style="color:#0f172a;font-weight:600;">${address}</span></div>
+                        <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">Supervising Engg:</span><span style="color:#0f172a;font-weight:600;">${supervisor}</span></div>
+                    </div>
+                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:6px 10px;font-size:.65rem;">
+                        <h4 style="font-size:.64rem;font-weight:700;color:#0284c7;text-transform:uppercase;margin-bottom:4px;border-bottom:1px solid #e2e8f0;padding-bottom:2px;">
+                            <i class="fa-solid fa-hard-hat"></i> ORDER &amp; CONTRACTOR DETAILS
+                        </h4>
+                        <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">Work Order No:</span><span class="mono" style="color:#0284c7;font-weight:800;">${woNo}</span></div>
+                        <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">Issue Date:</span><span style="color:#0f172a;font-weight:600;">${dateFormatted}</span></div>
+                        <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">Target Finish:</span><span style="color:#0f172a;font-weight:600;">${targetFormatted}</span></div>
+                        <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">Lead Electrician:</span><span style="color:#0f172a;font-weight:700;">${contractor} (${phone})</span></div>
+                    </div>
+                </div>
+            `;
+        } else {
+            pageHtml += `
+                <!-- Compact Repeat Header -->
+                <div class="pdf-page-header-repeat" style="margin-bottom:8px;">
+                    <img src="logo.png" alt="AMPEdge" class="pdf-logo-sm">
+                    <span class="pdf-header-company">AMPEdge Solution</span>
+                    <span class="pdf-header-tag">Electrician Schedule &mdash; Part ${pageNum} of ${totalPages}</span>
+                </div>
+                <div class="pdf-section-strip" style="margin-bottom:8px;">
+                    <h2><i class="fa-solid fa-screwdriver-wrench"></i> POINT SCHEDULE &amp; WIRE GAUGE SPECIFICATIONS (CONT. &mdash; PART ${pageNum})</h2>
+                </div>
+            `;
+        }
+
+        // Table
+        pageHtml += `
+            <table class="pdf-boq-table" style="margin-bottom:6px;">
+                <thead>
+                    <tr>
+                        <th style="width:26px;" class="text-center">#</th>
+                        <th>ELECTRICAL POINT / WORK DESCRIPTION</th>
+                        <th style="width:105px;">ROOM / AREA</th>
+                        <th style="width:42px;" class="text-center">UNIT</th>
+                        <th style="width:36px;" class="text-center">QTY</th>
+                        <th style="width:100px;" class="text-center">WIRE SIZE (mm²)</th>
+                        <th style="width:130px;">CONDUIT / MCB SPEC</th>
+                        <th style="width:55px;" class="text-center">STATUS</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        chunk.forEach((item, rIdx) => {
+            const rowNumber = itemNumberOffset + rIdx + 1;
+            pageHtml += `
+                <tr>
+                    <td class="text-center font-bold" style="color:#64748b;">${rowNumber}</td>
+                    <td><strong>${item.name || 'Electrical Point'}</strong></td>
+                    <td style="font-size:.65rem;color:#475569;">${item.room || 'General'}</td>
+                    <td class="text-center" style="font-size:.66rem;">${item.unit || 'Point'}</td>
+                    <td class="text-center font-bold font-mono" style="font-size:.72rem;">${item.qty || 1}</td>
+                    <td class="text-center"><span class="elec-wire-tag">${item.wireSize || '1.5 mm²'}</span></td>
+                    <td style="font-size:.62rem;color:#334155;">${item.conduitSpec || '20mm Conduit'}</td>
+                    <td class="text-center" style="font-size:.58rem;color:#94a3b8;"><span class="elec-check-box"></span> Pipe <span class="elec-check-box"></span> Wire</td>
+                </tr>
+            `;
+        });
+
+        itemNumberOffset += chunk.length;
+
+        pageHtml += `
+                </tbody>
+            </table>
+        `;
+
+        if (isLastPage) {
+            pageHtml += bottomBlockHtml;
+        }
+
+        pageHtml += `
+            <div class="pdf-page-footer">
+                <span>AMPEdge Solution | Powering the Edge of Tomorrow. &bull; Internal Site Execution Schedule</span>
+                <span>Work Order ${woNo} &bull; Page ${pageNum} of ${totalPages}</span>
+            </div>
+        `;
+
+        pageDiv.innerHTML = pageHtml;
+        container.appendChild(pageDiv);
+    });
+
+    // Save to History
+    if (!fromHistory) {
+        saveToHistory({
+            type: 'workorder',
+            docNo: woNo,
+            date: dateVal,
+            client: project + ' (' + contractor + ')',
+            itemCount: totalQty,
+            total: 0,
+            items: JSON.parse(JSON.stringify(electricianItems)),
+            formData: {
+                woNo: woNo,
+                date: dateVal,
+                targetDate: targetDateVal,
+                project: project,
+                address: address,
+                contractor: contractor,
+                phone: phone,
+                supervisor: supervisor,
+                instructions: instructions
+            }
+        });
+    }
+
+    goToStep('elec-pdf');
+}
+
+function downloadElectricianPDF() {
+    const el = document.getElementById('elec-pdf-document');
+    const btn = document.getElementById('elec-download-btn');
+    const orig = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Generating...';
+        btn.disabled = true;
+    }
+
+    const woNo = (document.getElementById('elec-inp-wo-no') ? document.getElementById('elec-inp-wo-no').value : 'WO').replace(/[^\w-]/g, '_');
+    el.classList.add('pdf-rendering');
+
+    html2pdf().set({
+        margin: 0,
+        filename: 'AMPEdge_WorkOrder_' + woNo + '.pdf',
+        image: { type:'jpeg', quality:0.98 },
+        html2canvas: { scale:2, useCORS:true, letterRendering:true, scrollY:0 },
+        jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
+        pagebreak: { mode: ['css', 'legacy'], after: '.pdf-page:not(:last-child)' }
+    }).from(el).save().then(() => {
+        if (btn) {
+            btn.innerHTML = orig;
+            btn.disabled = false;
+        }
+        el.classList.remove('pdf-rendering');
+    }).catch(err => {
+        console.error(err);
+        if (btn) {
+            btn.innerHTML = orig;
+            btn.disabled = false;
+        }
+        el.classList.remove('pdf-rendering');
+        alert("PDF generation failed. Try Ctrl+P and select 'Save as PDF'.");
+    });
+}
 
 // ====== INITIALIZE HISTORY ON LOAD ======
 document.addEventListener('DOMContentLoaded', () => {

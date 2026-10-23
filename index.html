@@ -9,8 +9,17 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=20261023_PO_HIST_V2">
+    <link rel="stylesheet" href="style.css?v=20261023_ELEC_WO_V1">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        if (window['pdfjs-dist/build/pdf']) {
+            window.pdfjsLib = window['pdfjs-dist/build/pdf'];
+        }
+        if (window.pdfjsLib) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+    </script>
 </head>
 <body>
     <!-- ===== STEP 1: LANDING / CATEGORY SELECTION ===== -->
@@ -116,6 +125,18 @@
 
             
             <!-- Quotation & Document History Panel -->
+            
+            <!-- Site Execution & Electrician Work Order Section -->
+            <div class="landing-divider"><span>Site Execution &amp; Electrician Schedules (इलेक्ट्रीशियन वर्क आर्डर व वायर गेज)</span></div>
+            <div class="category-grid" style="grid-template-columns:1fr;max-width:1100px;">
+                <div class="category-card" onclick="openElectricianModule()" style="border:1.5px solid #0284c7;background:linear-gradient(135deg,rgba(2,132,199,.08),rgba(14,165,233,.03));">
+                    <div class="card-icon" style="background:linear-gradient(135deg,#0284c7,#0369a1);color:#fff;"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+                    <h3>Electrician Work Order &amp; Wire Gauge Schedule (इलेक्ट्रीशियन वर्क आर्डर)</h3>
+                    <p>Generate price-free point schedules for on-site electricians: upload service quotation PDF or import from history &mdash; auto-calculates wire gauge requirement (sq mm), conduit sizing, point checklist &amp; execution rules without commercial rates.</p>
+                    <span class="card-arrow" style="color:#0284c7;"><i class="fa-solid fa-arrow-right"></i></span>
+                </div>
+            </div>
+
             <div class="landing-divider"><span>Quotation & Document History</span></div>
             <div class="history-panel" id="history-panel">
                 <div class="history-header">
@@ -1185,6 +1206,152 @@
     </div>
 
 
-    <script src="app.js?v=20261023_PO_HIST_V2"></script>
+    <script src="app.js?v=20261023_ELEC_WO_V1"></script>
+
+    <!-- ==========================================================================
+         STEP: ELECTRICIAN WORK ORDER & WIRE GAUGE CONFIGURATION FORM
+         ========================================================================== -->
+    <div id="step-elec-form" class="step">
+        <div class="config-container">
+            <div class="config-topbar">
+                <button class="back-btn" onclick="goToStep(1)"><i class="fa-solid fa-arrow-left"></i> Home</button>
+                <div class="topbar-logo"><img src="logo.png" alt="AMPEdge" class="topbar-logo-img"></div>
+                <div class="selected-category-badge" style="background:rgba(2,132,199,.15);border-color:#0284c7;color:#38bdf8;">
+                    <i class="fa-solid fa-screwdriver-wrench"></i> <span>Electrician Work Order &amp; Wire Schedule</span>
+                </div>
+            </div>
+
+            <!-- Import & Utility Actions Bar -->
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:18px 30px;background:var(--bg-card);padding:14px 18px;border-radius:10px;border:1px solid var(--border);">
+                <span style="font-size:.8rem;font-weight:700;color:var(--text-muted);"><i class="fa-solid fa-file-import"></i> IMPORT POINTS:</span>
+                
+                <input type="file" id="elec-file-input" accept=".pdf" style="display:none;" onchange="handlePDFUpload(this)">
+                <button class="action-btn" style="background:#0284c7;color:#fff;" onclick="document.getElementById('elec-file-input').click()" title="Upload any generated Service Quotation PDF">
+                    <i class="fa-solid fa-file-arrow-up"></i> Upload Quotation PDF
+                </button>
+
+                <select id="elec-history-select" onchange="loadFromHistorySelection(this.value)" style="background:rgba(255,255,255,.05);color:var(--text);border:1px solid var(--border);padding:6px 12px;border-radius:6px;font-size:.78rem;max-width:280px;">
+                    <option value="">📋 Select from Saved Quotations...</option>
+                </select>
+
+                <button class="action-btn" style="background:#10b981;color:#fff;" onclick="loadFromCurrentActiveConfig()" title="Load points from current active service configuration">
+                    <i class="fa-solid fa-bolt"></i> Load Active Service Points
+                </button>
+
+                <button class="action-btn" style="background:var(--blue);color:#fff;" onclick="addElectricianRow()">
+                    <i class="fa-solid fa-plus"></i> Add Point
+                </button>
+
+                <button class="action-btn" style="background:#64748b;color:#fff;margin-left:auto;" onclick="clearElectricianForm()">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </button>
+            </div>
+
+            <!-- Site & Electrician Information Section -->
+            <div class="config-section">
+                <h2 class="config-section-title"><i class="fa-solid fa-clipboard-user"></i> Work Order &amp; Site Details (No Commercial Prices)</h2>
+                <div class="client-form-grid" style="grid-template-columns:repeat(4,1fr);">
+                    <div class="form-field">
+                        <label>Work Order / Sheet No</label>
+                        <input type="text" id="elec-inp-wo-no" value="AMP/WO/2026/001">
+                    </div>
+                    <div class="form-field">
+                        <label>Issue Date</label>
+                        <input type="date" id="elec-inp-date">
+                    </div>
+                    <div class="form-field">
+                        <label>Target Completion Date</label>
+                        <input type="date" id="elec-inp-target-date">
+                    </div>
+                    <div class="form-field">
+                        <label>Supervising Engineer / Partner</label>
+                        <input type="text" id="elec-inp-supervisor" value="Sayantam Pal / Rittick Das">
+                    </div>
+                    <div class="form-field">
+                        <label>Project / Site Name</label>
+                        <input type="text" id="elec-inp-project" value="G+4 Residential Apartment" placeholder="Project name">
+                    </div>
+                    <div class="form-field">
+                        <label>Site Location / Address</label>
+                        <input type="text" id="elec-inp-address" value="West Bauria, Howrah" placeholder="Site address">
+                    </div>
+                    <div class="form-field">
+                        <label>Electrician / Lead Wireman</label>
+                        <input type="text" id="elec-inp-contractor" value="Mr. Rajesh Kumar (Lead Wireman)" placeholder="Electrician name">
+                    </div>
+                    <div class="form-field">
+                        <label>Electrician Contact Phone</label>
+                        <input type="text" id="elec-inp-phone" value="+91 98300 00000" placeholder="Contact number">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Points & Wire Sizing Table Section -->
+            <div class="config-section">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <h2 class="config-section-title" style="margin-bottom:0;"><i class="fa-solid fa-list-check"></i> Electrical Points &amp; Recommended Wire Gauge (mm²)</h2>
+                    <span id="elec-summary-badge" style="background:#e0f2fe;color:#0369a1;padding:4px 10px;border-radius:4px;font-size:.76rem;font-weight:700;">Total Points: 0</span>
+                </div>
+                
+                <table class="config-points-table" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th style="width:30px;">#</th>
+                            <th style="width:260px;">Point / Description of Work</th>
+                            <th style="width:140px;">Location / Room</th>
+                            <th style="width:65px;" class="text-center">Unit</th>
+                            <th style="width:65px;" class="text-center">Qty</th>
+                            <th style="width:140px;" class="text-center">Recommended Wire Size (mm²)</th>
+                            <th>Conduit / Circuit Spec</th>
+                            <th style="width:40px;" class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="elec-tbody">
+                        <tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted);">No points loaded yet. Upload a service quotation PDF, select from history, or click "Add Point".</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Site Execution Guidelines Section -->
+            <div class="config-section">
+                <h2 class="config-section-title"><i class="fa-solid fa-book-bookmark"></i> Site Wiring &amp; Safety Instructions for Electrician <span class="hint">(Editable)</span></h2>
+                <div class="form-field">
+                    <textarea id="elec-inp-instructions" rows="5" style="width:100%;background:var(--bg-card);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;font-size:.82rem;line-height:1.5;">• Wire Colour Code: Phase: Red / Yellow / Blue | Neutral: Black | Earth: Pure Green (Strict adherence required).
+• Conduit Laying: Heavy-duty rigid PVC conduit with minimum 15mm plaster cover. Secure with saddles every 600mm.
+• No Mid-Conduit Joints: Wire joints inside conduits are strictly prohibited. All branching must be inside modular boxes.
+• Dedicated Heavy Circuits: AC (4.0 sq mm) and Geyser (4.0 sq mm) must have uninterrupted independent runs from DB.
+• Earthing Continuity: Continuous earth wire looping to every metallic box, 3-pin socket, and distribution board.</textarea>
+                </div>
+            </div>
+
+            <div class="generate-section" style="display:flex;justify-content:center;margin-top:20px;">
+                <button class="generate-btn" style="background:linear-gradient(135deg,#0284c7,#0369a1);max-width:380px;" onclick="generateElectricianWorkOrder()">
+                    <i class="fa-solid fa-file-pdf"></i> Generate Electrician Job Sheet (PDF)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================================================
+         STEP: ELECTRICIAN WORK ORDER PDF PREVIEW (PRICE-FREE)
+         ========================================================================== -->
+    <div id="step-elec-pdf" class="step">
+        <div class="preview-topbar">
+            <button class="back-btn" onclick="goToStep('elec-form')"><i class="fa-solid fa-arrow-left"></i> Edit Schedule</button>
+            <div class="topbar-logo"><img src="logo.png" alt="AMPEdge" class="topbar-logo-img"></div>
+            <div class="preview-actions">
+                <button class="action-btn edit-btn" onclick="goToStep('elec-form')"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+                <button class="action-btn print-btn" onclick="window.print()"><i class="fa-solid fa-print"></i> Print</button>
+                <button class="action-btn download-btn" id="elec-download-btn" onclick="downloadElectricianPDF()"><i class="fa-solid fa-file-pdf"></i> Download Job Sheet (PDF)</button>
+            </div>
+        </div>
+
+        <div class="preview-scroll-area">
+            <div id="elec-pdf-document" class="pdf-document">
+                <div id="elec-pdf-pages-container" style="display:contents;"></div>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>

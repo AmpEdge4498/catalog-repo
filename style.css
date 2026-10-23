@@ -306,8 +306,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg-dark);color:var(--text);
 /* Print Overrides */
 @media print{
     body{background:#fff!important;overflow:visible!important;height:auto!important;}
-    #step-1,#step-2,#step-2m,#step-po-form,#step-doc-form,.preview-topbar{display:none!important;}
-    #step-3,#step-3m,#step-po-pdf,#step-doc-pdf{display:block!important;height:auto!important;overflow:visible!important;}
+    #step-1,#step-2,#step-2m,#step-po-form,#step-doc-form,#step-elec-form,.preview-topbar{display:none!important;}
+    #step-3,#step-3m,#step-po-pdf,#step-doc-pdf,#step-elec-pdf{display:block!important;height:auto!important;overflow:visible!important;}
     .preview-scroll-area{background:none!important;padding:0!important;display:block!important;overflow:visible!important;}
     .pdf-page{box-shadow:none!important;margin:0!important;page-break-after:always!important;page-break-inside:avoid!important;}
     .pdf-page:last-child{page-break-after:auto!important;}
@@ -445,3 +445,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg-dark);color:var(--text);
     background: #ef4444;
     color: #fff;
 }
+
+.history-type-workorder { background: rgba(2,132,199,.15); color: #38bdf8; }
+.elec-wire-tag { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: .65rem; font-weight: 700; background: #e0f2fe; color: #0369a1; }
+.elec-check-box { width: 14px; height: 14px; border: 1.5px solid #64748b; border-radius: 2px; display: inline-block; vertical-align: middle; }
