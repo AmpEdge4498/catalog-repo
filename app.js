@@ -755,6 +755,23 @@ function downloadPDF() {
     btn.disabled = true;
     
     const client = document.getElementById('inp-client').value || 'Client';
+    const proj = document.getElementById('inp-project').value || '';
+    const addr = document.getElementById('inp-address').value || '';
+    const quoteno = document.getElementById('inp-quoteno').value || '';
+    const dateVal = document.getElementById('inp-date').value || '';
+    const units = document.getElementById('inp-units').value || '1';
+    const activeItems = configItems.filter(i => (i.qty || 0) > 0);
+
+    const kwPayload = JSON.stringify({
+        client: client,
+        project: proj,
+        address: addr,
+        quoteno: quoteno,
+        date: dateVal,
+        units: units,
+        items: activeItems.map(i => ({ name: i.name, unit: i.unit, qty: (i.qty || 1) * parseInt(units || '1') }))
+    });
+
     el.classList.add('pdf-rendering');
     
     html2pdf().set({
@@ -764,7 +781,16 @@ function downloadPDF() {
         html2canvas: { scale:2, useCORS:true, letterRendering:true },
         jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
         pagebreak: { mode: ['css', 'legacy'], after: '.pdf-page:not(:last-child)' }
-    }).from(el).save().then(() => {
+    }).from(el).toPdf().get('pdf').then(function(pdfDoc) {
+        try {
+            pdfDoc.setProperties({
+                title: 'AMPEdge Service Quotation - ' + client,
+                subject: 'Service Quotation BOQ',
+                author: 'AMPEdge Solution',
+                keywords: kwPayload
+            });
+        } catch(e) {}
+    }).save().then(() => {
         btn.innerHTML = orig;
         btn.disabled = false;
         el.classList.remove('pdf-rendering');
@@ -775,6 +801,8 @@ function downloadPDF() {
         el.classList.remove('pdf-rendering');
         alert("PDF generation failed. Try Ctrl+P and select 'Save as PDF'.");
     });
+    return;
+
 }
 
 // ====== HELPERS ======
@@ -2925,7 +2953,13 @@ function loadFromHistorySelection(id) {
     });
 
     renderElectricianTable();
-    alert(`Loaded ${electricianItems.length} points from quotation ${item.docNo}!`);
+    const statusEl = document.getElementById('elec-parse-status');
+    if (statusEl) {
+        statusEl.style.display = 'inline-block';
+        statusEl.style.background = '#dcfce7';
+        statusEl.style.color = '#15803d';
+        statusEl.innerHTML = `✓ Loaded <strong>${electricianItems.length} points</strong> from Quotation <em>${item.docNo}</em>!`;
+    }
 }
 
 function loadFromCurrentActiveConfig() {
@@ -2956,79 +2990,232 @@ function loadFromCurrentActiveConfig() {
     });
 
     renderElectricianTable();
-    alert(`Successfully imported ${electricianItems.length} active service points with recommended wire sizes!`);
+    const statusEl = document.getElementById('elec-parse-status');
+    if (statusEl) {
+        statusEl.style.display = 'inline-block';
+        statusEl.style.background = '#dcfce7';
+        statusEl.style.color = '#15803d';
+        statusEl.innerHTML = `✓ Imported <strong>${electricianItems.length} active service points</strong> with calculated wire requirements!`;
+    }
 }
 
-async function handlePDFUpload(input) {
+// Drag & Drop event handlers
+function handleDragOver(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const zone = document.getElementById('elec-dropzone');
+    if (zone) zone.classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const zone = document.getElementById('elec-dropzone');
+    if (zone) zone.classList.remove('drag-over');
+}
+
+function handleFileDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const zone = document.getElementById('elec-dropzone');
+    if (zone) zone.classList.remove('drag-over');
+    
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        const file = e.dataTransfer.files[0];
+        if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+            processQuotationPDFFile(file);
+        } else {
+            alert('Please drop a valid PDF file.');
+        }
+    }
+}
+
+function handlePDFUpload(input) {
     const file = input.files && input.files[0];
-    if (!file) return;
+    if (file) {
+        processQuotationPDFFile(file);
+    }
+}
+
+async function processQuotationPDFFile(file) {
+    const statusEl = document.getElementById('elec-parse-status');
+    if (statusEl) {
+        statusEl.style.display = 'inline-block';
+        statusEl.style.background = '#fef3c7';
+        statusEl.style.color = '#92400e';
+        statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Reading & analyzing quotation PDF...';
+    }
 
     if (!window.pdfjsLib) {
-        alert('PDF parser library is still loading. Please try again in a few seconds.');
+        if (statusEl) {
+            statusEl.style.background = '#fee2e2';
+            statusEl.style.color = '#991b1b';
+            statusEl.innerHTML = 'PDF parser library is loading. Please wait a moment and try again.';
+        }
         return;
     }
 
     try {
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        
-        let fullText = '';
-        for (let p = 1; p <= pdf.numPages; p++) {
-            const page = await pdf.getPage(p);
-            const content = await page.getTextContent();
-            const pageStr = content.items.map(item => item.str).join(' ');
-            fullText += ' ' + pageStr;
+
+        let parsedItems = [];
+        let clientVal = '';
+        let projVal = '';
+        let addrVal = '';
+        let quoteVal = '';
+        let dateVal = '';
+
+        // LAYER 1: Embedded JSON metadata reader (100% precision for AMPEdge generated PDFs)
+        try {
+            const meta = await pdf.getMetadata();
+            if (meta && meta.info && meta.info.Keywords) {
+                const kwData = JSON.parse(meta.info.Keywords);
+                if (kwData && kwData.items && Array.isArray(kwData.items)) {
+                    clientVal = kwData.client || '';
+                    projVal = kwData.project || '';
+                    addrVal = kwData.address || '';
+                    quoteVal = kwData.quoteno || '';
+                    dateVal = kwData.date || '';
+
+                    parsedItems = kwData.items.map(i => {
+                        const inferred = inferWireDetails(i.name);
+                        return {
+                            name: i.name,
+                            room: extractRoomFromName(i.name),
+                            unit: i.unit || 'Point',
+                            qty: i.qty || 1,
+                            wireSize: inferred.wireSize,
+                            conduitSpec: inferred.conduitSpec
+                        };
+                    });
+                }
+            }
+        } catch (e) {
+            // continue to Layer 2 text parser
         }
 
-        // Try extracting project and client name
-        const clientMatch = fullText.match(/PREPARED FOR:?\s*([A-Za-z0-9\s,\.]+?)(?=\s*PROJECT|\s*SITE|\s*DATE)/i);
-        if (clientMatch && clientMatch[1]) {
-            const clientVal = clientMatch[1].trim();
-            if (clientVal) document.getElementById('elec-inp-project').value = clientVal;
-        }
+        // LAYER 2: Text stream line reconstructor & regex parser across all PDF pages
+        if (parsedItems.length === 0) {
+            let fullTextLines = [];
+            let fullTextRaw = '';
 
-        const addrMatch = fullText.match(/SITE LOCATION:?\s*([A-Za-z0-9\s,\.\-]+?)(?=\s*QUOTATION NO|\s*DATE)/i);
-        if (addrMatch && addrMatch[1]) {
-            const addrVal = addrMatch[1].trim();
-            if (addrVal) document.getElementById('elec-inp-address').value = addrVal;
-        }
-
-        // Parse table rows from extracted text
-        const parsedItems = [];
-
-        // Comprehensive regex looking for electrical points in text
-        const pointPattern = /([A-Za-z0-9\s\/\(\)\u2014\-\&\+]+?)\s+(Point|Nos|Set|Board|Sq\.Ft|Rft|Pit)\s+(?:[₹\d,\.]+\s+)?(\d+)/gi;
-        let match;
-        while ((match = pointPattern.exec(fullText)) !== null) {
-            let desc = match[1].trim();
-            // clean up leading item numbers or headers
-            desc = desc.replace(/^(\d+\s*)+/, '').trim();
-            if (desc.length > 4 && !desc.toLowerCase().includes('gross total') && !desc.toLowerCase().includes('discount')) {
-                const unit = match[2];
-                const qty = parseInt(match[3]) || 1;
-                const inferred = inferWireDetails(desc);
-                parsedItems.push({
-                    name: desc,
-                    room: extractRoomFromName(desc),
-                    unit: unit,
-                    qty: qty,
-                    wireSize: inferred.wireSize,
-                    conduitSpec: inferred.conduitSpec
+            for (let p = 1; p <= pdf.numPages; p++) {
+                const page = await pdf.getPage(p);
+                const content = await page.getTextContent();
+                
+                // Group items by vertical position Y
+                const linesByY = {};
+                content.items.forEach(item => {
+                    const str = (item.str || '').trim();
+                    if (!str) return;
+                    const y = Math.round(item.transform[5] / 4) * 4;
+                    if (!linesByY[y]) linesByY[y] = [];
+                    linesByY[y].push({ x: item.transform[4], str: item.str });
                 });
+
+                const sortedY = Object.keys(linesByY).sort((a, b) => b - a);
+                sortedY.forEach(y => {
+                    const lineStr = linesByY[y].sort((a, b) => a.x - b.x).map(i => i.str).join(' ').trim();
+                    if (lineStr) {
+                        fullTextLines.push(lineStr);
+                        fullTextRaw += ' ' + lineStr;
+                    }
+                });
+            }
+
+            // Extract metadata from full text
+            const clientMatch = fullTextRaw.match(/PREPARED FOR:?\s*([A-Za-z0-9\s,\.]+?)(?=\s*PROJECT|\s*SITE|\s*DATE|\s*QUOTATION)/i);
+            if (clientMatch) clientVal = clientMatch[1].trim();
+
+            const projMatch = fullTextRaw.match(/PROJECT:?\s*([A-Za-z0-9\s,\.\(\)\-]+?)(?=\s*SITE|\s*QUOTATION|\s*DATE|\s*VALIDITY)/i);
+            if (projMatch) projVal = projMatch[1].trim();
+
+            const addrMatch = fullTextRaw.match(/SITE LOCATION:?\s*([A-Za-z0-9\s,\.\-]+?)(?=\s*QUOTATION|\s*DATE|\s*VALIDITY)/i);
+            if (addrMatch) addrVal = addrMatch[1].trim();
+
+            const quoteMatch = fullTextRaw.match(/QUOTATION NO:?\s*([A-Za-z0-9\/\-_]+)/i);
+            if (quoteMatch) quoteVal = quoteMatch[1].trim();
+
+            // Match BOQ rows
+            const lineRegex = /^\s*(\d{1,3})\s+(.+?)\s+(Point|Nos|Set|Board|Sq\.Ft|Rft|Pit|Mtr|Box|Coil|Pcs)\s+(?:[₹Rs\.]*\s*[\d,]+(?:\.\d{1,2})?)\s+([\d,]+)(?:\s*\([^\)]*\))?/i;
+
+            fullTextLines.forEach(l => {
+                const m = l.match(lineRegex);
+                if (m) {
+                    const desc = m[2].trim();
+                    if (!desc.toLowerCase().includes('gross total') && !desc.toLowerCase().includes('discount')) {
+                        const unit = m[3];
+                        const qty = parseInt(m[4].replace(/,/g, '')) || 1;
+                        const inferred = inferWireDetails(desc);
+                        parsedItems.push({
+                            name: desc,
+                            room: extractRoomFromName(desc),
+                            unit: unit,
+                            qty: qty,
+                            wireSize: inferred.wireSize,
+                            conduitSpec: inferred.conduitSpec
+                        });
+                    }
+                }
+            });
+
+            // Flexible fallback regex if lineRegex missed
+            if (parsedItems.length === 0) {
+                const tokenPattern = /([A-Za-z0-9\s\/\(\)\u2014\-\u0026\+]+?)\s+(Point|Nos|Set|Board|Sq\.Ft|Rft|Pit)\s+(?:[₹Rs\d,\.]+\s+)?([\d,]+)/gi;
+                let tm;
+                while ((tm = tokenPattern.exec(fullTextRaw)) !== null) {
+                    let desc = tm[1].trim().replace(/^(\d+\s*)+/, '').trim();
+                    if (desc.length > 4 && !desc.toLowerCase().includes('gross') && !desc.toLowerCase().includes('total')) {
+                        const unit = tm[2];
+                        const qty = parseInt(tm[3].replace(/,/g, '')) || 1;
+                        const inferred = inferWireDetails(desc);
+                        parsedItems.push({
+                            name: desc,
+                            room: extractRoomFromName(desc),
+                            unit: unit,
+                            qty: qty,
+                            wireSize: inferred.wireSize,
+                            conduitSpec: inferred.conduitSpec
+                        });
+                    }
+                }
             }
         }
 
         if (parsedItems.length > 0) {
             electricianItems = parsedItems;
+            
+            if (projVal) document.getElementById('elec-inp-project').value = projVal;
+            else if (clientVal) document.getElementById('elec-inp-project').value = clientVal;
+            
+            if (addrVal) document.getElementById('elec-inp-address').value = addrVal;
+            if (quoteVal) document.getElementById('elec-inp-wo-no').value = quoteVal.replace('QT', 'WO');
+
             renderElectricianTable();
-            alert(`Successfully extracted ${parsedItems.length} electrical points from PDF!`);
+
+            if (statusEl) {
+                statusEl.style.display = 'inline-block';
+                statusEl.style.background = '#dcfce7';
+                statusEl.style.color = '#15803d';
+                statusEl.innerHTML = `✓ Successfully read <strong>${parsedItems.length} points</strong> from <em>${file.name}</em>! Wire gauges auto-calculated (prices excluded).`;
+            }
         } else {
-            // Fallback: prompt user
-            alert('PDF text was read, but could not automatically match point table structure. You can use "Load Active Service Points" or "Select from History".');
+            if (statusEl) {
+                statusEl.style.display = 'inline-block';
+                statusEl.style.background = '#fee2e2';
+                statusEl.style.color = '#991b1b';
+                statusEl.innerHTML = 'Could not find electrical points table in this PDF. Please verify it is a service quotation.';
+            }
         }
     } catch (err) {
-        console.error('PDF parsing error:', err);
-        alert('Failed to read PDF file. Please ensure it is a valid PDF document or use History Import.');
+        console.error('Error processing PDF:', err);
+        if (statusEl) {
+            statusEl.style.display = 'inline-block';
+            statusEl.style.background = '#fee2e2';
+            statusEl.style.color = '#991b1b';
+            statusEl.innerHTML = 'Error reading PDF file: ' + err.message;
+        }
     }
 }
 
