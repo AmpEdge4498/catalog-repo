@@ -211,6 +211,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg-dark);color:var(--text);
 /* ===========================================
    MATERIALS PURCHASE ORDER (PO) STYLES
    =========================================== */
+/* Single-page mode only when explicitly requested for single-page templates */
 .pdf-document.pdf-rendering.pdf-single-page .pdf-page {
     height: 295mm !important;
     min-height: 295mm !important;
@@ -313,3 +314,134 @@ body{font-family:'Inter',sans-serif;background:var(--bg-dark);color:var(--text);
 }
 
 .pdf-page.page-boq { padding-bottom: 20mm !important; }
+
+
+/* ===========================================
+   QUOTATION & DOCUMENT HISTORY STYLES
+   =========================================== */
+.history-panel {
+    width: 100%;
+    max-width: 1100px;
+    margin: 15px auto 40px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,.25);
+}
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+}
+.history-header h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.history-filters {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.history-filter-btn {
+    background: rgba(255,255,255,.05);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: .75rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+.history-filter-btn:hover {
+    background: rgba(255,255,255,.1);
+    color: var(--text);
+}
+.history-filter-btn.active {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: #fff;
+}
+.history-table-wrap {
+    overflow-x: auto;
+}
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .8rem;
+}
+.history-table th {
+    background: rgba(255,255,255,.03);
+    color: var(--text-muted);
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+.history-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255,255,255,.04);
+    color: var(--text);
+    vertical-align: middle;
+}
+.history-table tr:hover td {
+    background: rgba(255,255,255,.02);
+}
+.history-type-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: .68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+}
+.history-type-service { background: rgba(14,165,233,.15); color: #38bdf8; }
+.history-type-materials { background: rgba(34,197,94,.15); color: #4ade80; }
+.history-type-po { background: rgba(99,102,241,.15); color: #818cf8; }
+.history-type-bill { background: rgba(2,132,199,.15); color: #38bdf8; }
+.history-type-challan { background: rgba(245,158,11,.15); color: #fbbf24; }
+.history-type-receipt { background: rgba(16,185,129,.15); color: #34d399; }
+.history-action-btn {
+    background: rgba(14,165,233,.12);
+    border: 1px solid rgba(14,165,233,.3);
+    color: #38bdf8;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: .72rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: 4px;
+    transition: all .2s;
+}
+.history-action-btn:hover {
+    background: #0ea5e9;
+    color: #fff;
+}
+.history-del-btn {
+    background: rgba(239,68,68,.1);
+    border: 1px solid rgba(239,68,68,.3);
+    color: #f87171;
+    padding: 4px 7px;
+    border-radius: 4px;
+    font-size: .72rem;
+    cursor: pointer;
+    transition: all .2s;
+}
+.history-del-btn:hover {
+    background: #ef4444;
+    color: #fff;
+}

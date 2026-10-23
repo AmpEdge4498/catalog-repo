@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=20261009_GENERATE_FIX">
+    <link rel="stylesheet" href="style.css?v=20261023_PO_HIST_V2">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
@@ -114,7 +114,44 @@
                 </div>
             </div>
 
-            <div class="landing-footer" style="padding:24px 10px;text-align:center;">
+            
+            <!-- Quotation & Document History Panel -->
+            <div class="landing-divider"><span>Quotation & Document History</span></div>
+            <div class="history-panel" id="history-panel">
+                <div class="history-header">
+                    <h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Documents</h3>
+                    <div class="history-filters">
+                        <button class="history-filter-btn active" onclick="filterHistory('all')">All</button>
+                        <button class="history-filter-btn" onclick="filterHistory('service')">Service</button>
+                        <button class="history-filter-btn" onclick="filterHistory('materials')">Materials</button>
+                        <button class="history-filter-btn" onclick="filterHistory('po')">PO</button>
+                        <button class="history-filter-btn" onclick="filterHistory('bill')">Bill</button>
+                        <button class="history-filter-btn" onclick="filterHistory('challan')">Challan</button>
+                        <button class="history-filter-btn" onclick="filterHistory('receipt')">Receipt</button>
+                    </div>
+                </div>
+                <div class="history-table-wrap">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th style="width:30px;">#</th>
+                                <th style="width:100px;">Date</th>
+                                <th style="width:90px;">Type</th>
+                                <th>Client / Vendor</th>
+                                <th style="width:160px;">Doc Number</th>
+                                <th style="width:55px;">Items</th>
+                                <th style="width:100px;">Total</th>
+                                <th style="width:110px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-tbody">
+                            <tr class="history-empty-row"><td colspan="8" style="text-align:center;padding:30px 10px;color:var(--text-muted);font-size:.85rem;"><i class="fa-solid fa-inbox" style="font-size:1.5rem;display:block;margin-bottom:8px;opacity:.4;"></i>No documents generated yet. Your quotation history will appear here.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+<div class="landing-footer" style="padding:24px 10px;text-align:center;">
                 <p style="font-size:.9rem;font-weight:600;color:var(--text);margin-bottom:6px;">&copy; 2026 AMPEdge Solution | Powering the Edge of Tomorrow.</p>
                 <p style="font-size:.78rem;color:var(--text-muted);line-height:1.6;margin:0;">
                     &#128205; West Bauria, Chackasi, Palpara, Howrah 711307 &bull; 
@@ -801,122 +838,11 @@
 
         <div class="preview-scroll-area">
             <div id="po-pdf-document" class="pdf-document">
-                <div class="pdf-page">
-                    <!-- Brand Header with Full Company Details -->
-                    <div class="pdf-brand-header" style="margin-bottom:12px;padding-bottom:10px;">
-                        <div class="pdf-brand-left">
-                            <img src="logo.png" alt="AMPEdge" class="pdf-logo-img">
-                            <div>
-                                <h1 class="pdf-brand-title">AMPEdge Solution</h1>
-                                <p class="pdf-brand-tagline">Powering the Edge of Tomorrow. | Electrical Engineering &amp; Materials</p>
-                            </div>
-                        </div>
-                        <div style="font-size:.62rem;color:#475569;line-height:1.45;text-align:right;">
-                            <strong style="color:#0f172a;font-size:.72rem;">AMPEdge Solution</strong><br>
-                            <span>West Bauria, Chackasi, Palpara, Howrah 711307</span><br>
-                            <span>&#128222; Contact: +91 91236 67258 | +91 97483 98418</span><br>
-                            <a href="https://wa.me/919874600265" target="_blank" class="whatsapp-pill" style="text-decoration:none;color:#fff;"><i class="fa-brands fa-whatsapp"></i> WhatsApp Business: +91 98746 00265</a><br>
-                            <span>&#9993; ampedge.info@gmail.com</span><br>
-                            <span id="po-pdf-company-gstin-wrap" style="color:#4f46e5;font-weight:700;">GSTIN: <span id="po-pdf-company-gstin" contenteditable="true" style="display:inline-block;min-width:130px;border-bottom:1px dotted #94a3b8;color:#0f172a;"></span></span>
-                        </div>
-                    </div>
-
-                    <!-- Title Strip -->
-                    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #4f46e5;padding-bottom:4px;margin-bottom:10px;">
-                        <div style="font-family:'Outfit',sans-serif;font-size:1.25rem;font-weight:800;color:#0f172a;letter-spacing:.5px;">
-                            <i class="fa-solid fa-file-invoice" style="color:#4f46e5;"></i> PURCHASE ORDER
-                        </div>
-                        <span class="pdf-po-badge" id="po-pdf-mode-badge">OFFICIAL PROCUREMENT ORDER</span>
-                    </div>
-
-                    <!-- Metadata Grid -->
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-                        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:8px 10px;font-size:.66rem;">
-                            <h4 style="font-size:.64rem;font-weight:700;color:#4f46e5;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;border-bottom:1px solid #e2e8f0;padding-bottom:2px;">
-                                <i class="fa-solid fa-building"></i> VENDOR / SUPPLIER (TO)
-                            </h4>
-                            <div style="display:flex;justify-content:space-between;padding:1.5px 0;"><span style="color:#64748b;">Vendor:</span><span style="color:#0f172a;font-weight:700;" id="po-pdf-vendor" contenteditable="true">-</span></div>
-                            <div style="display:flex;justify-content:space-between;padding:1.5px 0;"><span style="color:#64748b;">Address:</span><span style="color:#0f172a;font-weight:600;" id="po-pdf-vendor-address" contenteditable="true">-</span></div>
-                            <div style="display:flex;justify-content:space-between;padding:1.5px 0;"><span style="color:#64748b;">Contact / Ph:</span><span style="color:#0f172a;font-weight:600;" id="po-pdf-vendor-phone" contenteditable="true">-</span></div>
-                            <div style="display:flex;justify-content:space-between;padding:1.5px 0;"><span style="color:#64748b;">Vendor GSTIN:</span><span class="mono" style="color:#0f172a;font-weight:700;" id="po-pdf-vendor-gstin" contenteditable="true">-</span></div>
-                        </div>
-                        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:8px 10px;font-size:.66rem;">
-                            <h4 style="font-size:.64rem;font-weight:700;color:#4f46e5;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;border-bottom:1px solid #e2e8f0;padding-bottom:2px;">
-                                <i class="fa-solid fa-file-circle-check"></i> ORDER &amp; DISPATCH DETAILS
-                            </h4>
-                            <div style="display:flex;justify-content:space-between;padding:1.5px 0;"><span style="color:#64748b;">PO Number:</span><span class="mono" style="color:#4f46e5;font-weight:800;" id="po-pdf-no" contenteditable="true">-</span></div>
-                            <div style="display:flex;justify-content:space-between;padding:1.5px 0;"><span style="color:#64748b;">PO Date:</span><span style="color:#0f172a;font-weight:600;" id="po-pdf-date" contenteditable="true">-</span></div>
-                            <div style="display:flex;justify-content:space-between;padding:1.5px 0;"><span style="color:#64748b;">Delivery By:</span><span style="color:#0f172a;font-weight:600;" id="po-pdf-delivery-date" contenteditable="true">-</span></div>
-                            <div style="display:flex;justify-content:space-between;padding:1.5px 0;"><span style="color:#64748b;">Delivery To:</span><span style="color:#0f172a;font-weight:600;" id="po-pdf-delivery-addr" contenteditable="true">-</span></div>
-                            <div style="display:flex;justify-content:space-between;padding:1.5px 0;"><span style="color:#64748b;">Payment Terms:</span><span style="color:#0f172a;font-weight:600;" id="po-pdf-pay-terms" contenteditable="true">-</span></div>
-                        </div>
-                    </div>
-
-                    <!-- Items Table -->
-                    <table class="pdf-boq-table" style="margin-bottom:8px;">
-                        <thead>
-                            <tr>
-                                <th style="width:28px;" class="text-center">#</th>
-                                <th>MATERIAL DESCRIPTION</th>
-                                <th style="width:170px;">SPECIFICATION</th>
-                                <th style="width:90px;" class="text-center">MAKE / BRAND</th>
-                                <th style="width:55px;" class="text-center">UNIT</th>
-                                <th style="width:50px;" class="text-center">QTY</th>
-                            </tr>
-                        </thead>
-                        <tbody id="po-pdf-tbody"></tbody>
-                    </table>
-
-                    <!-- Order Summary & Terms -->
-                    <div style="display:flex;justify-content:space-between;align-items:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:5px;padding:6px 12px;margin-bottom:8px;">
-                        <span style="font-size:.68rem;font-weight:700;color:#0f172a;" id="po-pdf-summary-badge">Total Items: 5 | Total Ordered Quantity: 98</span>
-                        <span style="font-size:.62rem;color:#64748b;font-weight:600;">Verified Materials Procurement List</span>
-                    </div>
-
-                    <div style="font-size:.58rem;color:#475569;line-height:1.45;background:#fafafa;border:1px solid #e2e8f0;border-radius:5px;padding:8px 12px;margin-bottom:8px;">
-                        <strong style="color:#0f172a;display:block;margin-bottom:3px;font-size:.62rem;letter-spacing:.3px;">ORDER TERMS &amp; CONDITIONS:</strong>
-                        <div id="po-pdf-terms-view">• Goods must be 100% brand-new, ISI certified factory stock with valid manufacturer warranty.<br>• Defective / damaged materials will be rejected upon site verification and must be replaced at vendor's cost.<br>• Original Tax Invoice must accompany the dispatch. Disputes subject to Howrah / Kolkata jurisdiction.</div>
-                    </div>
-
-                    <!-- Dual Director Signatures & Company Seal -->
-                    <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:10px;margin-top:8px;">
-                        <div style="border:1px dashed #cbd5e1;border-radius:4px;padding:6px 10px;background:#fcfcfc;">
-                            <div style="display:flex;justify-content:space-between;align-items:center;">
-                                <span style="font-size:.58rem;font-weight:700;color:#0f172a;">ISSUED BY: AMPEdge Solution</span>
-                                <span class="sig-stamp" style="font-size:.5rem;padding:2px 6px;">&#10003; AUTHORISED PURCHASE ORDER</span>
-                            </div>
-                            <div class="sig-images-row" style="margin:4px 0;">
-                                <img src="sig1.png" alt="Sayantam Pal" class="sig-img" style="height:32px;">
-                                <img src="sig2.png" alt="Rittick Das" class="sig-img" style="height:32px;">
-                            </div>
-                            <p class="sig-company" style="font-size:.66rem;margin-bottom:1px;">Sayantam Pal &amp; Rittick Das</p>
-                            <p class="sig-dept" style="font-size:.56rem;color:#64748b;">Partners &amp; Directors — AMPEdge Solution</p>
-                        </div>
-                        <div style="border:1px dashed #cbd5e1;border-radius:4px;padding:6px 10px;background:#fcfcfc;display:flex;flex-direction:column;justify-content:space-between;">
-                            <div>
-                                <span style="font-size:.58rem;font-weight:700;color:#0f172a;">ACCEPTED &amp; CONFIRMED BY VENDOR</span>
-                                <p style="font-size:.54rem;color:#64748b;margin-top:2px;">We accept and confirm supply as per above terms &amp; rate.</p>
-                            </div>
-                            <div style="border-top:1px dashed #cbd5e1;padding-top:4px;margin-top:10px;">
-                                <p style="font-size:.56rem;color:#64748b;">Authorised Signatory &amp; Stamp<br>Date: ________________________</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="pdf-page-footer">
-                        <span>AMPEdge Solution | Powering the Edge of Tomorrow.</span>
-                        <span>Purchase Order &bull; Page 1 of 1</span>
-                    </div>
-                </div>
+                <div id="po-pdf-pages-container" style="display:contents;"></div>
             </div>
         </div>
     </div>
 
-
-
-    <!-- ==========================================================================
-         STEP: COMMERCIAL DOCUMENTS (BILL, CHALLAN, RECEIPT) CONFIGURATION FORM
-         ========================================================================== -->
     <div id="step-doc-form" class="step">
         <div class="config-container">
             <div class="config-topbar">
@@ -1259,6 +1185,6 @@
     </div>
 
 
-    <script src="app.js?v=20261009_GENERATE_FIX"></script>
+    <script src="app.js?v=20261023_PO_HIST_V2"></script>
 </body>
 </html>

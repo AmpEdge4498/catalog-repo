@@ -529,7 +529,7 @@ function addCustomRow() {
 }
 
 // ====== STEP 3: GENERATE QUOTATION & PDF PREVIEW ======
-function generateQuotation() {
+function generateQuotation(fromHistory) {
     const client = document.getElementById('inp-client').value || 'Client';
     const project = document.getElementById('inp-project').value || 'Project';
     const address = document.getElementById('inp-address').value || EMDASH;
@@ -723,6 +723,28 @@ function generateQuotation() {
     });
     
     goToStep(3);
+
+    // Save to History
+    if (!fromHistory) {
+        saveToHistory({
+            type: 'service',
+            category: currentCategory,
+            docNo: quoteno,
+            date: dateVal,
+            client: client,
+            itemCount: activeItems.length,
+            total: grandTotal,
+            items: JSON.parse(JSON.stringify(configItems)),
+            formData: {
+                client: client,
+                project: project,
+                address: address,
+                quoteno: quoteno,
+                date: dateVal,
+                units: units
+            }
+        });
+    }
 }
 
 function downloadPDF() {
@@ -1190,7 +1212,7 @@ function addCustomMaterialRow() {
     }
 }
 
-function generateMaterialsQuotation() {
+function generateMaterialsQuotation(fromHistory) {
     const client = document.getElementById('mat-inp-client').value || 'Client';
     const project = document.getElementById('mat-inp-project').value || 'Project';
     const address = document.getElementById('mat-inp-address').value || EMDASH;
@@ -1381,6 +1403,26 @@ function generateMaterialsQuotation() {
     }
 
     goToStep('3m');
+
+    // Save to History
+    if (!fromHistory) {
+        saveToHistory({
+            type: 'materials',
+            docNo: quoteno,
+            date: dateVal,
+            client: client,
+            itemCount: activeItems.length,
+            total: grandWithGST,
+            items: JSON.parse(JSON.stringify(materialItems)),
+            formData: {
+                client: client,
+                project: project,
+                address: address,
+                quoteno: quoteno,
+                date: dateVal
+            }
+        });
+    }
 }
 
 function downloadMaterialsPDF() {
@@ -1564,7 +1606,7 @@ function updatePOSummary() {
     if (qtyEl) qtyEl.value = totalQty + ' Total Qty';
 }
 
-function previewPO(isBlank) {
+function previewPO(isBlank, fromHistory) {
     const poNo = isBlank ? 'AMP/PO/_______' : (document.getElementById('po-inp-no').value || 'AMP/PO/2026/001');
     const dateVal = document.getElementById('po-inp-date').value || new Date().toISOString().split('T')[0];
     const delDateVal = document.getElementById('po-inp-delivery-date').value || dateVal;
@@ -1581,84 +1623,270 @@ function previewPO(isBlank) {
     const dateFormatted = isBlank ? '____ / ____ / 2026' : new Date(dateVal).toLocaleDateString('en-US', opts);
     const delDateFormatted = isBlank ? '____ / ____ / 2026' : new Date(delDateVal).toLocaleDateString('en-US', opts);
 
-    document.getElementById('po-pdf-no').textContent = poNo;
-    document.getElementById('po-pdf-date').textContent = dateFormatted;
-    document.getElementById('po-pdf-delivery-date').textContent = delDateFormatted;
-    document.getElementById('po-pdf-vendor').textContent = vendor;
-    document.getElementById('po-pdf-vendor-address').textContent = vendorAddress;
-    document.getElementById('po-pdf-vendor-phone').textContent = vendorPhone;
-    document.getElementById('po-pdf-vendor-gstin').textContent = vendorGstin;
-    document.getElementById('po-pdf-delivery-addr').textContent = deliveryAddr;
-    document.getElementById('po-pdf-pay-terms').textContent = payTerms;
-
     const compGstinInput = document.getElementById('po-inp-company-gstin');
     const compGstin = compGstinInput ? compGstinInput.value.trim() : '';
-    const compGstinDisplay = document.getElementById('po-pdf-company-gstin');
-    if (compGstinDisplay) {
-        if (compGstin) {
-            compGstinDisplay.textContent = compGstin;
-        } else {
-            compGstinDisplay.textContent = isBlank ? '___________________' : '';
-        }
-    }
+    const compGstinDisplay = compGstin ? compGstin : (isBlank ? '___________________' : '');
 
-    const badge = document.getElementById('po-pdf-mode-badge');
-    if (badge) {
-        badge.textContent = isBlank ? 'BLANK PURCHASE ORDER TEMPLATE' : 'OFFICIAL PROCUREMENT ORDER';
-    }
+    const badgeText = isBlank ? 'BLANK PURCHASE ORDER TEMPLATE' : 'OFFICIAL PROCUREMENT ORDER';
 
-    const tbody = document.getElementById('po-pdf-tbody');
-    tbody.innerHTML = '';
+    const termsVal = document.getElementById('po-inp-terms').value || '';
+    const termsHtml = termsVal ? termsVal.replace(/\n/g, '<br>') : '&bull; Material Quality: All materials must be genuine, fresh factory stock, ISI / CE certified.<br>&bull; Defect Replacement: Defective items must be replaced at vendor\'s cost.<br>&bull; Invoicing: Original Tax Invoice must accompany the dispatch.';
 
     let totalQty = 0;
     let totalCount = 0;
+    let chunks = [];
 
     if (isBlank) {
-        for (let i = 1; i <= 9; i++) {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td class="text-center font-bold" style="color:#64748b;">${i}</td>
-                <td class="blank-ruled-cell">&nbsp;</td>
-                <td class="blank-ruled-cell">&nbsp;</td>
-                <td class="text-center blank-ruled-cell">&nbsp;</td>
-                <td class="text-center blank-ruled-cell">&nbsp;</td>
-                <td class="text-center blank-ruled-cell">&nbsp;</td>
-            `;
-            tbody.appendChild(tr);
-        }
-        const summaryBadge = document.getElementById('po-pdf-summary-badge');
-        if (summaryBadge) {
-            summaryBadge.textContent = 'Total Items: ___ | Total Quantity: ___';
-        }
+        // Blank PO: exactly 1 page with 9 blank ruled rows
+        chunks = [
+            Array.from({ length: 9 }, (_, i) => ({ isBlankRow: true, num: i + 1 }))
+        ];
     } else {
-        const activeItems = poItems.filter(i => (i.name && i.name.trim()) || i.qty > 0);
+        const activeItems = poItems.filter(i => (i.name && i.name.trim()) || (i.qty > 0));
         const displayItems = activeItems.length > 0 ? activeItems : poItems;
 
-        displayItems.forEach((item, idx) => {
+        displayItems.forEach(i => {
             totalCount++;
-            totalQty += (item.qty || 0);
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td class="text-center font-bold">${idx + 1}</td>
-                <td><strong>${item.name || 'Electrical Material Item'}</strong></td>
-                <td style="font-size:.65rem;color:#334155;">${item.spec || EMDASH}</td>
-                <td class="text-center" style="font-size:.66rem;">${item.brand || EMDASH}</td>
-                <td class="text-center" style="font-size:.66rem;">${item.unit || 'Pcs'}</td>
-                <td class="text-center font-bold font-mono" style="font-size:.72rem;">${item.qty || 0}</td>
-            `;
-            tbody.appendChild(tr);
+            totalQty += (i.qty || 0);
         });
 
-        const summaryBadge = document.getElementById('po-pdf-summary-badge');
-        if (summaryBadge) {
-            summaryBadge.textContent = 'Total Items: ' + totalCount + ' | Total Ordered Quantity: ' + totalQty;
+        // Smart chunking:
+        // If items <= 8: 1 page fits everything (Header + Meta + Items + Signatures)
+        // If items > 8:
+        //   - Page 1 has up to 20 items (Header + Meta + Items 1..N)
+        //   - If total is 9..20, balance between Page 1 and Page 2
+        //   - If total > 20, Page 1 has 20, Page 2 has 20, Page 3 has remaining
+        if (displayItems.length <= 8) {
+            chunks = [displayItems];
+        } else if (displayItems.length <= 20) {
+            const half = Math.ceil(displayItems.length / 2);
+            chunks = [
+                displayItems.slice(0, half),
+                displayItems.slice(half)
+            ];
+        } else {
+            const PO_PER_PAGE = 20;
+            for (let i = 0; i < displayItems.length; i += PO_PER_PAGE) {
+                chunks.push(displayItems.slice(i, i + PO_PER_PAGE));
+            }
         }
     }
 
-    const termsVal = document.getElementById('po-inp-terms').value;
-    const termsView = document.getElementById('po-pdf-terms-view');
-    if (termsView && termsVal) {
-        termsView.innerHTML = termsVal.replace(/\n/g, '<br>');
+    if (chunks.length === 0) chunks.push([]);
+
+    const totalPages = chunks.length;
+    const summaryBadgeText = isBlank 
+        ? 'Total Items: ___ | Total Quantity: ___'
+        : 'Total Items: ' + totalCount + ' | Total Ordered Quantity: ' + totalQty;
+
+    // Dual Director Signatures & Terms HTML snippet
+    const bottomBlockHtml = `
+        <div style="display:flex;justify-content:space-between;align-items:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:5px;padding:5px 12px;margin-top:8px;margin-bottom:6px;">
+            <span style="font-size:.68rem;font-weight:700;color:#0f172a;" id="po-pdf-summary-badge">${summaryBadgeText}</span>
+            <span style="font-size:.62rem;color:#64748b;font-weight:600;">Verified Materials Procurement List</span>
+        </div>
+
+        <div style="font-size:.56rem;color:#475569;line-height:1.4;background:#fafafa;border:1px solid #e2e8f0;border-radius:5px;padding:6px 10px;margin-bottom:6px;">
+            <strong style="color:#0f172a;display:block;margin-bottom:2px;font-size:.6rem;letter-spacing:.3px;">ORDER TERMS &amp; CONDITIONS:</strong>
+            <div id="po-pdf-terms-view">${termsHtml}</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:10px;margin-top:6px;">
+            <div style="border:1px dashed #cbd5e1;border-radius:4px;padding:5px 8px;background:#fcfcfc;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:.56rem;font-weight:700;color:#0f172a;">ISSUED BY: AMPEdge Solution</span>
+                    <span class="sig-stamp" style="font-size:.48rem;padding:2px 5px;">&#10003; AUTHORISED PURCHASE ORDER</span>
+                </div>
+                <div class="sig-images-row" style="margin:3px 0;">
+                    <img src="sig1.png" alt="Sayantam Pal" class="sig-img" style="height:30px;">
+                    <img src="sig2.png" alt="Rittick Das" class="sig-img" style="height:30px;">
+                </div>
+                <p class="sig-company" style="font-size:.62rem;margin-bottom:1px;">Sayantam Pal &amp; Rittick Das</p>
+                <p class="sig-dept" style="font-size:.54rem;color:#64748b;">Partners &amp; Directors — AMPEdge Solution</p>
+            </div>
+            <div style="border:1px dashed #cbd5e1;border-radius:4px;padding:5px 8px;background:#fcfcfc;display:flex;flex-direction:column;justify-content:space-between;">
+                <div>
+                    <span style="font-size:.56rem;font-weight:700;color:#0f172a;">ACCEPTED &amp; CONFIRMED BY VENDOR</span>
+                    <p style="font-size:.52rem;color:#64748b;margin-top:2px;">We accept and confirm supply as per above terms &amp; rate.</p>
+                </div>
+                <div style="border-top:1px dashed #cbd5e1;padding-top:3px;margin-top:6px;">
+                    <p style="font-size:.54rem;color:#64748b;">Authorised Signatory &amp; Stamp<br>Date: ________________________</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Render Pages into po-pdf-pages-container
+    const container = document.getElementById('po-pdf-pages-container');
+    container.innerHTML = '';
+
+    let itemNumberOffset = 0;
+
+    chunks.forEach((chunk, pageIdx) => {
+        const pageNum = pageIdx + 1;
+        const isFirstPage = (pageIdx === 0);
+        const isLastPage = (pageIdx === chunks.length - 1);
+
+        const pageDiv = document.createElement('div');
+        pageDiv.className = 'pdf-page page-po';
+
+        let pageHtml = '';
+
+        if (isFirstPage) {
+            // First page has Full Brand Header + PO Title Strip + Metadata Grid
+            pageHtml += `
+                <div class="pdf-brand-header" style="margin-bottom:10px;padding-bottom:8px;">
+                    <div class="pdf-brand-left">
+                        <img src="logo.png" alt="AMPEdge" class="pdf-logo-img">
+                        <div>
+                            <h1 class="pdf-brand-title">AMPEdge Solution</h1>
+                            <p class="pdf-brand-tagline">Powering the Edge of Tomorrow. | Electrical Engineering &amp; Materials</p>
+                        </div>
+                    </div>
+                    <div style="font-size:.62rem;color:#475569;line-height:1.45;text-align:right;">
+                        <strong style="color:#0f172a;font-size:.72rem;">AMPEdge Solution</strong><br>
+                        <span>West Bauria, Chackasi, Palpara, Howrah 711307</span><br>
+                        <span>&#128222; Contact: +91 91236 67258 | +91 97483 98418</span><br>
+                        <a href="https://wa.me/919874600265" target="_blank" class="whatsapp-pill" style="text-decoration:none;color:#fff;"><i class="fa-brands fa-whatsapp"></i> WhatsApp Business: +91 98746 00265</a><br>
+                        <span>&#9993; ampedge.info@gmail.com</span><br>
+                        <span id="po-pdf-company-gstin-wrap" style="color:#4f46e5;font-weight:700;">GSTIN: <span id="po-pdf-company-gstin" contenteditable="true" style="display:inline-block;min-width:130px;border-bottom:1px dotted #94a3b8;color:#0f172a;">${compGstinDisplay}</span></span>
+                    </div>
+                </div>
+
+                <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #4f46e5;padding-bottom:4px;margin-bottom:8px;">
+                    <div style="font-family:'Outfit',sans-serif;font-size:1.25rem;font-weight:800;color:#0f172a;letter-spacing:.5px;">
+                        <i class="fa-solid fa-file-invoice" style="color:#4f46e5;"></i> PURCHASE ORDER
+                    </div>
+                    <span class="pdf-po-badge" id="po-pdf-mode-badge">${badgeText}</span>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;">
+                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:6px 10px;font-size:.65rem;">
+                        <h4 style="font-size:.64rem;font-weight:700;color:#4f46e5;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;border-bottom:1px solid #e2e8f0;padding-bottom:2px;">
+                            <i class="fa-solid fa-building"></i> VENDOR / SUPPLIER (TO)
+                        </h4>
+                        <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">Vendor:</span><span style="color:#0f172a;font-weight:700;" id="po-pdf-vendor" contenteditable="true">${vendor}</span></div>
+                        <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">Address:</span><span style="color:#0f172a;font-weight:600;" id="po-pdf-vendor-address" contenteditable="true">${vendorAddress}</span></div>
+                        <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">Contact / Ph:</span><span style="color:#0f172a;font-weight:600;" id="po-pdf-vendor-phone" contenteditable="true">${vendorPhone}</span></div>
+                        <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">Vendor GSTIN:</span><span class="mono" style="color:#0f172a;font-weight:700;" id="po-pdf-vendor-gstin" contenteditable="true">${vendorGstin}</span></div>
+                    </div>
+                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:6px 10px;font-size:.65rem;">
+                        <h4 style="font-size:.64rem;font-weight:700;color:#4f46e5;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;border-bottom:1px solid #e2e8f0;padding-bottom:2px;">
+                            <i class="fa-solid fa-file-circle-check"></i> ORDER &amp; DISPATCH DETAILS
+                        </h4>
+                        <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">PO Number:</span><span class="mono" style="color:#4f46e5;font-weight:800;" id="po-pdf-no" contenteditable="true">${poNo}</span></div>
+                        <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">PO Date:</span><span style="color:#0f172a;font-weight:600;" id="po-pdf-date" contenteditable="true">${dateFormatted}</span></div>
+                        <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">Delivery By:</span><span style="color:#0f172a;font-weight:600;" id="po-pdf-delivery-date" contenteditable="true">${delDateFormatted}</span></div>
+                        <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">Delivery To:</span><span style="color:#0f172a;font-weight:600;" id="po-pdf-delivery-addr" contenteditable="true">${deliveryAddr}</span></div>
+                        <div style="display:flex;justify-content:space-between;padding:1px 0;"><span style="color:#64748b;">Payment Terms:</span><span style="color:#0f172a;font-weight:600;" id="po-pdf-pay-terms" contenteditable="true">${payTerms}</span></div>
+                    </div>
+                </div>
+            `;
+        } else {
+            // Subsequent pages have Compact Repeat Header
+            pageHtml += `
+                <div class="pdf-page-header-repeat" style="margin-bottom:8px;">
+                    <img src="logo.png" alt="AMPEdge" class="pdf-logo-sm">
+                    <span class="pdf-header-company">AMPEdge Solution</span>
+                    <span class="pdf-header-tag">Purchase Order &mdash; Part ${pageNum}</span>
+                </div>
+                <div class="pdf-section-strip" style="margin-bottom:8px;">
+                    <h2><i class="fa-solid fa-file-invoice"></i> PURCHASE ORDER (CONT. &mdash; PART ${pageNum} OF ${totalPages})</h2>
+                </div>
+            `;
+        }
+
+        // Table header and items
+        pageHtml += `
+            <table class="pdf-boq-table" style="margin-bottom:6px;">
+                <thead>
+                    <tr>
+                        <th style="width:28px;" class="text-center">#</th>
+                        <th>MATERIAL DESCRIPTION</th>
+                        <th style="width:170px;">SPECIFICATION</th>
+                        <th style="width:90px;" class="text-center">MAKE / BRAND</th>
+                        <th style="width:55px;" class="text-center">UNIT</th>
+                        <th style="width:50px;" class="text-center">QTY</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        chunk.forEach((item, rIdx) => {
+            const rowNumber = itemNumberOffset + rIdx + 1;
+            if (item.isBlankRow) {
+                pageHtml += `
+                    <tr>
+                        <td class="text-center font-bold" style="color:#64748b;">${item.num}</td>
+                        <td class="blank-ruled-cell">&nbsp;</td>
+                        <td class="blank-ruled-cell">&nbsp;</td>
+                        <td class="text-center blank-ruled-cell">&nbsp;</td>
+                        <td class="text-center blank-ruled-cell">&nbsp;</td>
+                        <td class="text-center blank-ruled-cell">&nbsp;</td>
+                    </tr>
+                `;
+            } else {
+                pageHtml += `
+                    <tr>
+                        <td class="text-center font-bold">${rowNumber}</td>
+                        <td><strong>${item.name || 'Electrical Material Item'}</strong></td>
+                        <td style="font-size:.65rem;color:#334155;">${item.spec || EMDASH}</td>
+                        <td class="text-center" style="font-size:.66rem;">${item.brand || EMDASH}</td>
+                        <td class="text-center" style="font-size:.66rem;">${item.unit || 'Pcs'}</td>
+                        <td class="text-center font-bold font-mono" style="font-size:.72rem;">${item.qty || 0}</td>
+                    </tr>
+                `;
+            }
+        });
+
+        itemNumberOffset += chunk.length;
+
+        pageHtml += `
+                </tbody>
+            </table>
+        `;
+
+        // If it's the last page, append Summary, Terms, and Dual Director Signatures
+        if (isLastPage) {
+            pageHtml += bottomBlockHtml;
+        }
+
+        // Page footer
+        pageHtml += `
+            <div class="pdf-page-footer">
+                <span>AMPEdge Solution | Powering the Edge of Tomorrow.</span>
+                <span>Purchase Order &bull; Page ${pageNum} of ${totalPages}</span>
+            </div>
+        `;
+
+        pageDiv.innerHTML = pageHtml;
+        container.appendChild(pageDiv);
+    });
+
+    // Save to History (if not just viewing an existing history item)
+    if (!fromHistory && !isBlank) {
+        saveToHistory({
+            type: 'po',
+            docNo: poNo,
+            date: dateVal,
+            client: vendor,
+            itemCount: totalCount,
+            total: 0,
+            items: JSON.parse(JSON.stringify(poItems)),
+            formData: {
+                no: poNo,
+                date: dateVal,
+                deliveryDate: delDateVal,
+                vendor: vendor,
+                vendorAddress: vendorAddress,
+                vendorPhone: vendorPhone,
+                vendorGstin: vendorGstin,
+                deliveryAddr: deliveryAddr,
+                payTerms: payTerms,
+                compGstin: compGstin,
+                terms: termsVal
+            }
+        });
     }
 
     goToStep('po-pdf');
@@ -1673,28 +1901,30 @@ function downloadPOPDF() {
         btn.disabled = true;
     }
 
-    const poNo = document.getElementById('po-pdf-no').textContent.replace(/[^\w-]/g, '_');
-    el.classList.add('pdf-rendering', 'pdf-single-page');
+    const poInput = document.getElementById('po-inp-no');
+    const poNo = (poInput && poInput.value ? poInput.value : 'AMP_PO').replace(/[^\w-]/g, '_');
+    el.classList.add('pdf-rendering');
 
     html2pdf().set({
         margin: 0,
         filename: 'AMPEdge_PO_' + poNo + '.pdf',
         image: { type:'jpeg', quality:0.98 },
         html2canvas: { scale:2, useCORS:true, letterRendering:true, scrollY:0 },
-        jsPDF: { unit:'mm', format:'a4', orientation:'portrait' }
+        jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
+        pagebreak: { mode: ['css', 'legacy'], after: '.pdf-page:not(:last-child)' }
     }).from(el).save().then(() => {
         if (btn) {
             btn.innerHTML = orig;
             btn.disabled = false;
         }
-        el.classList.remove('pdf-rendering', 'pdf-single-page');
+        el.classList.remove('pdf-rendering');
     }).catch(err => {
         console.error(err);
         if (btn) {
             btn.innerHTML = orig;
             btn.disabled = false;
         }
-        el.classList.remove('pdf-rendering', 'pdf-single-page');
+        el.classList.remove('pdf-rendering');
         alert("PDF generation failed. Try Ctrl+P and select 'Save as PDF'.");
     });
 }
@@ -1710,6 +1940,208 @@ function downloadPODirectBlank(e) {
 
 
 // ==========================================================================
+// QUOTATION & DOCUMENT HISTORY SYSTEM (Local Storage)
+// ==========================================================================
+const HISTORY_STORAGE_KEY = 'ampedge_quotation_history';
+let currentHistoryFilter = 'all';
+
+function getHistory() {
+    try {
+        const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+        console.error('Failed to read history:', e);
+        return [];
+    }
+}
+
+function saveToHistory(record) {
+    try {
+        const history = getHistory();
+        record.id = Date.now();
+        record.timestamp = new Date().toISOString();
+        
+        // Avoid duplicate by matching both type and docNo (unless docNo is empty/dash)
+        const isUniqueDoc = record.docNo && record.docNo !== '—' && record.docNo !== '-';
+        const filtered = isUniqueDoc 
+            ? history.filter(h => !(h.type === record.type && h.docNo === record.docNo))
+            : history;
+        filtered.unshift(record); // Add to top
+        
+        // Limit to 60 items
+        if (filtered.length > 60) filtered.pop();
+        
+        localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(filtered));
+        renderHistoryTable(currentHistoryFilter);
+    } catch (e) {
+        console.error('Failed to save to history:', e);
+    }
+}
+
+function filterHistory(type) {
+    currentHistoryFilter = type;
+    document.querySelectorAll('.history-filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent.toLowerCase() === type.toLowerCase() || (type === 'all' && btn.textContent.toLowerCase() === 'all'));
+    });
+    renderHistoryTable(type);
+}
+
+function deleteHistoryItem(id) {
+    if (!confirm('Are you sure you want to delete this document from history?')) return;
+    try {
+        const history = getHistory().filter(h => h.id !== id);
+        localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
+        renderHistoryTable(currentHistoryFilter);
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function renderHistoryTable(filter) {
+    filter = filter || currentHistoryFilter || 'all';
+    const tbody = document.getElementById('history-tbody');
+    if (!tbody) return;
+
+    const allHistory = getHistory();
+    const list = filter === 'all' 
+        ? allHistory 
+        : allHistory.filter(h => h.type.toLowerCase() === filter.toLowerCase());
+
+    if (list.length === 0) {
+        tbody.innerHTML = `
+            <tr class="history-empty-row">
+                <td colspan="8" style="text-align:center;padding:30px 10px;color:var(--text-muted);font-size:.85rem;">
+                    <i class="fa-solid fa-inbox" style="font-size:1.5rem;display:block;margin-bottom:8px;opacity:.4;"></i>
+                    No ${filter === 'all' ? '' : filter + ' '}documents in history yet. Generated quotations and orders will appear here automatically.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = '';
+    list.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        
+        const typeBadgeClass = 'history-type-' + (item.type || 'service');
+        const typeLabel = {
+            service: 'Service',
+            materials: 'Materials',
+            po: 'PO',
+            bill: 'Bill / Inv',
+            challan: 'Challan',
+            receipt: 'Receipt'
+        }[item.type] || item.type.toUpperCase();
+
+        const formattedDate = item.date 
+            ? new Date(item.date).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }) 
+            : EMDASH;
+
+        const totalStr = item.total ? formatCurrency(item.total) : (item.type === 'po' || item.type === 'challan' ? EMDASH : '₹0.00');
+
+        tr.innerHTML = `
+            <td class="text-center font-bold" style="color:var(--text-muted);font-size:.75rem;">${idx + 1}</td>
+            <td style="font-size:.76rem;color:var(--text-muted);font-family:monospace;">${formattedDate}</td>
+            <td><span class="history-type-badge ${typeBadgeClass}">${typeLabel}</span></td>
+            <td><strong>${item.client || 'Client'}</strong></td>
+            <td><span class="mono" style="color:#0ea5e9;font-weight:700;">${item.docNo || EMDASH}</span></td>
+            <td class="text-center font-mono font-bold">${item.itemCount || 0}</td>
+            <td class="font-mono font-bold" style="color:#10b981;">${totalStr}</td>
+            <td>
+                <button class="history-action-btn" onclick="openHistoryItem(${item.id})" title="View and open this quotation/PDF"><i class="fa-solid fa-eye"></i> View</button>
+                <button class="history-del-btn" onclick="deleteHistoryItem(${item.id})" title="Delete"><i class="fa-solid fa-trash-can"></i></button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function openHistoryItem(id) {
+    const item = getHistory().find(h => h.id === id);
+    if (!item) {
+        alert('Document not found in history.');
+        return;
+    }
+
+    if (item.type === 'service') {
+        if (item.category && CATALOG[item.category]) {
+            currentCategory = item.category;
+            document.getElementById('badge-text').textContent = CATALOG[item.category].label;
+        }
+        if (item.formData) {
+            if (item.formData.client) document.getElementById('inp-client').value = item.formData.client;
+            if (item.formData.project) document.getElementById('inp-project').value = item.formData.project;
+            if (item.formData.address) document.getElementById('inp-address').value = item.formData.address;
+            if (item.formData.quoteno) document.getElementById('inp-quoteno').value = item.formData.quoteno;
+            if (item.formData.date) document.getElementById('inp-date').value = item.formData.date;
+            if (item.formData.units) document.getElementById('inp-units').value = item.formData.units;
+        }
+        if (item.items && Array.isArray(item.items)) {
+            configItems = JSON.parse(JSON.stringify(item.items));
+            renderPointsTable();
+        }
+        generateQuotation(true); // fromHistory = true
+    } else if (item.type === 'materials') {
+        if (item.formData) {
+            if (item.formData.client) document.getElementById('mat-inp-client').value = item.formData.client;
+            if (item.formData.project) document.getElementById('mat-inp-project').value = item.formData.project;
+            if (item.formData.address) document.getElementById('mat-inp-address').value = item.formData.address;
+            if (item.formData.quoteno) document.getElementById('mat-inp-quoteno').value = item.formData.quoteno;
+            if (item.formData.date) document.getElementById('mat-inp-date').value = item.formData.date;
+        }
+        if (item.items && Array.isArray(item.items)) {
+            materialItems = JSON.parse(JSON.stringify(item.items));
+            renderMaterialsTable();
+        }
+        generateMaterialsQuotation(true);
+    } else if (item.type === 'po') {
+        if (item.formData) {
+            if (item.formData.no) document.getElementById('po-inp-no').value = item.formData.no;
+            if (item.formData.date) document.getElementById('po-inp-date').value = item.formData.date;
+            if (item.formData.deliveryDate) document.getElementById('po-inp-delivery-date').value = item.formData.deliveryDate;
+            if (item.formData.vendor) document.getElementById('po-inp-vendor').value = item.formData.vendor;
+            if (item.formData.vendorAddress) document.getElementById('po-inp-vendor-address').value = item.formData.vendorAddress;
+            if (item.formData.vendorPhone) document.getElementById('po-inp-vendor-phone').value = item.formData.vendorPhone;
+            if (item.formData.vendorGstin) document.getElementById('po-inp-vendor-gstin').value = item.formData.vendorGstin;
+            if (item.formData.deliveryAddr) document.getElementById('po-inp-delivery-addr').value = item.formData.deliveryAddr;
+            if (item.formData.payTerms) document.getElementById('po-inp-pay-terms').value = item.formData.payTerms;
+            if (item.formData.compGstin && document.getElementById('po-inp-company-gstin')) {
+                document.getElementById('po-inp-company-gstin').value = item.formData.compGstin;
+            }
+            if (item.formData.terms) document.getElementById('po-inp-terms').value = item.formData.terms;
+        }
+        if (item.items && Array.isArray(item.items)) {
+            poItems = JSON.parse(JSON.stringify(item.items));
+            renderPOItemsTable();
+            updatePOSummary();
+        }
+        previewPO(item.isBlank || false, true);
+    } else if (item.type === 'bill' || item.type === 'challan' || item.type === 'receipt') {
+        currentDocType = item.type;
+        switchDocType(item.type);
+        if (item.formData) {
+            if (item.formData.no) document.getElementById('doc-inp-no').value = item.formData.no;
+            if (item.formData.date) document.getElementById('doc-inp-date').value = item.formData.date;
+            if (item.formData.dueDate) document.getElementById('doc-inp-due-date').value = item.formData.dueDate;
+            if (item.formData.client) document.getElementById('doc-inp-client').value = item.formData.client;
+            if (item.formData.address) document.getElementById('doc-inp-address').value = item.formData.address;
+            if (item.formData.phone) document.getElementById('doc-inp-phone').value = item.formData.phone;
+            if (item.formData.gstin) document.getElementById('doc-inp-gstin').value = item.formData.gstin;
+            if (item.formData.site) document.getElementById('doc-inp-site').value = item.formData.site;
+            if (item.formData.vehicle) document.getElementById('doc-inp-vehicle').value = item.formData.vehicle;
+            if (item.formData.rcptMode) document.getElementById('doc-inp-rcpt-mode').value = item.formData.rcptMode;
+            if (item.formData.rcptTxnid) document.getElementById('doc-inp-rcpt-txnid').value = item.formData.rcptTxnid;
+            if (item.formData.rcptTowards) document.getElementById('doc-inp-rcpt-towards').value = item.formData.rcptTowards;
+            if (item.formData.terms) document.getElementById('doc-inp-terms').value = item.formData.terms;
+        }
+        if (item.items && Array.isArray(item.items)) {
+            docItems = JSON.parse(JSON.stringify(item.items));
+            renderDocTable();
+            recalcDocTotals();
+        }
+        previewCommercialDoc(true);
+    }
+}
 // COMMERCIAL DOCUMENTS LOGIC (BILL, CHALLAN, PAYMENT RECEIPT)
 // ==========================================================================
 let currentDocType = 'bill'; // 'bill', 'challan', 'receipt'
@@ -1965,7 +2397,7 @@ function recalcReceipt() {
     // Just helper trigger
 }
 
-function previewCommercialDoc() {
+function previewCommercialDoc(fromHistory) {
     const docNo = document.getElementById('doc-inp-no').value || 'AMP/DOC/2026/001';
     const dateVal = document.getElementById('doc-inp-date').value || new Date().toISOString().split('T')[0];
     const dueDateVal = document.getElementById('doc-inp-due-date').value || dateVal;
@@ -2167,6 +2599,50 @@ function previewCommercialDoc() {
     }
 
     goToStep('doc-pdf');
+
+    // Save to History
+    if (!fromHistory) {
+        const clientName = document.getElementById('doc-inp-client').value || 'Client';
+        const docNo = document.getElementById('doc-inp-no').value || 'DOC';
+        const dateVal = document.getElementById('doc-inp-date').value || new Date().toISOString().split('T')[0];
+        const activeItems = docItems.filter(i => (i.desc && i.desc.trim()) || (i.name && i.name.trim()) || (i.qty > 0));
+        let totalVal = 0;
+        if (currentDocType === 'receipt') {
+            totalVal = parseFloat(document.getElementById('doc-inp-rcpt-amount').value) || 0;
+        } else {
+            let gross = 0;
+            activeItems.forEach(i => gross += (i.qty || 0) * (i.rate || 0));
+            const disc = parseFloat(document.getElementById('doc-inp-disc-pct').value) || 0;
+            const net = Math.max(0, gross - (gross * disc / 100));
+            const gst = parseFloat(document.getElementById('doc-inp-gst-pct').value) || 0;
+            totalVal = Math.round(net + (net * gst / 100));
+        }
+
+        saveToHistory({
+            type: currentDocType,
+            docNo: docNo,
+            date: dateVal,
+            client: clientName,
+            itemCount: activeItems.length,
+            total: totalVal,
+            items: JSON.parse(JSON.stringify(docItems)),
+            formData: {
+                no: docNo,
+                date: dateVal,
+                dueDate: document.getElementById('doc-inp-due-date').value,
+                client: clientName,
+                address: document.getElementById('doc-inp-address').value,
+                phone: document.getElementById('doc-inp-phone').value,
+                gstin: document.getElementById('doc-inp-gstin').value,
+                site: document.getElementById('doc-inp-site').value,
+                vehicle: document.getElementById('doc-inp-vehicle').value,
+                rcptMode: document.getElementById('doc-inp-rcpt-mode').value,
+                rcptTxnid: document.getElementById('doc-inp-rcpt-txnid').value,
+                rcptTowards: document.getElementById('doc-inp-rcpt-towards').value,
+                terms: document.getElementById('doc-inp-terms').value
+            }
+        });
+    }
 }
 
 
@@ -2216,4 +2692,20 @@ function downloadCommercialDocPDF() {
         el.classList.remove('pdf-rendering', 'pdf-single-page');
         alert("PDF generation failed. Try Ctrl+P and select 'Save as PDF'.");
     });
+}
+
+
+// ====== INITIALIZE HISTORY ON LOAD ======
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        renderHistoryTable('all');
+    } catch (e) {
+        console.error('History init error:', e);
+    }
+});
+// Fallback if DOM already loaded
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    try {
+        renderHistoryTable('all');
+    } catch (e) {}
 }
