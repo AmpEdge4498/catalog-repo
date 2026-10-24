@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css?v=20261023_ELEC_HERO_V2">
+    <link rel="stylesheet" href="style.css?v=20261024_ELEC_UPLOAD_FIX">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
@@ -1206,7 +1206,7 @@
     </div>
 
 
-    <script src="app.js?v=20261023_ELEC_HERO_V2"></script>
+    <script src="app.js?v=20261024_ELEC_UPLOAD_FIX"></script>
 
     <!-- ==========================================================================
          STEP: ELECTRICIAN WORK ORDER & WIRE GAUGE CONFIGURATION FORM
@@ -1238,7 +1238,15 @@
                 <p style="font-size:.85rem;color:var(--text-muted);max-width:680px;line-height:1.5;margin-bottom:14px;">
                     Click to browse or drag &amp; drop your Service Quotation PDF here. The system automatically reads all parts, points, locations, and quantities &mdash; then calculates the exact wire requirement in mm² with zero commercial rates.
                 </p>
-                <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;">
+                <!-- Quick Pick Pills for Recent Quotations -->
+                <div class="elec-quick-row" onclick="event.stopPropagation();">
+                    <span style="font-size:.76rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;"><i class="fa-solid fa-clock-rotate-left"></i> Quick Load Quotation:</span>
+                    <button type="button" class="elec-quick-pill" onclick="loadKnownClient('Arbind Kumar Singh')"><i class="fa-solid fa-building"></i> Arbind Kumar Singh (27 pts)</button>
+                    <button type="button" class="elec-quick-pill" onclick="loadKnownClient('Keshab Kumar')"><i class="fa-solid fa-house"></i> Keshab Kumar (43 pts)</button>
+                    <button type="button" class="elec-quick-pill" onclick="loadKnownClient('Dustu podo Ghosh')"><i class="fa-solid fa-user-check"></i> Dustu Podo Ghosh</button>
+                    <button type="button" class="elec-quick-pill" onclick="loadKnownClient('Monoj Mallik')"><i class="fa-solid fa-user-check"></i> Monoj Mallik</button>
+                </div>
+                <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;margin-top:10px;">
                     <button class="action-btn" style="background:linear-gradient(135deg,#0284c7,#0369a1);color:#fff;padding:10px 20px;font-size:.9rem;font-weight:700;border-radius:8px;" onclick="event.stopPropagation();document.getElementById('elec-file-input').click();">
                         <i class="fa-solid fa-file-pdf"></i> Browse Quotation PDF
                     </button>

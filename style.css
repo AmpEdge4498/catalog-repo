@@ -127,6 +127,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg-dark);color:var(--text);
 .pdf-document.pdf-rendering{gap:0!important;padding:0!important;margin:0!important;overflow:hidden!important;display:block!important;}
 .pdf-document.pdf-rendering .pdf-page{box-shadow:none!important;margin:0!important;padding:15mm!important;width:210mm!important;height:297mm!important;min-height:0!important;max-height:297mm!important;overflow:hidden!important;page-break-after:always!important;break-after:page!important;page-break-inside:avoid!important;break-inside:avoid!important;}
 .pdf-document.pdf-rendering .pdf-page:last-child{page-break-after:avoid!important;break-after:avoid!important;}
+.pdf-document.pdf-rendering .page-elec{box-sizing:border-box!important;width:210mm!important;height:296mm!important;min-height:296mm!important;max-height:296mm!important;overflow:hidden!important;margin:0!important;padding:10mm 14mm 14mm 14mm!important;page-break-after:always!important;break-after:page!important;page-break-inside:avoid!important;break-inside:avoid!important;}
+.pdf-document.pdf-rendering .page-elec:last-child{page-break-after:avoid!important;break-after:avoid!important;}
 
 
 /* ===========================================
@@ -480,3 +482,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg-dark);color:var(--text);
     color: #38bdf8;
     margin-bottom: 12px;
 }
+
+/* Electrician Quick Pick Pills */
+.elec-quick-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px;}
+.elec-quick-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(2,132,199,0.12);border:1px solid rgba(2,132,199,0.35);color:#38bdf8;padding:6px 14px;border-radius:20px;font-size:0.75rem;font-weight:600;cursor:pointer;transition:all 0.2s ease;}
+.elec-quick-pill:hover{background:#0284c7;color:#fff;transform:translateY(-1px);box-shadow:0 4px 12px rgba(2,132,199,0.3);}

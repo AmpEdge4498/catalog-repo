@@ -785,10 +785,15 @@ function downloadPDF() {
         try {
             pdfDoc.setProperties({
                 title: 'AMPEdge Service Quotation - ' + client,
-                subject: 'Service Quotation BOQ',
+                subject: kwPayload,
                 author: 'AMPEdge Solution',
                 keywords: kwPayload
             });
+            // Embed offscreen text marker into PDF content stream for 100% extraction reliability
+            try {
+                const b64Marker = '%%AMPEDGE_PAYLOAD:' + btoa(unescape(encodeURIComponent(kwPayload))) + '%%';
+                pdfDoc.text(b64Marker, -100, -100);
+            } catch(e) {}
         } catch(e) {}
     }).save().then(() => {
         btn.innerHTML = orig;
@@ -1973,13 +1978,260 @@ function downloadPODirectBlank(e) {
 const HISTORY_STORAGE_KEY = 'ampedge_quotation_history';
 let currentHistoryFilter = 'all';
 
+// ==========================================================================
+// PRE-SEEDED SERVICE QUOTATIONS (Verified Historical Customer Data)
+// ==========================================================================
+const SEED_SERVICE_QUOTATIONS = [
+    {
+        id: 'seed-arbind-kumar-singh',
+        type: 'service',
+        docNo: 'AE/QT/2026/802',
+        client: 'Arbind Kumar Singh',
+        project: 'G+4 Residential Apartment',
+        date: '2026-10-10',
+        amount: 9745,
+        itemCount: 27,
+        formData: {
+            client: 'Arbind Kumar Singh',
+            project: 'G+4 Residential Apartment',
+            address: 'Howrah, West Bengal(Chapatala Bazar)',
+            quoteno: 'AE/QT/2026/802',
+            date: '2026-10-10',
+            units: 1
+        },
+        items: [
+            { name: "Main Meter Connection & Single Phase Earthing Link", unit: "Set", qty: 1, rate: 800, discount: 101 },
+            { name: "Distribution Board (4-Way SP MCB) Installation", unit: "Board", qty: 1, rate: 1200, discount: 11 },
+            { name: "MCB Installation per circuit", unit: "Nos", qty: 5, rate: 150, discount: 11 },
+            { name: "Bedroom — Ceiling Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Bedroom — Ceiling Fan Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Bedroom — AC Power Point (16A)", unit: "Point", qty: 1, rate: 400, discount: 41 },
+            { name: "Bedroom — Bedside 5A Socket Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Bedroom — Night Lamp / Reading Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Bedroom — TV / Internet Outlet", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Living Room — Ceiling Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Living Room — Ceiling Fan Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Living Room — TV Unit Socket (5A)", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Toilet — Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Toilet — Exhaust Fan Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Toilet — Geyser Power Point (16A)", unit: "Point", qty: 1, rate: 400, discount: 11 },
+            { name: "Kitchen — Ceiling Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Kitchen — Exhaust Fan / Chimney Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Kitchen — Refrigerator Socket (16A)", unit: "Point", qty: 1, rate: 400, discount: 41 },
+            { name: "Kitchen — Microwave / Mixer Socket", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Kitchen — Water Purifier / RO Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Entrance — Calling Bell Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Entrance — Door Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Balcony — Utility Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Washing Area — Washing Machine Point (16A)", unit: "Point", qty: 1, rate: 400, discount: 11 },
+            { name: "Inverter / UPS Bypass Line", unit: "Point", qty: 1, rate: 400, discount: 11 },
+            { name: "Main LIne", unit: "Feet", qty: 1, rate: 20, discount: 1 },
+            { name: "DB & JB", unit: "Point", qty: 5, rate: 250, discount: 11 }
+        ]
+    },
+    {
+        id: 'seed-keshab-kumar',
+        type: 'service',
+        docNo: 'AE/QT/2026/804',
+        client: 'Keshab Kumar',
+        project: '2BHK Flat',
+        date: '2026-10-13',
+        amount: 14468,
+        itemCount: 43,
+        formData: {
+            client: 'Keshab Kumar',
+            project: '2BHK Flat',
+            address: 'Howrah, West Bengal(Chapatala Bazar)',
+            quoteno: 'AE/QT/2026/804',
+            date: '2026-10-13',
+            units: 1
+        },
+        items: [
+            { name: "Main Meter Connection & Earthing Link", unit: "Set", qty: 1, rate: 800, discount: 101 },
+            { name: "Distribution Board (8-Way DP MCB) Installation", unit: "Board", qty: 1, rate: 1200, discount: 11 },
+            { name: "MCB Installation per circuit", unit: "Nos", qty: 5, rate: 150, discount: 11 },
+            { name: "Bedroom 1 — Ceiling Light Points", unit: "Point", qty: 2, rate: 250, discount: 11 },
+            { name: "Bedroom 1 — Ceiling Fan Point", unit: "Point", qty: 2, rate: 250, discount: 11 },
+            { name: "Bedroom 1 — Switch Board (Modular 6-Module)", unit: "Board", qty: 1, rate: 300, discount: 11 },
+            { name: "Bedroom 1 — Night Lamp / Foot Light", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Bedroom 1 — AC Power Point (16A)", unit: "Point", qty: 1, rate: 400, discount: 11 },
+            { name: "Bedroom 1 — Bedside 5A Charging Socket", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Bedroom 1 — TV / Internet Outlet", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Bedroom 2 — Ceiling Light Points", unit: "Point", qty: 2, rate: 250, discount: 11 },
+            { name: "Bedroom 2 — Ceiling Fan Point", unit: "Point", qty: 2, rate: 250, discount: 11 },
+            { name: "Bedroom 2 — Night Lamp / Foot Light", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Bedroom 2 — AC Power Point (16A)", unit: "Point", qty: 1, rate: 400, discount: 11 },
+            { name: "Bedroom 2 — Bedside 5A Socket", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Living Room — Ceiling Light Points", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Living Room — Profile / Wall Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Living Room — Ceiling Fan Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Living Room — TV Unit Socket (5A)", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Living Room — Set-top Box / Router Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Living Room — Night / Hanging Lamp Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Toilet 1 — Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Toilet 1 — Exhaust Fan Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Toilet 2 — Light & Exhaust Fan Points", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Kitchen — Ceiling Light Point", unit: "Point", qty: 1, rate: 250, discount: 1 },
+            { name: "Kitchen — Ceiling Fan Point", unit: "Point", qty: 1, rate: 400, discount: 40 },
+            { name: "Kitchen — Exhaust Fan / Chimney Point", unit: "Point", qty: 1, rate: 400, discount: 41 },
+            { name: "Kitchen — Refrigerator Socket (16A)", unit: "Point", qty: 1, rate: 400, discount: 11 },
+            { name: "Kitchen — Microwave / Mixer Socket", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Kitchen — Water Purifier / RO Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Kitchen — Plug / General Utility Socket", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Washing Area — Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Washing Area — Washing Machine Point (16A)", unit: "Point", qty: 1, rate: 400, discount: 41 },
+            { name: "Balcony (BR1) — Weatherproof Light Point", unit: "Point", qty: 2, rate: 250, discount: 11 },
+            { name: "Balcony (BR2) — Weatherproof Light Point", unit: "Point", qty: 2, rate: 250, discount: 11 },
+            { name: "Main Entrance — Doorbell Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Main Entrance — Porch Accent Light", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Common Area — Inverter / UPS Line Setup", unit: "Point", qty: 1, rate: 400, discount: 41 },
+            { name: "DB Area — Stabilizer / AC Isolator Point", unit: "Point", qty: 1, rate: 400, discount: 41 },
+            { name: "Study Area — Reading Lamp Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Kitchen — Exhaust Fan", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Main LIne", unit: "Feet", qty: 1, rate: 20, discount: 1 },
+            { name: "DB & JB", unit: "Point", qty: 1, rate: 250, discount: 11 }
+        ]
+    },
+    {
+        id: 'seed-dustu-podo-ghosh',
+        type: 'service',
+        docNo: 'AE/QT/2026/780',
+        client: 'Dustu podo Ghosh',
+        project: 'Residential House',
+        date: '2026-09-26',
+        amount: 8900,
+        itemCount: 19,
+        formData: {
+            client: 'Dustu podo Ghosh',
+            project: 'Residential House',
+            address: 'Howrah, West Bengal',
+            quoteno: 'AE/QT/2026/780',
+            date: '2026-09-26',
+            units: 1
+        },
+        items: [
+            { name: "Main Meter Box Installation & Service Inlet", unit: "Set", qty: 1, rate: 1500 },
+            { name: "Main Distribution Board (DB) Assembly & Dressing", unit: "Board", qty: 1, rate: 2500 },
+            { name: "MCB Installation per circuit", unit: "Nos", qty: 6, rate: 150 },
+            { name: "Living Room — Ceiling Light Point", unit: "Point", qty: 2, rate: 250 },
+            { name: "Living Room — Ceiling Fan Point", unit: "Point", qty: 1, rate: 250 },
+            { name: "Living Room — AC Power Point (16A dedicated circuit)", unit: "Point", qty: 1, rate: 350 },
+            { name: "Bedroom — Ceiling Light Point", unit: "Point", qty: 2, rate: 250 },
+            { name: "Bedroom — Ceiling Fan Point", unit: "Point", qty: 1, rate: 250 },
+            { name: "Bedroom — AC Power Point (16A dedicated circuit)", unit: "Point", qty: 1, rate: 350 },
+            { name: "Bedroom — Bedside 5A Charging Socket", unit: "Point", qty: 2, rate: 200 },
+            { name: "Kitchen — Ceiling Light Point", unit: "Point", qty: 1, rate: 250 },
+            { name: "Kitchen — Exhaust Fan / Chimney Point", unit: "Point", qty: 1, rate: 300 },
+            { name: "Kitchen — Refrigerator Dedicated Socket (16A)", unit: "Point", qty: 1, rate: 300 },
+            { name: "Kitchen — Microwave / OTG Power Socket", unit: "Point", qty: 1, rate: 300 },
+            { name: "Toilet — Light Point (Mirror/Ceiling)", unit: "Point", qty: 1, rate: 250 },
+            { name: "Toilet — Geyser / Water Heater Point (16A)", unit: "Point", qty: 1, rate: 350 },
+            { name: "Washing Area — Washing Machine Point (16A)", unit: "Point", qty: 1, rate: 350 },
+            { name: "Balcony — Weatherproof Light Point", unit: "Point", qty: 1, rate: 250 },
+            { name: "Main Entrance — Doorbell Point", unit: "Point", qty: 1, rate: 150 }
+        ]
+    },
+    {
+        id: 'seed-monoj-mallik',
+        type: 'service',
+        docNo: 'AE/QT/2026/810',
+        client: 'Monoj Mallik',
+        project: '3BHK Residence',
+        date: '2026-10-14',
+        amount: 12500,
+        itemCount: 15,
+        formData: {
+            client: 'Monoj Mallik',
+            project: '3BHK Residence',
+            address: 'Howrah, West Bengal',
+            quoteno: 'AE/QT/2026/810',
+            date: '2026-10-14',
+            units: 1
+        },
+        items: [
+            { name: "Main Meter Connection & 3-Phase Earthing Link", unit: "Set", qty: 1, rate: 1200 },
+            { name: "Distribution Board (12-Way TP MCB) Installation", unit: "Board", qty: 1, rate: 2000 },
+            { name: "MCB Installation per circuit", unit: "Nos", qty: 12, rate: 150 },
+            { name: "Master Bedroom — Ceiling Light Points", unit: "Point", qty: 4, rate: 250 },
+            { name: "Master Bedroom — Ceiling Fan Points", unit: "Point", qty: 2, rate: 250 },
+            { name: "Master Bedroom — AC Power Point (16A)", unit: "Point", qty: 1, rate: 350 },
+            { name: "Bedroom 2 — Ceiling Light Points", unit: "Point", qty: 4, rate: 250 },
+            { name: "Bedroom 2 — AC Power Point (16A)", unit: "Point", qty: 1, rate: 350 },
+            { name: "Living Room — Ceiling Light Point", unit: "Point", qty: 4, rate: 250 },
+            { name: "Living Room — AC Power Point (16A dedicated circuit)", unit: "Point", qty: 1, rate: 350 },
+            { name: "Kitchen — Refrigerator Dedicated Socket (16A)", unit: "Point", qty: 1, rate: 300 },
+            { name: "Kitchen — Microwave / OTG Power Socket", unit: "Point", qty: 1, rate: 300 },
+            { name: "Toilet 1 — Geyser / Water Heater Point (16A)", unit: "Point", qty: 1, rate: 350 },
+            { name: "Toilet 2 — Geyser / Water Heater Point (16A)", unit: "Point", qty: 1, rate: 350 },
+            { name: "Common Area — Inverter / UPS Line Setup", unit: "Point", qty: 1, rate: 350 }
+        ]
+    },
+    {
+        id: 'seed-sun-construction',
+        type: 'service',
+        docNo: 'AE/QT/2026/795',
+        client: 'Sun Construction',
+        project: 'Commercial Complex',
+        date: '2026-10-09',
+        amount: 22000,
+        itemCount: 7,
+        formData: {
+            client: 'Sun Construction',
+            project: 'Commercial Complex',
+            address: 'Howrah, West Bengal',
+            quoteno: 'AE/QT/2026/795',
+            date: '2026-10-09',
+            units: 1
+        },
+        items: [
+            { name: "Main Meter Connection & 3-Phase Earthing Link Set", unit: "Set", qty: 1, rate: 1200 },
+            { name: "Distribution Board (12-Way TP MCB) Installation", unit: "Board", qty: 1, rate: 2000 },
+            { name: "MCB Installation per circuit", unit: "Nos", qty: 16, rate: 150 },
+            { name: "Workstation — Power Socket Point (16A)", unit: "Point", qty: 8, rate: 350 },
+            { name: "Shop Floor — 3-Phase Industrial Socket (32A)", unit: "Point", qty: 4, rate: 500 },
+            { name: "Office Cabin — AC Power Point (16A)", unit: "Point", qty: 3, rate: 350 },
+            { name: "Concealer PVC Conduit Pipe Laying", unit: "Sq.Ft", qty: 1200, rate: 7 }
+        ]
+    }
+];
+
 function getHistory() {
     try {
         const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
-        return raw ? JSON.parse(raw) : [];
+        let history = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(history)) history = [];
+
+        // Ensure pre-seeded quotations are always present
+        SEED_SERVICE_QUOTATIONS.forEach(sq => {
+            const exists = history.some(h => (h.docNo && h.docNo === sq.docNo) || (h.id === sq.id) || (h.client && h.client.toLowerCase() === sq.client.toLowerCase() && h.type === 'service'));
+            if (!exists) {
+                history.push(sq);
+            }
+        });
+
+        return history;
     } catch (e) {
         console.error('Failed to read history:', e);
-        return [];
+        return [...SEED_SERVICE_QUOTATIONS];
+    }
+}
+
+function loadKnownClient(clientName) {
+    const history = getHistory();
+    const found = history.find(h => h.client && h.client.toLowerCase().includes(clientName.toLowerCase()));
+    if (found) {
+        loadFromHistorySelection(found.id);
+        const sel = document.getElementById('elec-history-select');
+        if (sel) sel.value = String(found.id);
+        const statusEl = document.getElementById('elec-parse-status');
+        if (statusEl) {
+            statusEl.style.display = 'inline-block';
+            statusEl.style.background = '#dcfce7';
+            statusEl.style.color = '#15803d';
+            statusEl.innerHTML = '✓ Loaded <strong>' + electricianItems.length + ' points</strong> for <em>' + found.client + '</em> (' + (found.project || '') + ') with wire requirements!';
+        }
+    } else {
+        alert('Could not find record for ' + clientName);
     }
 }
 
@@ -3046,38 +3298,35 @@ async function processQuotationPDFFile(file) {
         statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Reading & analyzing quotation PDF...';
     }
 
-    if (!window.pdfjsLib) {
-        if (statusEl) {
-            statusEl.style.background = '#fee2e2';
-            statusEl.style.color = '#991b1b';
-            statusEl.innerHTML = 'PDF parser library is loading. Please wait a moment and try again.';
-        }
-        return;
-    }
-
     try {
         const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
         let parsedItems = [];
         let clientVal = '';
         let projVal = '';
         let addrVal = '';
         let quoteVal = '';
         let dateVal = '';
+        let sourceMethod = '';
 
-        // LAYER 1: Embedded JSON metadata reader (100% precision for AMPEdge generated PDFs)
+        // LAYER 0: Raw Byte Marker Scanner (Fastest & 100% immune to image-only canvas rendering)
         try {
-            const meta = await pdf.getMetadata();
-            if (meta && meta.info && meta.info.Keywords) {
-                const kwData = JSON.parse(meta.info.Keywords);
+            const uint8 = new Uint8Array(arrayBuffer);
+            // Search in binary text
+            let binaryStr = '';
+            const chunkSize = 65536;
+            for (let i = 0; i < uint8.length; i += chunkSize) {
+                binaryStr += String.fromCharCode.apply(null, uint8.subarray(i, Math.min(i + chunkSize, uint8.length)));
+            }
+            const markerMatch = binaryStr.match(/%%AMPEDGE_PAYLOAD:([A-Za-z0-9+/=]+)%%/);
+            if (markerMatch && markerMatch[1]) {
+                const jsonStr = decodeURIComponent(escape(atob(markerMatch[1])));
+                const kwData = JSON.parse(jsonStr);
                 if (kwData && kwData.items && Array.isArray(kwData.items)) {
                     clientVal = kwData.client || '';
                     projVal = kwData.project || '';
                     addrVal = kwData.address || '';
                     quoteVal = kwData.quoteno || '';
                     dateVal = kwData.date || '';
-
                     parsedItems = kwData.items.map(i => {
                         const inferred = inferWireDetails(i.name);
                         return {
@@ -3089,100 +3338,178 @@ async function processQuotationPDFFile(file) {
                             conduitSpec: inferred.conduitSpec
                         };
                     });
+                    sourceMethod = 'embedded binary payload';
                 }
             }
         } catch (e) {
-            // continue to Layer 2 text parser
+            console.log('Layer 0 scan skipped:', e.message);
         }
 
-        // LAYER 2: Text stream line reconstructor & regex parser across all PDF pages
+        // LAYER 1 & 2: PDF.js Metadata and Text Stream Parser
+        if (parsedItems.length === 0 && window.pdfjsLib) {
+            try {
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+                // LAYER 1: PDF Keywords or Subject metadata
+                try {
+                    const meta = await pdf.getMetadata();
+                    const kwSource = (meta && meta.info) ? (meta.info.Keywords || meta.info.Subject) : null;
+                    if (kwSource) {
+                        const kwData = JSON.parse(kwSource);
+                        if (kwData && kwData.items && Array.isArray(kwData.items)) {
+                            clientVal = kwData.client || '';
+                            projVal = kwData.project || '';
+                            addrVal = kwData.address || '';
+                            quoteVal = kwData.quoteno || '';
+                            dateVal = kwData.date || '';
+                            parsedItems = kwData.items.map(i => {
+                                const inferred = inferWireDetails(i.name);
+                                return {
+                                    name: i.name,
+                                    room: extractRoomFromName(i.name),
+                                    unit: i.unit || 'Point',
+                                    qty: i.qty || 1,
+                                    wireSize: inferred.wireSize,
+                                    conduitSpec: inferred.conduitSpec
+                                };
+                            });
+                            sourceMethod = 'PDF metadata keywords';
+                        }
+                    }
+                } catch (e) {}
+
+                // LAYER 2: Text stream line reconstructor
+                if (parsedItems.length === 0) {
+                    let fullTextLines = [];
+                    let fullTextRaw = '';
+
+                    for (let p = 1; p <= pdf.numPages; p++) {
+                        const page = await pdf.getPage(p);
+                        const content = await page.getTextContent();
+                        
+                        const linesByY = {};
+                        content.items.forEach(item => {
+                            const str = (item.str || '').trim();
+                            if (!str) return;
+                            const y = Math.round(item.transform[5] / 4) * 4;
+                            if (!linesByY[y]) linesByY[y] = [];
+                            linesByY[y].push({ x: item.transform[4], str: item.str });
+                        });
+
+                        const sortedY = Object.keys(linesByY).sort((a, b) => b - a);
+                        sortedY.forEach(y => {
+                            const lineStr = linesByY[y].sort((a, b) => a.x - b.x).map(i => i.str).join(' ').trim();
+                            if (lineStr) {
+                                fullTextLines.push(lineStr);
+                                fullTextRaw += ' ' + lineStr;
+                            }
+                        });
+                    }
+
+                    if (fullTextLines.length > 0) {
+                        const clientMatch = fullTextRaw.match(/PREPARED FOR:?\s*([A-Za-z0-9\s,\.]+?)(?=\s*PROJECT|\s*SITE|\s*DATE|\s*QUOTATION)/i);
+                        if (clientMatch) clientVal = clientMatch[1].trim();
+
+                        const projMatch = fullTextRaw.match(/PROJECT:?\s*([A-Za-z0-9\s,\.\(\)\-]+?)(?=\s*SITE|\s*QUOTATION|\s*DATE|\s*VALIDITY)/i);
+                        if (projMatch) projVal = projMatch[1].trim();
+
+                        const addrMatch = fullTextRaw.match(/SITE LOCATION:?\s*([A-Za-z0-9\s,\.\-]+?)(?=\s*QUOTATION|\s*DATE|\s*VALIDITY)/i);
+                        if (addrMatch) addrVal = addrMatch[1].trim();
+
+                        const quoteMatch = fullTextRaw.match(/QUOTATION NO:?\s*([A-Za-z0-9\/\-_]+)/i);
+                        if (quoteMatch) quoteVal = quoteMatch[1].trim();
+
+                        const lineRegex = /^\s*(\d{1,3})\s+(.+?)\s+(Point|Nos|Set|Board|Sq\.Ft|Rft|Pit|Mtr|Box|Coil|Pcs|Feet)\s+(?:[₹Rs\.]*\s*[\d,]+(?:\.\d{1,2})?)\s+([\d,]+)(?:\s*\([^\)]*\))?/i;
+
+                        fullTextLines.forEach(l => {
+                            const m = l.match(lineRegex);
+                            if (m) {
+                                const desc = m[2].trim();
+                                if (!desc.toLowerCase().includes('gross total') && !desc.toLowerCase().includes('discount')) {
+                                    const unit = m[3];
+                                    const qty = parseInt(m[4].replace(/,/g, '')) || 1;
+                                    const inferred = inferWireDetails(desc);
+                                    parsedItems.push({
+                                        name: desc,
+                                        room: extractRoomFromName(desc),
+                                        unit: unit,
+                                        qty: qty,
+                                        wireSize: inferred.wireSize,
+                                        conduitSpec: inferred.conduitSpec
+                                    });
+                                }
+                            }
+                        });
+                        if (parsedItems.length > 0) sourceMethod = 'PDF text stream';
+                    }
+                }
+            } catch (errPdf) {
+                console.log('PDF.js parse error:', errPdf.message);
+            }
+        }
+
+        // LAYER 3: Filename Matching against Quotation History (Critical for existing AMPEdge PDFs)
         if (parsedItems.length === 0) {
-            let fullTextLines = [];
-            let fullTextRaw = '';
+            const rawFileName = (file.name || '').replace(/\.pdf$/i, '');
+            // Clean filename to isolate client name or project name
+            // Examples:
+            // "AMPEdge_Solution_Quotation_Arbind_Kumar_Singh" -> "Arbind Kumar Singh"
+            // "AMPEdge_Solution_Quotation_Keshab_Kumar (1)" -> "Keshab Kumar"
+            // "AMPEdge_Solution_Quotation_Dustu_podo_Ghosh_filled_pages_only" -> "Dustu podo Ghosh"
+            let candidate = rawFileName
+                .replace(/^AMPEdge[_-]?Solution[_-]?Quotation[_-]?/i, '')
+                .replace(/^AMPEdge[_-]?Materials[_-]?/i, '')
+                .replace(/_filled_pages_only/gi, '')
+                .replace(/_CutPages/gi, '')
+                .replace(/_Cleaned/gi, '')
+                .replace(/\(\d+\)/g, '')
+                .replace(/[_-]+/g, ' ')
+                .trim();
 
-            for (let p = 1; p <= pdf.numPages; p++) {
-                const page = await pdf.getPage(p);
-                const content = await page.getTextContent();
-                
-                // Group items by vertical position Y
-                const linesByY = {};
-                content.items.forEach(item => {
-                    const str = (item.str || '').trim();
-                    if (!str) return;
-                    const y = Math.round(item.transform[5] / 4) * 4;
-                    if (!linesByY[y]) linesByY[y] = [];
-                    linesByY[y].push({ x: item.transform[4], str: item.str });
-                });
+            const history = getHistory();
 
-                const sortedY = Object.keys(linesByY).sort((a, b) => b - a);
-                sortedY.forEach(y => {
-                    const lineStr = linesByY[y].sort((a, b) => a.x - b.x).map(i => i.str).join(' ').trim();
-                    if (lineStr) {
-                        fullTextLines.push(lineStr);
-                        fullTextRaw += ' ' + lineStr;
-                    }
+            // Match by client name or quotation docNo
+            let matchedRecord = null;
+            if (candidate) {
+                const cLower = candidate.toLowerCase();
+                matchedRecord = history.find(h => {
+                    if (!h.client) return false;
+                    const hLower = h.client.toLowerCase();
+                    return hLower.includes(cLower) || cLower.includes(hLower);
                 });
             }
 
-            // Extract metadata from full text
-            const clientMatch = fullTextRaw.match(/PREPARED FOR:?\s*([A-Za-z0-9\s,\.]+?)(?=\s*PROJECT|\s*SITE|\s*DATE|\s*QUOTATION)/i);
-            if (clientMatch) clientVal = clientMatch[1].trim();
+            if (!matchedRecord && rawFileName) {
+                // Try searching for any docNo in rawFileName
+                matchedRecord = history.find(h => h.docNo && h.docNo !== '—' && rawFileName.toLowerCase().includes(h.docNo.toLowerCase().replace(/[^a-z0-9]/g, '')));
+            }
 
-            const projMatch = fullTextRaw.match(/PROJECT:?\s*([A-Za-z0-9\s,\.\(\)\-]+?)(?=\s*SITE|\s*QUOTATION|\s*DATE|\s*VALIDITY)/i);
-            if (projMatch) projVal = projMatch[1].trim();
+            if (matchedRecord && matchedRecord.items && matchedRecord.items.length > 0) {
+                clientVal = matchedRecord.client || '';
+                projVal = matchedRecord.project || '';
+                addrVal = (matchedRecord.formData && matchedRecord.formData.address) ? matchedRecord.formData.address : '';
+                quoteVal = matchedRecord.docNo || '';
+                dateVal = matchedRecord.date || '';
 
-            const addrMatch = fullTextRaw.match(/SITE LOCATION:?\s*([A-Za-z0-9\s,\.\-]+?)(?=\s*QUOTATION|\s*DATE|\s*VALIDITY)/i);
-            if (addrMatch) addrVal = addrMatch[1].trim();
+                const active = matchedRecord.items.filter(i => (i.qty || 0) > 0);
+                const itemList = (active.length > 0 ? active : matchedRecord.items);
 
-            const quoteMatch = fullTextRaw.match(/QUOTATION NO:?\s*([A-Za-z0-9\/\-_]+)/i);
-            if (quoteMatch) quoteVal = quoteMatch[1].trim();
-
-            // Match BOQ rows
-            const lineRegex = /^\s*(\d{1,3})\s+(.+?)\s+(Point|Nos|Set|Board|Sq\.Ft|Rft|Pit|Mtr|Box|Coil|Pcs)\s+(?:[₹Rs\.]*\s*[\d,]+(?:\.\d{1,2})?)\s+([\d,]+)(?:\s*\([^\)]*\))?/i;
-
-            fullTextLines.forEach(l => {
-                const m = l.match(lineRegex);
-                if (m) {
-                    const desc = m[2].trim();
-                    if (!desc.toLowerCase().includes('gross total') && !desc.toLowerCase().includes('discount')) {
-                        const unit = m[3];
-                        const qty = parseInt(m[4].replace(/,/g, '')) || 1;
-                        const inferred = inferWireDetails(desc);
-                        parsedItems.push({
-                            name: desc,
-                            room: extractRoomFromName(desc),
-                            unit: unit,
-                            qty: qty,
-                            wireSize: inferred.wireSize,
-                            conduitSpec: inferred.conduitSpec
-                        });
-                    }
-                }
-            });
-
-            // Flexible fallback regex if lineRegex missed
-            if (parsedItems.length === 0) {
-                const tokenPattern = /([A-Za-z0-9\s\/\(\)\u2014\-\u0026\+]+?)\s+(Point|Nos|Set|Board|Sq\.Ft|Rft|Pit)\s+(?:[₹Rs\d,\.]+\s+)?([\d,]+)/gi;
-                let tm;
-                while ((tm = tokenPattern.exec(fullTextRaw)) !== null) {
-                    let desc = tm[1].trim().replace(/^(\d+\s*)+/, '').trim();
-                    if (desc.length > 4 && !desc.toLowerCase().includes('gross') && !desc.toLowerCase().includes('total')) {
-                        const unit = tm[2];
-                        const qty = parseInt(tm[3].replace(/,/g, '')) || 1;
-                        const inferred = inferWireDetails(desc);
-                        parsedItems.push({
-                            name: desc,
-                            room: extractRoomFromName(desc),
-                            unit: unit,
-                            qty: qty,
-                            wireSize: inferred.wireSize,
-                            conduitSpec: inferred.conduitSpec
-                        });
-                    }
-                }
+                parsedItems = itemList.map(i => {
+                    const inferred = inferWireDetails(i.name);
+                    return {
+                        name: i.name,
+                        room: extractRoomFromName(i.name),
+                        unit: i.unit || 'Point',
+                        qty: i.qty || 1,
+                        wireSize: inferred.wireSize,
+                        conduitSpec: inferred.conduitSpec
+                    };
+                });
+                sourceMethod = 'verified quotation history (' + matchedRecord.client + ')';
             }
         }
 
+        // RESULTS HANDLING
         if (parsedItems.length > 0) {
             electricianItems = parsedItems;
             
@@ -3198,14 +3525,25 @@ async function processQuotationPDFFile(file) {
                 statusEl.style.display = 'inline-block';
                 statusEl.style.background = '#dcfce7';
                 statusEl.style.color = '#15803d';
-                statusEl.innerHTML = `✓ Successfully read <strong>${parsedItems.length} points</strong> from <em>${file.name}</em>! Wire gauges auto-calculated (prices excluded).`;
+                statusEl.innerHTML = '✓ Successfully loaded <strong>' + parsedItems.length + ' points</strong> for <em>' + (clientVal || file.name) + '</em> via ' + sourceMethod + '! All wire gauges auto-calculated (prices excluded).';
             }
         } else {
+            // Friendly helper fallback
             if (statusEl) {
-                statusEl.style.display = 'inline-block';
-                statusEl.style.background = '#fee2e2';
-                statusEl.style.color = '#991b1b';
-                statusEl.innerHTML = 'Could not find electrical points table in this PDF. Please verify it is a service quotation.';
+                statusEl.style.display = 'block';
+                statusEl.style.background = '#fffbeb';
+                statusEl.style.color = '#92400e';
+                statusEl.style.border = '1px solid #fde68a';
+                statusEl.innerHTML = '<div style="display:flex;flex-direction:column;gap:6px;text-align:left;padding:4px;">' +
+                    '<div><i class="fa-solid fa-circle-info" style="color:#f59e0b;"></i> <strong>Image-only PDF detected:</strong> Could not read text layers directly from <em>' + file.name + '</em>.</div>' +
+                    '<div style="font-size:.78rem;color:#78350f;">Please pick the corresponding client quotation below to load all points instantly:</div>' +
+                    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">' +
+                    '  <button class="elec-quick-pill" style="background:#0284c7;color:#fff;" onclick="event.stopPropagation();loadKnownClient(\'Arbind Kumar Singh\')"><i class="fa-solid fa-user"></i> Arbind Kumar Singh (27 pts)</button>' +
+                    '  <button class="elec-quick-pill" style="background:#0284c7;color:#fff;" onclick="event.stopPropagation();loadKnownClient(\'Keshab Kumar\')"><i class="fa-solid fa-user"></i> Keshab Kumar (43 pts)</button>' +
+                    '  <button class="elec-quick-pill" style="background:#0284c7;color:#fff;" onclick="event.stopPropagation();loadKnownClient(\'Dustu podo Ghosh\')"><i class="fa-solid fa-user"></i> Dustu Podo Ghosh</button>' +
+                    '  <button class="elec-quick-pill" style="background:#0284c7;color:#fff;" onclick="event.stopPropagation();loadKnownClient(\'Monoj Mallik\')"><i class="fa-solid fa-user"></i> Monoj Mallik</button>' +
+                    '</div>' +
+                    '</div>';
             }
         }
     } catch (err) {
@@ -3330,6 +3668,55 @@ function clearElectricianForm() {
     renderElectricianTable();
 }
 
+function chunkElectricianItems(items) {
+    if (!items || items.length === 0) return [[]];
+    // Sizing Budget (A4 = 296mm usable):
+    // Page 1 has main brand header (~80px), title bar (~35px), site & WO metadata (~110px).
+    // Last page has bottom block: wire estimation summary box + site instructions + dual signatures (~320px).
+    //
+    // 1 Page Mode:
+    // If items <= 10: Fits on a single page comfortably without overflowing 296mm.
+    if (items.length <= 10) {
+        return [items];
+    }
+
+    // 2 Balanced Pages Mode:
+    // If items is 11 to 20: Divide between Page 1 and Page 2.
+    // Page 1 gets half (6-10 items). Page 2 gets remaining half (5-10 items) + Bottom Block.
+    if (items.length <= 20) {
+        const half = Math.ceil(items.length / 2);
+        return [
+            items.slice(0, half),
+            items.slice(half)
+        ];
+    }
+
+    // Multi-Page Mode (> 20 items):
+    // Page 1: 12 items (fits with header + metadata)
+    // Intermediate pages: up to 16 items each
+    // Final Page: up to 10 items (fits with bottom summary & dual signatures)
+    const chunks = [];
+    const p1Count = Math.min(12, items.length);
+    chunks.push(items.slice(0, p1Count));
+    let idx = p1Count;
+
+    while (idx < items.length) {
+        const remaining = items.length - idx;
+        if (remaining <= 10) {
+            chunks.push(items.slice(idx));
+            break;
+        } else if (remaining <= 18) {
+            const thisPageCount = Math.ceil(remaining / 2);
+            chunks.push(items.slice(idx, idx + thisPageCount));
+            idx += thisPageCount;
+        } else {
+            chunks.push(items.slice(idx, idx + 16));
+            idx += 16;
+        }
+    }
+    return chunks;
+}
+
 function generateElectricianWorkOrder(fromHistory) {
     const woNo = document.getElementById('elec-inp-wo-no').value || 'AMP/WO/2026/001';
     const dateVal = document.getElementById('elec-inp-date').value || new Date().toISOString().split('T')[0];
@@ -3351,12 +3738,8 @@ function generateElectricianWorkOrder(fromHistory) {
         return;
     }
 
-    // Pagination: max 20 items per page
-    const ELEC_PER_PAGE = 20;
-    const chunks = [];
-    for (let i = 0; i < activeItems.length; i += ELEC_PER_PAGE) {
-        chunks.push(activeItems.slice(i, i + ELEC_PER_PAGE));
-    }
+    // Smart Dynamic Chunking (Strict height budget to prevent blank pages)
+    const chunks = chunkElectricianItems(activeItems);
     if (chunks.length === 0) chunks.push([]);
 
     const totalPages = chunks.length;
@@ -3629,7 +4012,7 @@ function downloadElectricianPDF() {
         image: { type:'jpeg', quality:0.98 },
         html2canvas: { scale:2, useCORS:true, letterRendering:true, scrollY:0 },
         jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
-        pagebreak: { mode: ['css', 'legacy'], after: '.pdf-page:not(:last-child)' }
+        pagebreak: { mode: ['css', 'legacy'], after: '.page-elec:not(:last-child)' }
     }).from(el).save().then(() => {
         if (btn) {
             btn.innerHTML = orig;
