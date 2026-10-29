@@ -137,6 +137,17 @@
                 </div>
             </div>
 
+            <!-- 3-Page Executive Summary Quotation Section -->
+            <div class="landing-divider"><span>Executive Summary Quotation (3-पेज समरी कोटेशन)</span></div>
+            <div class="category-grid" style="grid-template-columns:1fr;max-width:1100px;">
+                <div class="category-card" onclick="openSummaryModule()" style="border:1.5px solid #6366f1;background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(79,70,229,.03));">
+                    <div class="card-icon" style="background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;"><i class="fa-solid fa-file-shield"></i></div>
+                    <h3>3-Page Executive Summary Quotation (3-पेज समरी कोटेशन)</h3>
+                    <p>Convert lengthy service quotations into a strictly 3-page executive quotation: Page 1 Cover &amp; Project Info, Page 2 Points Breakdown &amp; High-Value Points Highlighted (AC, Geyser, DB, Chimney, 16A Power), Page 3 Commercial Totals, Payment Terms &amp; Dual Director Signatures &mdash; exactly 3 pages with zero blank pages.</p>
+                    <span class="card-arrow" style="color:#6366f1;"><i class="fa-solid fa-arrow-right"></i></span>
+                </div>
+            </div>
+
             <div class="landing-divider"><span>Quotation & Document History</span></div>
             <div class="history-panel" id="history-panel">
                 <div class="history-header">
@@ -149,6 +160,7 @@
                         <button class="history-filter-btn" onclick="filterHistory('bill')">Bill</button>
                         <button class="history-filter-btn" onclick="filterHistory('challan')">Challan</button>
                         <button class="history-filter-btn" onclick="filterHistory('receipt')">Receipt</button>
+                        <button class="history-filter-btn" onclick="filterHistory('summary3p')">Summary 3P</button>
                     </div>
                 </div>
                 <div class="history-table-wrap">
@@ -1206,7 +1218,7 @@
     </div>
 
 
-    <script src="app.js?v=20261024_ELEC_UPLOAD_FIX"></script>
+    
 
     <!-- ==========================================================================
          STEP: ELECTRICIAN WORK ORDER & WIRE GAUGE CONFIGURATION FORM
@@ -1372,5 +1384,207 @@
         </div>
     </div>
 
+
+    <!-- ==========================================================================
+         STEP: 3-PAGE EXECUTIVE SUMMARY QUOTATION FORM
+         ========================================================================== -->
+    <div id="step-summary-form" class="step">
+        <div class="config-container">
+            <div class="config-topbar">
+                <button class="back-btn" onclick="goToStep(1)"><i class="fa-solid fa-arrow-left"></i> Home</button>
+                <div class="topbar-logo"><img src="logo.png" alt="AMPEdge" class="topbar-logo-img"></div>
+                <div class="selected-category-badge" style="background:rgba(99,102,241,.15);border-color:#6366f1;color:#818cf8;">
+                    <i class="fa-solid fa-file-shield"></i> <span>3-Page Executive Summary Quotation</span>
+                </div>
+            </div>
+
+            <!-- PRIMARY ACTION: HERO DRAG & DROP PDF UPLOAD ZONE -->
+            <div class="summary-upload-hero" id="summary-dropzone" 
+                 onclick="document.getElementById('summary-file-input').click()"
+                 ondragover="handleSummaryDragOver(event)"
+                 ondragleave="handleSummaryDragLeave(event)"
+                 ondrop="handleSummaryFileDrop(event)">
+                <input type="file" id="summary-file-input" accept=".pdf" style="display:none;" onchange="handleSummaryPDFUpload(this)">
+                
+                <div class="summary-upload-icon-circle">
+                    <i class="fa-solid fa-file-circle-check"></i>
+                </div>
+                <h2 style="font-size:1.25rem;font-weight:800;color:var(--text);margin-bottom:6px;">
+                    Upload Service Quotation PDF (3-पेज समरी कोटेशन के लिए PDF अपलोड करें)
+                </h2>
+                <p style="font-size:.85rem;color:var(--text-muted);max-width:700px;line-height:1.5;margin-bottom:14px;">
+                    Drop your detailed service quotation PDF here. The system will convert it into a strictly <strong>3-Page Executive Quotation</strong>: Page 1 Cover, Page 2 Point Schedule with High-Value Points Highlighted (AC, Geyser, DB, Chimney, 16A Power), and Page 3 Commercial Terms &amp; Dual Signatures.
+                </p>
+                <!-- Quick Pick Pills for Recent Quotations -->
+                <div class="summary-quick-row" onclick="event.stopPropagation();">
+                    <span style="font-size:.76rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;"><i class="fa-solid fa-clock-rotate-left"></i> Quick Load Quotation:</span>
+                    <button type="button" class="summary-quick-pill" onclick="loadKnownSummaryClient('Arbind Kumar Singh')"><i class="fa-solid fa-building"></i> Arbind Kumar Singh (27 pts)</button>
+                    <button type="button" class="summary-quick-pill" onclick="loadKnownSummaryClient('Keshab Kumar')"><i class="fa-solid fa-house"></i> Keshab Kumar (43 pts)</button>
+                    <button type="button" class="summary-quick-pill" onclick="loadKnownSummaryClient('Dustu podo Ghosh')"><i class="fa-solid fa-user-check"></i> Dustu Podo Ghosh</button>
+                    <button type="button" class="summary-quick-pill" onclick="loadKnownSummaryClient('Monoj Mallik')"><i class="fa-solid fa-user-check"></i> Monoj Mallik</button>
+                </div>
+                <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;margin-top:14px;">
+                    <button class="action-btn" style="background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;padding:10px 20px;font-size:.9rem;font-weight:700;border-radius:8px;" onclick="event.stopPropagation();document.getElementById('summary-file-input').click();">
+                        <i class="fa-solid fa-file-pdf"></i> Browse Quotation PDF
+                    </button>
+                    <span style="font-size:.8rem;color:var(--text-muted);">or</span>
+                    <select id="summary-history-select" onclick="event.stopPropagation();" onchange="loadFromSummaryHistorySelection(this.value)" style="background:var(--bg-card);color:var(--text);border:1px solid var(--border);padding:8px 12px;border-radius:8px;font-size:.8rem;max-width:280px;">
+                        <option value="">📋 Select from Saved Quotations...</option>
+                    </select>
+                    <button class="action-btn" style="background:#10b981;color:#fff;padding:8px 14px;font-size:.8rem;border-radius:8px;" onclick="event.stopPropagation();loadSummaryFromCurrentActiveConfig();" title="Load points from currently active configuration">
+                        <i class="fa-solid fa-bolt"></i> Load Active Points
+                    </button>
+                </div>
+
+                <!-- Parsing Status Notification Badge -->
+                <div id="summary-parse-status" style="display:none;margin-top:16px;padding:8px 16px;border-radius:6px;font-size:.82rem;font-weight:600;"></div>
+            </div>
+
+            <!-- CLIENT & PROJECT DETAILS -->
+            <div class="config-section" style="margin-top:20px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <h2 class="config-section-title" style="margin-bottom:0;"><i class="fa-solid fa-user-tie"></i> Client &amp; Project Details (Executive Quotation)</h2>
+                    <span id="summary-stat-badge" style="background:rgba(99,102,241,.15);color:#818cf8;padding:5px 12px;border-radius:5px;font-size:.8rem;font-weight:700;">Strictly 3-Page Document</span>
+                </div>
+                <div class="client-form-grid" style="grid-template-columns:repeat(3,1fr);">
+                    <div class="form-field">
+                        <label>Client Name</label>
+                        <input type="text" id="summary-inp-client" placeholder="e.g. Arbind Kumar Singh">
+                    </div>
+                    <div class="form-field">
+                        <label>Project / Building Name</label>
+                        <input type="text" id="summary-inp-project" placeholder="e.g. G+4 Residential Apartment">
+                    </div>
+                    <div class="form-field">
+                        <label>Site Address / Location</label>
+                        <input type="text" id="summary-inp-address" placeholder="e.g. Howrah, West Bengal">
+                    </div>
+                    <div class="form-field">
+                        <label>Quotation Number</label>
+                        <input type="text" id="summary-inp-quoteno" value="AE/QT/2026/801">
+                    </div>
+                    <div class="form-field">
+                        <label>Quotation Date</label>
+                        <input type="date" id="summary-inp-date">
+                    </div>
+                    <div class="form-field">
+                        <label>Total Units / Flats</label>
+                        <input type="number" id="summary-inp-units" value="1" min="1">
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI METRICS SUMMARY BAR -->
+            <div class="config-section" style="padding:16px 20px;">
+                <div class="summary-kpi-grid" style="margin-bottom:0;">
+                    <div class="summary-kpi-card highlight">
+                        <div class="summary-kpi-val" id="summary-kpi-total-pts">0</div>
+                        <div class="summary-kpi-lbl">Total Points Count</div>
+                    </div>
+                    <div class="summary-kpi-card amber">
+                        <div class="summary-kpi-val" id="summary-kpi-high-pts">0</div>
+                        <div class="summary-kpi-lbl">High-Value Points</div>
+                    </div>
+                    <div class="summary-kpi-card">
+                        <div class="summary-kpi-val" id="summary-kpi-gen-pts">0</div>
+                        <div class="summary-kpi-lbl">General Points</div>
+                    </div>
+                    <div class="summary-kpi-card green">
+                        <div class="summary-kpi-val" id="summary-kpi-grand-total">₹0</div>
+                        <div class="summary-kpi-lbl">Confirmed Labour Total</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- POINTS REVIEW & CONFIGURATION TABLE -->
+            <div class="config-section">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+                    <div>
+                        <h2 class="config-section-title" style="margin-bottom:2px;"><i class="fa-solid fa-list-check"></i> Point Schedule (High-Value Highlighted)</h2>
+                        <p style="font-size:.76rem;color:var(--text-muted);margin:0;">Points marked as High-Value will be prominently highlighted with rates and quantities on Page 2.</p>
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <button class="apply-all-btn" style="background:#6366f1;" onclick="addSummaryRow()"><i class="fa-solid fa-plus"></i> Add Point Row</button>
+                        <button class="apply-all-btn" style="background:#64748b;" onclick="clearSummaryForm()"><i class="fa-solid fa-rotate-left"></i> Clear Table</button>
+                    </div>
+                </div>
+                
+                <table class="config-points-table" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th style="width:30px;">#</th>
+                            <th style="width:280px;">Point / Item Description</th>
+                            <th style="width:70px;" class="text-center">Unit</th>
+                            <th style="width:90px;" class="text-right">Rate (₹)</th>
+                            <th style="width:70px;" class="text-center">Qty</th>
+                            <th style="width:90px;" class="text-right">Disc (₹)</th>
+                            <th style="width:100px;" class="text-right">Amount (₹)</th>
+                            <th style="width:120px;" class="text-center">Classification</th>
+                            <th style="width:40px;" class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="summary-tbody">
+                        <tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-muted);">Please upload your Service Quotation PDF above or select a saved quote.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PAYMENT MILESTONES & TERMS -->
+            <div class="config-section">
+                <h2 class="config-section-title"><i class="fa-solid fa-coins"></i> Payment Milestones (% Split) &amp; Commercial Terms</h2>
+                <div class="client-form-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:12px;">
+                    <div class="form-field">
+                        <label>Milestone 1: Advance (%)</label>
+                        <input type="number" id="summary-inp-ms1" value="30" min="0" max="100">
+                    </div>
+                    <div class="form-field">
+                        <label>Milestone 2: Piping &amp; Wiring (%)</label>
+                        <input type="number" id="summary-inp-ms2" value="50" min="0" max="100">
+                    </div>
+                    <div class="form-field">
+                        <label>Milestone 3: Final Testing &amp; DB (%)</label>
+                        <input type="number" id="summary-inp-ms3" value="20" min="0" max="100">
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label>Terms &amp; Conditions (Printed on Page 3)</label>
+                    <textarea id="summary-inp-terms" rows="4" style="width:100%;background:var(--bg-card);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;font-size:.82rem;line-height:1.5;">• Scope of Contract: Labour and service execution only. All electrical accessories, cables, switches, and DB supplied separately.
+• Chasing & Concealing: Wall groove cutting, chipping, and PVC conduit fixing included. Civil plaster patching by civil team.
+• Dedicated Power Lines: AC (4.0 sq mm) and Geyser (4.0 sq mm) lines pulled directly from DB with separate MCB isolation.
+• Earthing & Safety: Continuous green earth conductor looped to all 3-pin power sockets and main panel board.
+• Validity: Commercial quotation valid for 30 calendar days from issue date.</textarea>
+                </div>
+            </div>
+
+            <div class="generate-section" style="display:flex;gap:12px;justify-content:center;margin-top:20px;">
+                <button class="generate-btn" style="background:linear-gradient(135deg,#6366f1,#4f46e5);max-width:420px;" onclick="generateThreePageSummaryQuotation()">
+                    <i class="fa-solid fa-file-pdf"></i> Generate 3-Page Executive Summary Quotation (PDF)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================================================
+         STEP: 3-PAGE EXECUTIVE SUMMARY QUOTATION PREVIEW & PDF CONTAINER
+         ========================================================================== -->
+    <div id="step-summary-pdf" class="step">
+        <div class="preview-topbar">
+            <button class="back-btn" onclick="goToStep('summary-form')"><i class="fa-solid fa-arrow-left"></i> Edit Details</button>
+            <div class="topbar-logo"><img src="logo.png" alt="AMPEdge" class="topbar-logo-img"></div>
+            <div class="preview-actions">
+                <button class="action-btn edit-btn" onclick="goToStep('summary-form')"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+                <button class="action-btn print-btn" onclick="window.print()"><i class="fa-solid fa-print"></i> Print</button>
+                <button class="action-btn download-btn" id="summary-download-btn" style="background:linear-gradient(135deg,#6366f1,#4f46e5);" onclick="downloadThreePageSummaryPDF()"><i class="fa-solid fa-file-pdf"></i> Download 3-Page PDF</button>
+            </div>
+        </div>
+
+        <div class="preview-scroll-area">
+            <div id="summary-pdf-document" class="pdf-document">
+                <div id="summary-pdf-pages-container" style="display:contents;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=20261029_SUMMARY_3P"></script>
 </body>
 </html>

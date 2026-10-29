@@ -2310,7 +2310,9 @@ function renderHistoryTable(filter) {
             po: 'PO',
             bill: 'Bill / Inv',
             challan: 'Challan',
-            receipt: 'Receipt'
+            receipt: 'Receipt',
+            summary3p: 'Summary 3P',
+            workorder: 'Work Order'
         }[item.type] || item.type.toUpperCase();
 
         const formattedDate = item.date 
@@ -2374,6 +2376,24 @@ function openHistoryItem(id) {
             renderMaterialsTable();
         }
         generateMaterialsQuotation(true);
+    } else if (item.type === 'summary3p') {
+        if (item.formData) {
+            if (item.formData.client) document.getElementById('summary-inp-client').value = item.formData.client;
+            if (item.formData.project) document.getElementById('summary-inp-project').value = item.formData.project;
+            if (item.formData.address) document.getElementById('summary-inp-address').value = item.formData.address;
+            if (item.formData.quoteno) document.getElementById('summary-inp-quoteno').value = item.formData.quoteno;
+            if (item.formData.date) document.getElementById('summary-inp-date').value = item.formData.date;
+            if (item.formData.units) document.getElementById('summary-inp-units').value = item.formData.units || 1;
+            if (item.formData.ms1) document.getElementById('summary-inp-ms1').value = item.formData.ms1;
+            if (item.formData.ms2) document.getElementById('summary-inp-ms2').value = item.formData.ms2;
+            if (item.formData.ms3) document.getElementById('summary-inp-ms3').value = item.formData.ms3;
+            if (item.formData.terms) document.getElementById('summary-inp-terms').value = item.formData.terms;
+        }
+        if (item.items && Array.isArray(item.items)) {
+            summaryItems = JSON.parse(JSON.stringify(item.items));
+            renderSummaryPointsTable();
+        }
+        generateThreePageSummaryQuotation(true);
     } else if (item.type === 'workorder') {
         if (item.formData) {
             if (item.formData.woNo) document.getElementById('elec-inp-wo-no').value = item.formData.woNo;
@@ -4013,6 +4033,1060 @@ function downloadElectricianPDF() {
         html2canvas: { scale:2, useCORS:true, letterRendering:true, scrollY:0 },
         jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
         pagebreak: { mode: ['css', 'legacy'], after: '.page-elec:not(:last-child)' }
+    }).from(el).save().then(() => {
+        if (btn) {
+            btn.innerHTML = orig;
+            btn.disabled = false;
+        }
+        el.classList.remove('pdf-rendering');
+    }).catch(err => {
+        console.error(err);
+        if (btn) {
+            btn.innerHTML = orig;
+            btn.disabled = false;
+        }
+        el.classList.remove('pdf-rendering');
+        alert("PDF generation failed. Try Ctrl+P and select 'Save as PDF'.");
+    });
+}
+
+
+// ==========================================================================
+// 3-PAGE EXECUTIVE SUMMARY QUOTATION MODULE (3-पेज समरी कोटेशन)
+// ==========================================================================
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+let summaryItems = [];
+let summaryMeta = {};
+
+function openSummaryModule() {
+    const today = new Date().toISOString().split('T')[0];
+    const dateInput = document.getElementById('summary-inp-date');
+    if (dateInput && !dateInput.value) dateInput.value = today;
+
+    populateSummaryHistoryDropdown();
+
+    if (summaryItems.length === 0) {
+        // Try importing from active service configuration if any active items
+        const activeItems = configItems.filter(i => (i.qty || 0) > 0);
+        if (activeItems.length > 0) {
+            loadSummaryFromCurrentActiveConfig();
+        } else {
+            // Default starter template from preseeded client
+            loadKnownSummaryClient('Arbind Kumar Singh');
+        }
+    } else {
+        renderSummaryPointsTable();
+    }
+
+    goToStep('summary-form');
+}
+
+function classifyQuotationPoints(items) {
+    const highValue = [];
+    const general = [];
+
+    const highValueKeywords = [
+        /\bac\b/i, /air conditioner/i, /a\.c\./i,
+        /geyser/i, /water heater/i, /boiler/i,
+        /chimney/i, /exhaust/i,
+        /distribution board/i, /\bdb\b/i, /panel board/i, /sub-main/i, /incomer/i, /mcb/i, /mccb/i, /rccb/i, /elcb/i,
+        /meter connection/i, /earthing/i, /earth pit/i, /gi strip/i,
+        /refrigerator/i, /fridge/i, /microwave/i, /oven/i, /washing machine/i, /dishwasher/i,
+        /16a/i, /32a/i, /power point/i, /power socket/i,
+        /inverter/i, /ups/i
+    ];
+
+    items.forEach(item => {
+        const name = item.name || '';
+        const isHigh = highValueKeywords.some(rx => rx.test(name)) || (item.rate >= 350 && !/point/i.test(item.unit));
+        
+        let tag = 'General Electrical';
+        if (/ac\b|air conditioner/i.test(name)) tag = 'AC Power (Dedicated 16A)';
+        else if (/geyser|water heater/i.test(name)) tag = 'Geyser (Dedicated 16A)';
+        else if (/chimney|exhaust/i.test(name)) tag = 'Kitchen Exhaust / Chimney';
+        else if (/distribution board|\bdb\b|mcb|panel/i.test(name)) tag = 'DB & Protection Circuit';
+        else if (/meter|earthing/i.test(name)) tag = 'Earthing & Incomer';
+        else if (/refrigerator|microwave|washing|16a|power/i.test(name)) tag = 'Heavy Power 16A';
+        else if (/inverter|ups/i.test(name)) tag = 'Inverter Backup Line';
+        else if (/light|lamp|cove|spot/i.test(name)) tag = 'Lighting Point';
+        else if (/fan/i.test(name)) tag = 'Fan Point';
+        else if (/5a|socket|tv/i.test(name)) tag = '5A Utility Socket';
+
+        const enhanced = { ...item, isHighValue: isHigh, tag: tag };
+        if (isHigh) {
+            highValue.push(enhanced);
+        } else {
+            general.push(enhanced);
+        }
+    });
+
+    // General aggregation
+    const genSummary = {
+        lighting: { count: 0, amount: 0 },
+        fans: { count: 0, amount: 0 },
+        sockets: { count: 0, amount: 0 },
+        other: { count: 0, amount: 0 },
+        totalPoints: 0,
+        totalAmount: 0
+    };
+
+    general.forEach(i => {
+        const n = (i.name || '').toLowerCase();
+        const qty = i.qty || 1;
+        const disc = i.discount || 0;
+        const effectiveRate = Math.max(0, (i.rate || 0) - disc);
+        const amt = (i.amount !== undefined) ? i.amount : (effectiveRate * qty);
+        genSummary.totalPoints += qty;
+        genSummary.totalAmount += amt;
+
+        if (n.includes('light') || n.includes('lamp') || n.includes('cove') || n.includes('spot') || n.includes('chandelier') || n.includes('footlight')) {
+            genSummary.lighting.count += qty;
+            genSummary.lighting.amount += amt;
+        } else if (n.includes('fan')) {
+            genSummary.fans.count += qty;
+            genSummary.fans.amount += amt;
+        } else if (n.includes('5a') || n.includes('socket') || n.includes('tv') || n.includes('outlet')) {
+            genSummary.sockets.count += qty;
+            genSummary.sockets.amount += amt;
+        } else {
+            genSummary.other.count += qty;
+            genSummary.other.amount += amt;
+        }
+    });
+
+    return { highValue, general, genSummary };
+}
+
+function renderSummaryPointsTable() {
+    const tbody = document.getElementById('summary-tbody');
+    if (!tbody) return;
+
+    if (summaryItems.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--text-muted);">Please upload your Service Quotation PDF above or select a saved quote.</td></tr>';
+        updateSummaryKPICards();
+        return;
+    }
+
+    const { highValue, general } = classifyQuotationPoints(summaryItems);
+
+    tbody.innerHTML = '';
+    summaryItems.forEach((item, idx) => {
+        const tr = document.createElement('tr');
+        const isHigh = item.isHighValue || (item.rate >= 350) || /ac|geyser|chimney|db|mcb|meter|earthing|16a|power/i.test(item.name);
+        const disc = item.discount || 0;
+        const effectiveRate = Math.max(0, (item.rate || 0) - disc);
+        const amount = effectiveRate * (item.qty || 1);
+
+        tr.innerHTML = `
+            <td class="text-center font-bold" style="color:var(--text-muted);font-size:.75rem;">${idx + 1}</td>
+            <td>
+                <input type="text" value="${escapeHtml(item.name)}" onchange="updateSummaryItemProp(${idx}, 'name', this.value)" style="width:100%;font-weight:600;font-size:.8rem;padding:3px 6px;">
+            </td>
+            <td class="text-center">
+                <input type="text" value="${escapeHtml(item.unit || 'Point')}" onchange="updateSummaryItemProp(${idx}, 'unit', this.value)" style="width:100%;text-align:center;font-size:.78rem;padding:3px 4px;">
+            </td>
+            <td class="text-right">
+                <input type="number" value="${item.rate || 0}" min="0" onchange="updateSummaryItemProp(${idx}, 'rate', parseFloat(this.value)||0)" style="width:100%;text-align:right;font-size:.78rem;padding:3px 4px;">
+            </td>
+            <td class="text-center">
+                <input type="number" value="${item.qty || 1}" min="1" onchange="updateSummaryItemProp(${idx}, 'qty', parseInt(this.value)||1)" style="width:100%;text-align:center;font-weight:700;font-size:.78rem;padding:3px 4px;">
+            </td>
+            <td class="text-right">
+                <input type="number" value="${disc}" min="0" onchange="updateSummaryItemProp(${idx}, 'discount', parseFloat(this.value)||0)" style="width:100%;text-align:right;color:#d97706;font-size:.78rem;padding:3px 4px;">
+            </td>
+            <td class="text-right font-mono font-bold" style="color:#0ea5e9;font-size:.8rem;">
+                ${formatCurrency(amount)}
+            </td>
+            <td class="text-center">
+                ${isHigh ? '<span class="high-val-badge"><i class="fa-solid fa-star"></i> High-Value</span>' : '<span class="gen-val-badge">General</span>'}
+            </td>
+            <td class="text-center">
+                <button type="button" class="del-row-btn" onclick="removeSummaryRow(${idx})" title="Remove"><i class="fa-solid fa-trash-can"></i></button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    updateSummaryKPICards();
+}
+
+function updateSummaryItemProp(index, prop, value) {
+    if (summaryItems[index]) {
+        summaryItems[index][prop] = value;
+        renderSummaryPointsTable();
+    }
+}
+
+function removeSummaryRow(index) {
+    summaryItems.splice(index, 1);
+    renderSummaryPointsTable();
+}
+
+function addSummaryRow() {
+    summaryItems.push({
+        name: 'New Electrical Point',
+        unit: 'Point',
+        rate: 150,
+        qty: 1,
+        discount: 0
+    });
+    renderSummaryPointsTable();
+}
+
+function clearSummaryForm() {
+    if (confirm('Clear all points in this summary schedule?')) {
+        summaryItems = [];
+        renderSummaryPointsTable();
+    }
+}
+
+function updateSummaryKPICards() {
+    const totalPtsEl = document.getElementById('summary-kpi-total-pts');
+    const highPtsEl = document.getElementById('summary-kpi-high-pts');
+    const genPtsEl = document.getElementById('summary-kpi-gen-pts');
+    const grandTotalEl = document.getElementById('summary-kpi-grand-total');
+
+    if (!totalPtsEl) return;
+
+    const units = parseInt(document.getElementById('summary-inp-units') ? document.getElementById('summary-inp-units').value : 1) || 1;
+    const { highValue, general, genSummary } = classifyQuotationPoints(summaryItems);
+
+    let highPtsCount = 0;
+    let highAmount = 0;
+    highValue.forEach(i => {
+        const q = (i.qty || 1) * units;
+        highPtsCount += q;
+        const d = i.discount || 0;
+        highAmount += Math.max(0, (i.rate || 0) - d) * q;
+    });
+
+    const genPtsCount = genSummary.totalPoints * units;
+    const genAmount = genSummary.totalAmount * units;
+    const totalCount = highPtsCount + genPtsCount;
+    const grandTotal = highAmount + genAmount;
+
+    totalPtsEl.textContent = `${totalCount} Points`;
+    highPtsEl.textContent = `${highPtsCount} Points (${formatCurrency(highAmount)})`;
+    genPtsEl.textContent = `${genPtsCount} Points (${formatCurrency(genAmount)})`;
+    grandTotalEl.textContent = formatCurrency(grandTotal);
+}
+
+function populateSummaryHistoryDropdown() {
+    const sel = document.getElementById('summary-history-select');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">📋 Select from Saved Quotations...</option>';
+    
+    const history = getHistory().filter(h => h.type === 'service' || h.type === 'summary3p');
+    history.forEach(h => {
+        const opt = document.createElement('option');
+        opt.value = h.id;
+        opt.textContent = `${h.docNo || 'No Number'} — ${h.client || 'Client'} (${h.itemCount || 0} pts)`;
+        sel.appendChild(opt);
+    });
+}
+
+function loadFromSummaryHistorySelection(id) {
+    if (!id) return;
+    const history = getHistory();
+    const item = history.find(h => String(h.id) === String(id));
+    if (!item) return;
+
+    if (item.formData) {
+        if (item.formData.client) document.getElementById('summary-inp-client').value = item.formData.client;
+        if (item.formData.project) document.getElementById('summary-inp-project').value = item.formData.project;
+        if (item.formData.address) document.getElementById('summary-inp-address').value = item.formData.address;
+        if (item.formData.quoteno) document.getElementById('summary-inp-quoteno').value = item.formData.quoteno;
+        if (item.formData.date) document.getElementById('summary-inp-date').value = item.formData.date;
+        if (item.formData.units) document.getElementById('summary-inp-units').value = item.formData.units || 1;
+    }
+
+    const items = item.items || [];
+    const active = items.filter(i => (i.qty || 0) > 0);
+    summaryItems = JSON.parse(JSON.stringify(active.length > 0 ? active : items));
+    renderSummaryPointsTable();
+}
+
+function loadSummaryFromCurrentActiveConfig() {
+    const activeItems = configItems.filter(i => (i.qty || 0) > 0);
+    if (activeItems.length === 0) {
+        alert('No active electrical points configured in Service Quotation.');
+        return;
+    }
+
+    document.getElementById('summary-inp-client').value = document.getElementById('inp-client').value || 'Client';
+    document.getElementById('summary-inp-project').value = document.getElementById('inp-project').value || 'Project';
+    document.getElementById('summary-inp-address').value = document.getElementById('inp-address').value || '';
+    document.getElementById('summary-inp-quoteno').value = document.getElementById('inp-quoteno').value || 'AE/QT/2026/801';
+    document.getElementById('summary-inp-date').value = document.getElementById('inp-date').value || new Date().toISOString().split('T')[0];
+    document.getElementById('summary-inp-units').value = document.getElementById('inp-units').value || 1;
+
+    summaryItems = JSON.parse(JSON.stringify(activeItems));
+    renderSummaryPointsTable();
+}
+
+function loadKnownSummaryClient(clientName) {
+    const history = getHistory();
+    const match = history.find(h => h.client && h.client.toLowerCase().includes(clientName.toLowerCase()));
+    if (match) {
+        if (match.formData) {
+            document.getElementById('summary-inp-client').value = match.formData.client || clientName;
+            document.getElementById('summary-inp-project').value = match.formData.project || 'Residential Project';
+            document.getElementById('summary-inp-address').value = match.formData.address || 'West Bengal';
+            document.getElementById('summary-inp-quoteno').value = match.formData.quoteno || 'AE/QT/2026/801';
+            document.getElementById('summary-inp-date').value = match.formData.date || new Date().toISOString().split('T')[0];
+            document.getElementById('summary-inp-units').value = match.formData.units || 1;
+        } else {
+            document.getElementById('summary-inp-client').value = clientName;
+            document.getElementById('summary-inp-project').value = match.project || 'Residential Project';
+        }
+
+        const items = match.items || [];
+        const active = items.filter(i => (i.qty || 0) > 0);
+        summaryItems = JSON.parse(JSON.stringify(active.length > 0 ? active : items));
+        renderSummaryPointsTable();
+    }
+}
+
+function handleSummaryDragOver(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const dropzone = document.getElementById('summary-dropzone');
+    if (dropzone) dropzone.classList.add('drag-over');
+}
+
+function handleSummaryDragLeave(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const dropzone = document.getElementById('summary-dropzone');
+    if (dropzone) dropzone.classList.remove('drag-over');
+}
+
+function handleSummaryFileDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const dropzone = document.getElementById('summary-dropzone');
+    if (dropzone) dropzone.classList.remove('drag-over');
+
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    if (files && files.length > 0) {
+        processSummaryQuotationPDFFile(files[0]);
+    }
+}
+
+function handleSummaryPDFUpload(input) {
+    const file = input.files && input.files[0];
+    if (file) {
+        processSummaryQuotationPDFFile(file);
+    }
+}
+
+async function processSummaryQuotationPDFFile(file) {
+    const statusEl = document.getElementById('summary-parse-status');
+    if (statusEl) {
+        statusEl.style.display = 'inline-block';
+        statusEl.style.background = '#fef3c7';
+        statusEl.style.color = '#92400e';
+        statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Reading & converting quotation PDF to 3-Page Summary...';
+    }
+
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        let parsedItems = [];
+        let clientVal = '';
+        let projVal = '';
+        let addrVal = '';
+        let quoteVal = '';
+        let dateVal = '';
+        let unitsVal = 1;
+        let sourceMethod = '';
+
+        // LAYER 0: Raw Byte Marker Scanner
+        try {
+            const uint8 = new Uint8Array(arrayBuffer);
+            let binaryStr = '';
+            const chunkSize = 65536;
+            for (let i = 0; i < uint8.length; i += chunkSize) {
+                binaryStr += String.fromCharCode.apply(null, uint8.subarray(i, Math.min(i + chunkSize, uint8.length)));
+            }
+            const markerMatch = binaryStr.match(/%%AMPEDGE_PAYLOAD:([A-Za-z0-9+/=]+)%%/);
+            if (markerMatch && markerMatch[1]) {
+                const jsonStr = decodeURIComponent(escape(atob(markerMatch[1])));
+                const kwData = JSON.parse(jsonStr);
+                if (kwData && kwData.items && Array.isArray(kwData.items)) {
+                    clientVal = kwData.client || '';
+                    projVal = kwData.project || '';
+                    addrVal = kwData.address || '';
+                    quoteVal = kwData.quoteno || '';
+                    dateVal = kwData.date || '';
+                    unitsVal = kwData.units || 1;
+                    parsedItems = kwData.items;
+                    sourceMethod = 'embedded binary payload';
+                }
+            }
+        } catch (e) {}
+
+        // LAYER 1 & 2: PDF.js Metadata and Text Stream Parser
+        if (parsedItems.length === 0 && window.pdfjsLib) {
+            try {
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+                // LAYER 1: Keywords / Subject metadata
+                try {
+                    const meta = await pdf.getMetadata();
+                    const kwSource = (meta && meta.info) ? (meta.info.Keywords || meta.info.Subject) : null;
+                    if (kwSource) {
+                        const kwData = JSON.parse(kwSource);
+                        if (kwData && kwData.items && Array.isArray(kwData.items)) {
+                            clientVal = kwData.client || '';
+                            projVal = kwData.project || '';
+                            addrVal = kwData.address || '';
+                            quoteVal = kwData.quoteno || '';
+                            dateVal = kwData.date || '';
+                            unitsVal = kwData.units || 1;
+                            parsedItems = kwData.items;
+                            sourceMethod = 'PDF metadata keywords';
+                        }
+                    }
+                } catch (e) {}
+
+                // LAYER 2: Text stream line reconstructor
+                if (parsedItems.length === 0) {
+                    let fullTextLines = [];
+                    let fullTextRaw = '';
+
+                    for (let p = 1; p <= pdf.numPages; p++) {
+                        const page = await pdf.getPage(p);
+                        const content = await page.getTextContent();
+                        
+                        const linesByY = {};
+                        content.items.forEach(item => {
+                            const str = (item.str || '').trim();
+                            if (!str) return;
+                            const y = Math.round(item.transform[5] / 4) * 4;
+                            if (!linesByY[y]) linesByY[y] = [];
+                            linesByY[y].push({ x: item.transform[4], str: item.str });
+                        });
+
+                        const sortedY = Object.keys(linesByY).sort((a, b) => b - a);
+                        sortedY.forEach(y => {
+                            const lineStr = linesByY[y].sort((a, b) => a.x - b.x).map(i => i.str).join(' ').trim();
+                            if (lineStr) {
+                                fullTextLines.push(lineStr);
+                                fullTextRaw += ' ' + lineStr;
+                            }
+                        });
+                    }
+
+                    if (fullTextLines.length > 0) {
+                        const clientMatch = fullTextRaw.match(/PREPARED FOR:?\s*([A-Za-z0-9\s,\.]+?)(?=\s*PROJECT|\s*SITE|\s*DATE|\s*QUOTATION)/i);
+                        if (clientMatch) clientVal = clientMatch[1].trim();
+
+                        const projMatch = fullTextRaw.match(/PROJECT:?\s*([A-Za-z0-9\s,\.\(\)\-]+?)(?=\s*SITE|\s*QUOTATION|\s*DATE|\s*VALIDITY)/i);
+                        if (projMatch) projVal = projMatch[1].trim();
+
+                        const addrMatch = fullTextRaw.match(/SITE LOCATION:?\s*([A-Za-z0-9\s,\.\-]+?)(?=\s*QUOTATION|\s*DATE|\s*VALIDITY)/i);
+                        if (addrMatch) addrVal = addrMatch[1].trim();
+
+                        const quoteMatch = fullTextRaw.match(/QUOTATION NO:?\s*([A-Za-z0-9\/\-_]+)/i);
+                        if (quoteMatch) quoteVal = quoteMatch[1].trim();
+
+                        // Regex capturing: Index, Description, Unit, Rate, Qty, Disc, Amount
+                        const lineRegex = /^\s*(\d{1,3})\s+(.+?)\s+(Point|Nos|Set|Board|Sq\.Ft|Rft|Pit|Mtr|Box|Coil|Pcs|Feet)\s+[₹Rs\.]*\s*([\d,]+(?:\.\d{1,2})?)\s+([\d,]+)(?:\s*\([^)]*\))?\s*(?:[₹Rs\.]*\s*([\d,]+(?:\.\d{1,2})?))?\s*(?:[₹Rs\.]*\s*([\d,]+(?:\.\d{1,2})?))?/i;
+
+                        fullTextLines.forEach(l => {
+                            const m = l.match(lineRegex);
+                            if (m) {
+                                const desc = m[2].trim();
+                                if (!desc.toLowerCase().includes('gross total') && !desc.toLowerCase().includes('discount') && !desc.toLowerCase().includes('grand total')) {
+                                    const unit = m[3];
+                                    const rate = parseFloat(m[4].replace(/,/g, '')) || 0;
+                                    const qty = parseInt(m[5].replace(/,/g, '')) || 1;
+                                    const disc = m[6] ? (parseFloat(m[6].replace(/,/g, '')) || 0) : 0;
+                                    parsedItems.push({
+                                        name: desc,
+                                        unit: unit,
+                                        rate: rate,
+                                        qty: qty,
+                                        discount: disc
+                                    });
+                                }
+                            }
+                        });
+                        if (parsedItems.length > 0) sourceMethod = 'PDF text stream';
+                    }
+                }
+            } catch (errPdf) {}
+        }
+
+        // LAYER 3: Filename Matching against Quotation History
+        if (parsedItems.length === 0) {
+            const rawFileName = (file.name || '').replace(/\.pdf$/i, '');
+            let candidate = rawFileName
+                .replace(/^AMPEdge[_-]?Solution[_-]?Quotation[_-]?/i, '')
+                .replace(/^AMPEdge[_-]?Materials[_-]?/i, '')
+                .replace(/_filled_pages_only/gi, '')
+                .replace(/_CutPages/gi, '')
+                .replace(/_Cleaned/gi, '')
+                .replace(/\(\d+\)/g, '')
+                .replace(/[_-]+/g, ' ')
+                .trim();
+
+            const history = getHistory();
+            let matchedRecord = null;
+            if (candidate) {
+                const cLower = candidate.toLowerCase();
+                matchedRecord = history.find(h => {
+                    if (!h.client) return false;
+                    const hLower = h.client.toLowerCase();
+                    return hLower.includes(cLower) || cLower.includes(hLower);
+                });
+            }
+
+            if (matchedRecord && matchedRecord.items && matchedRecord.items.length > 0) {
+                clientVal = matchedRecord.client || '';
+                projVal = matchedRecord.project || '';
+                addrVal = (matchedRecord.formData && matchedRecord.formData.address) ? matchedRecord.formData.address : '';
+                quoteVal = matchedRecord.docNo || '';
+                dateVal = matchedRecord.date || '';
+                unitsVal = (matchedRecord.formData && matchedRecord.formData.units) ? matchedRecord.formData.units : 1;
+
+                const active = matchedRecord.items.filter(i => (i.qty || 0) > 0);
+                parsedItems = active.length > 0 ? active : matchedRecord.items;
+                sourceMethod = 'verified quotation history (' + matchedRecord.client + ')';
+            }
+        }
+
+        // RESULTS HANDLING
+        if (parsedItems.length > 0) {
+            summaryItems = parsedItems;
+
+            if (clientVal) document.getElementById('summary-inp-client').value = clientVal;
+            if (projVal) document.getElementById('summary-inp-project').value = projVal;
+            if (addrVal) document.getElementById('summary-inp-address').value = addrVal;
+            if (quoteVal) document.getElementById('summary-inp-quoteno').value = quoteVal;
+            if (dateVal) document.getElementById('summary-inp-date').value = dateVal;
+            if (unitsVal) document.getElementById('summary-inp-units').value = unitsVal;
+
+            renderSummaryPointsTable();
+
+            if (statusEl) {
+                statusEl.style.display = 'inline-block';
+                statusEl.style.background = '#dcfce7';
+                statusEl.style.color = '#15803d';
+                statusEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> Successfully extracted ${parsedItems.length} points via ${sourceMethod}!`;
+                setTimeout(() => { statusEl.style.display = 'none'; }, 6000);
+            }
+        } else {
+            throw new Error('No itemized quotation points could be identified in this PDF.');
+        }
+
+    } catch (err) {
+        console.error('Error processing PDF:', err);
+        if (statusEl) {
+            statusEl.style.display = 'inline-block';
+            statusEl.style.background = '#fee2e2';
+            statusEl.style.color = '#b91c1c';
+            statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${err.message || 'Failed to read PDF'}. Select a client below:`;
+        }
+    }
+}
+
+function generateThreePageSummaryQuotation(fromHistory) {
+    const client = document.getElementById('summary-inp-client').value || 'Client';
+    const project = document.getElementById('summary-inp-project').value || 'Project';
+    const address = document.getElementById('summary-inp-address').value || EMDASH;
+    const quoteno = document.getElementById('summary-inp-quoteno').value || 'AE/QT/2026/801';
+    const dateVal = document.getElementById('summary-inp-date').value || new Date().toISOString().split('T')[0];
+    const units = parseInt(document.getElementById('summary-inp-units').value) || 1;
+
+    const ms1Pct = parseFloat(document.getElementById('summary-inp-ms1').value) || 30;
+    const ms2Pct = parseFloat(document.getElementById('summary-inp-ms2').value) || 50;
+    const ms3Pct = parseFloat(document.getElementById('summary-inp-ms3').value) || 20;
+    const termsText = document.getElementById('summary-inp-terms').value || '';
+
+    const activeItems = summaryItems.filter(i => (i.qty || 0) > 0);
+    if (activeItems.length === 0) {
+        alert('Please enter at least one electrical point before generating the summary quotation.');
+        return;
+    }
+
+    const { highValue, general, genSummary } = classifyQuotationPoints(activeItems);
+
+    // Compute Commercial Totals
+    let grossTotal = 0;
+    let totalDiscount = 0;
+    let totalPointsCount = 0;
+
+    activeItems.forEach(item => {
+        const totalQty = (item.qty || 1) * units;
+        const itemDisc = item.discount || 0;
+        const effectiveRate = Math.max(0, (item.rate || 0) - itemDisc);
+        grossTotal += totalQty * (item.rate || 0);
+        totalDiscount += totalQty * itemDisc;
+        totalPointsCount += totalQty;
+    });
+
+    const grandTotal = Math.max(0, grossTotal - totalDiscount);
+    const discPct = grossTotal > 0 ? ((totalDiscount / grossTotal) * 100).toFixed(1) : 0;
+
+    let highValueTotal = 0;
+    let highValuePtsCount = 0;
+    highValue.forEach(i => {
+        const q = (i.qty || 1) * units;
+        highValuePtsCount += q;
+        const d = i.discount || 0;
+        highValueTotal += Math.max(0, (i.rate || 0) - d) * q;
+    });
+
+    const genPointsCount = genSummary.totalPoints * units;
+    const genPointsTotal = genSummary.totalAmount * units;
+
+    const dateObj = new Date(dateVal);
+    const opts = { year: 'numeric', month: 'long', day: 'numeric' };
+    const formattedDate = !isNaN(dateObj.getTime()) ? dateObj.toLocaleDateString('en-US', opts) : dateVal;
+    
+    const validityDate = new Date(dateObj);
+    validityDate.setDate(validityDate.getDate() + 30);
+    const formattedValidity = !isNaN(validityDate.getTime()) ? validityDate.toLocaleDateString('en-US', opts) : '30 Days from Issue';
+
+    const pagesContainer = document.getElementById('summary-pdf-pages-container');
+    pagesContainer.innerHTML = '';
+
+    // =========================================================================
+    // PAGE 1: OFFICIAL COVER PAGE (A4 Strict Budget)
+    // =========================================================================
+    const page1 = document.createElement('div');
+    page1.className = 'pdf-page page-summary-3p page-cover';
+    page1.innerHTML = `
+        <div class="pdf-brand-header">
+            <div class="pdf-brand-left">
+                <img src="logo.png" alt="AMPEdge Solution" class="pdf-logo-img">
+                <div>
+                    <div class="pdf-brand-title">AMPEdge Solution</div>
+                    <div class="pdf-brand-tagline">Powering the Edge of Tomorrow.</div>
+                </div>
+            </div>
+            <div class="pdf-doc-badge" style="background:#e0e7ff;color:#4338ca;">EXECUTIVE QUOTATION</div>
+        </div>
+
+        <div style="text-align:center;margin:18px 0 24px;">
+            <span style="display:inline-block;background:#eff6ff;border:1.5px solid #0284c7;color:#0369a1;font-size:.76rem;font-weight:800;letter-spacing:1px;padding:4px 14px;border-radius:20px;text-transform:uppercase;margin-bottom:8px;">
+                <i class="fa-solid fa-file-contract"></i> Executive Summary Quotation
+            </span>
+            <h1 style="font-family:'Outfit',sans-serif;font-size:1.6rem;font-weight:800;color:#0f172a;line-height:1.2;margin:0 0 6px;">
+                ELECTRICAL SERVICE WORK &amp; COMMERCIAL SCHEDULE
+            </h1>
+            <p style="font-size:.82rem;color:#64748b;margin:0;">
+                Condensed 3-Page Project Overview &bull; Point Breakdown &bull; Commercial Milestone Agreement
+            </p>
+        </div>
+
+        <div class="pdf-meta-grid" style="display:grid;grid-template-columns:1.2fr 0.8fr;gap:16px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px;padding:14px 18px;margin-bottom:20px;">
+            <div style="border-right:1px solid #e2e8f0;padding-right:16px;">
+                <div style="font-size:.68rem;font-weight:800;color:#0284c7;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">PREPARED FOR (CLIENT):</div>
+                <div style="font-size:1.1rem;font-weight:800;color:#0f172a;margin-bottom:4px;">${escapeHtml(client)}</div>
+                <div style="font-size:.82rem;color:#334155;margin-bottom:2px;"><i class="fa-solid fa-building" style="color:#64748b;width:14px;"></i> <strong>Project:</strong> ${escapeHtml(project)}</div>
+                <div style="font-size:.8rem;color:#64748b;"><i class="fa-solid fa-location-dot" style="color:#64748b;width:14px;"></i> <strong>Site:</strong> ${escapeHtml(address)}</div>
+            </div>
+            <div>
+                <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:.78rem;">
+                    <span style="color:#64748b;font-weight:600;">Quotation No:</span>
+                    <span style="font-weight:800;font-family:monospace;color:#0369a1;">${escapeHtml(quoteno)}</span>
+                    <span style="color:#64748b;font-weight:600;">Date:</span>
+                    <span style="font-weight:700;color:#1e293b;">${formattedDate}</span>
+                    <span style="color:#64748b;font-weight:600;">Validity:</span>
+                    <span style="font-weight:700;color:#10b981;">${formattedValidity}</span>
+                    <span style="color:#64748b;font-weight:600;">Scope Units:</span>
+                    <span style="font-weight:700;color:#1e293b;">${units} Unit${units > 1 ? 's' : ''}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="summary-exec-box" style="margin-bottom:18px;">
+            <div style="font-size:.72rem;font-weight:800;color:#4338ca;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px;">
+                <i class="fa-solid fa-briefcase"></i> Executive Scope Summary &bull; Project Overview
+            </div>
+            <p style="font-size:.8rem;color:#334155;line-height:1.55;margin:0 0 10px;">
+                AMPEdge Solution is pleased to present this condensed 3-page Executive Quotation for the electrical installation and point wiring work for <strong>${escapeHtml(project)}</strong>. This schedule condenses complete site execution into verified total point counts, highlighted major dedicated power lines, and approved commercial milestones.
+            </p>
+            <div class="summary-kpi-grid" style="margin-bottom:0;">
+                <div class="summary-kpi-card highlight">
+                    <div class="summary-kpi-val" style="color:#0369a1;">${totalPointsCount}</div>
+                    <div class="summary-kpi-lbl">Total Electrical Points</div>
+                </div>
+                <div class="summary-kpi-card amber">
+                    <div class="summary-kpi-val" style="color:#b45309;">${highValuePtsCount}</div>
+                    <div class="summary-kpi-lbl">Major Dedicated Points</div>
+                </div>
+                <div class="summary-kpi-card">
+                    <div class="summary-kpi-val" style="color:#475569;">${genPointsCount}</div>
+                    <div class="summary-kpi-lbl">General Utility Points</div>
+                </div>
+                <div class="summary-kpi-card green">
+                    <div class="summary-kpi-val" style="color:#047857;">${formatCurrency(grandTotal)}</div>
+                    <div class="summary-kpi-lbl">Confirmed Contract Total</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;padding:12px 16px;margin-bottom:20px;">
+            <div style="font-size:.72rem;font-weight:800;color:#0f172a;text-transform:uppercase;margin-bottom:8px;letter-spacing:.4px;">
+                <i class="fa-solid fa-shield-halved" style="color:#10b981;"></i> Standard Workmanship &amp; Safety Compliance
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px 14px;font-size:.73rem;color:#475569;">
+                <div><i class="fa-solid fa-check" style="color:#10b981;margin-right:4px;"></i> Heavy Duty Rigid PVC Conduits</div>
+                <div><i class="fa-solid fa-check" style="color:#10b981;margin-right:4px;"></i> IS 732 Wiring Code Compliance</div>
+                <div><i class="fa-solid fa-check" style="color:#10b981;margin-right:4px;"></i> Continuous Earth Loop Continuity</div>
+                <div><i class="fa-solid fa-check" style="color:#10b981;margin-right:4px;"></i> Dedicated AC/Geyser Circuits</div>
+                <div><i class="fa-solid fa-check" style="color:#10b981;margin-right:4px;"></i> Modular Switchboard Fitting</div>
+                <div><i class="fa-solid fa-check" style="color:#10b981;margin-right:4px;"></i> DB Assembly &amp; Load Balancing</div>
+            </div>
+        </div>
+
+        <div style="margin-top:auto;border-top:1px solid #e2e8f0;padding-top:10px;display:flex;justify-content:space-between;align-items:center;font-size:.75rem;color:#64748b;">
+            <div>
+                <strong>AMPEdge Solution</strong> &bull; West Bauria, Chackasi, Palpara, Howrah 711307 &bull; +91 91236 67258
+            </div>
+            <div style="font-weight:600;color:#0284c7;">
+                ampedge.info@gmail.com
+            </div>
+        </div>
+
+        <div class="pdf-page-footer">
+            <span>AMPEdge Solution | Powering the Edge of Tomorrow.</span>
+            <span>Page 1 of 3</span>
+        </div>
+    `;
+    pagesContainer.appendChild(page1);
+
+    // =========================================================================
+    // PAGE 2: MIDDLE POINT SCHEDULE & HIGH-VALUE HIGHLIGHTS
+    // =========================================================================
+    const page2 = document.createElement('div');
+    page2.className = 'pdf-page page-summary-3p page-summary-middle';
+
+    let highRowsHtml = '';
+    highValue.forEach((item, rIdx) => {
+        const itemQty = (item.qty || 1) * units;
+        const itemDisc = item.discount || 0;
+        const effectiveRate = Math.max(0, (item.rate || 0) - itemDisc);
+        const amt = effectiveRate * itemQty;
+
+        highRowsHtml += `
+            <tr class="row-highval">
+                <td class="text-center font-bold">${rIdx + 1}</td>
+                <td>
+                    <strong>${escapeHtml(item.name)}</strong>
+                    <span class="high-val-badge" style="margin-left:6px;"><i class="fa-solid fa-bolt"></i> ${escapeHtml(item.tag || 'Dedicated')}</span>
+                </td>
+                <td class="text-center">${escapeHtml(item.unit || 'Point')}</td>
+                <td class="text-right">${RUPEE}${(item.rate || 0).toLocaleString('en-IN')}</td>
+                <td class="text-center font-bold">${itemQty}</td>
+                <td class="text-right" style="color:#d97706;">${itemDisc > 0 ? RUPEE + itemDisc.toLocaleString('en-IN') : EMDASH}</td>
+                <td class="text-right font-mono font-bold" style="color:#0369a1;">${formatCurrency(amt)}</td>
+            </tr>
+        `;
+    });
+
+    if (highValue.length === 0) {
+        highRowsHtml = '<tr><td colspan="7" style="text-align:center;padding:12px;color:#64748b;">No high-value dedicated circuits identified in this quotation.</td></tr>';
+    }
+
+    page2.innerHTML = `
+        <div class="pdf-page-header-repeat">
+            <img src="logo.png" alt="AMPEdge" class="pdf-logo-sm">
+            <span class="pdf-header-company">AMPEdge Solution</span>
+            <span class="pdf-header-tag">Powering the Edge of Tomorrow.</span>
+        </div>
+
+        <div class="pdf-section-strip">
+            <h2>2. EXECUTIVE POINT SCHEDULE &amp; HIGH-VALUE HIGHLIGHTS</h2>
+        </div>
+
+        <div class="summary-kpi-grid">
+            <div class="summary-kpi-card highlight">
+                <div class="summary-kpi-val">${totalPointsCount}</div>
+                <div class="summary-kpi-lbl">Total Points (${units} Unit${units > 1 ? 's' : ''})</div>
+            </div>
+            <div class="summary-kpi-card amber">
+                <div class="summary-kpi-val" style="color:#b45309;">${highValuePtsCount}</div>
+                <div class="summary-kpi-lbl">High-Value / Major Points</div>
+            </div>
+            <div class="summary-kpi-card">
+                <div class="summary-kpi-val" style="color:#475569;">${genPointsCount}</div>
+                <div class="summary-kpi-lbl">General Electrical Points</div>
+            </div>
+            <div class="summary-kpi-card green">
+                <div class="summary-kpi-val" style="color:#047857;">${formatCurrency(grandTotal)}</div>
+                <div class="summary-kpi-lbl">Total Estimated Labour</div>
+            </div>
+        </div>
+
+        <!-- High-Value Highlighted Points Section -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <div style="font-size:.76rem;font-weight:800;color:#0f172a;text-transform:uppercase;letter-spacing:.3px;">
+                <i class="fa-solid fa-star" style="color:#f59e0b;margin-right:4px;"></i> Highlighted Main / Dedicated Power Points (AC, Geyser, DB, Chimney)
+            </div>
+            <span style="font-size:.7rem;font-weight:700;color:#b45309;background:#fef3c7;padding:2px 8px;border-radius:4px;border:1px solid #fde68a;">
+                ${highValue.length} Dedicated Items &bull; Subtotal: ${formatCurrency(highValueTotal)}
+            </span>
+        </div>
+
+        <table class="summary-highval-table">
+            <thead>
+                <tr>
+                    <th style="width:30px;" class="text-center">#</th>
+                    <th>Major Point / Dedicated System Description</th>
+                    <th style="width:50px;" class="text-center">Unit</th>
+                    <th style="width:70px;" class="text-right">Rate</th>
+                    <th style="width:45px;" class="text-center">Qty</th>
+                    <th style="width:65px;" class="text-right">Disc</th>
+                    <th style="width:85px;" class="text-right">Total (${RUPEE})</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${highRowsHtml}
+                <tr style="background:#f1f5f9;font-weight:800;border-top:2px solid #cbd5e1;">
+                    <td colspan="4" class="text-right" style="color:#334155;">SUBTOTAL &mdash; HIGHLIGHTED MAJOR POINTS:</td>
+                    <td class="text-center font-bold" style="color:#0f172a;">${highValuePtsCount}</td>
+                    <td></td>
+                    <td class="text-right font-mono" style="color:#0369a1;">${formatCurrency(highValueTotal)}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- General Points Summary Section -->
+        <div style="font-size:.74rem;font-weight:800;color:#0f172a;text-transform:uppercase;margin:8px 0 6px;letter-spacing:.3px;">
+            <i class="fa-solid fa-bolt" style="color:#0284c7;margin-right:4px;"></i> General Utility &amp; Lighting Points Consolidated Summary
+        </div>
+
+        <div class="summary-gen-box">
+            <div class="summary-gen-grid">
+                <div class="summary-gen-item">
+                    <span class="summary-gen-lbl"><i class="fa-regular fa-lightbulb" style="color:#f59e0b;"></i> Lighting Points (Ceiling, Wall, Spot, Profile):</span>
+                    <span class="summary-gen-val">${genSummary.lighting.count * units} pts &bull; ${formatCurrency(genSummary.lighting.amount * units)}</span>
+                </div>
+                <div class="summary-gen-item">
+                    <span class="summary-gen-lbl"><i class="fa-solid fa-fan" style="color:#06b6d4;"></i> Ceiling &amp; Exhaust Fan Points:</span>
+                    <span class="summary-gen-val">${genSummary.fans.count * units} pts &bull; ${formatCurrency(genSummary.fans.amount * units)}</span>
+                </div>
+                <div class="summary-gen-item">
+                    <span class="summary-gen-lbl"><i class="fa-solid fa-plug" style="color:#3b82f6;"></i> 5A Utility Sockets, TV &amp; Network Outlets:</span>
+                    <span class="summary-gen-val">${genSummary.sockets.count * units} pts &bull; ${formatCurrency(genSummary.sockets.amount * units)}</span>
+                </div>
+                <div class="summary-gen-item">
+                    <span class="summary-gen-lbl"><i class="fa-solid fa-layer-group" style="color:#8b5cf6;"></i> Other General Utility Points &amp; Accessories:</span>
+                    <span class="summary-gen-val">${genSummary.other.count * units} pts &bull; ${formatCurrency(genSummary.other.amount * units)}</span>
+                </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #cbd5e1;margin-top:6px;padding-top:6px;font-size:.74rem;font-weight:800;">
+                <span style="color:#334155;">SUBTOTAL &mdash; GENERAL ELECTRICAL POINTS (${genPointsCount} Points):</span>
+                <span style="font-family:monospace;color:#0369a1;">${formatCurrency(genPointsTotal)}</span>
+            </div>
+        </div>
+
+        <div style="margin-top:auto;background:#f8fafc;border-left:3px solid #0284c7;padding:6px 12px;font-size:.72rem;color:#475569;line-height:1.45;">
+            <strong>Execution Note:</strong> All highlighted dedicated circuits (AC, Geyser, Oven, DB) are pulled as continuous home-runs directly from the Main Distribution Board using certified 4.0 sq mm / 2.5 sq mm FRLS copper wires without mid-pipe jointing. Complete point-by-point architectural schedule is documented in master contract.
+        </div>
+
+        <div class="pdf-page-footer">
+            <span>AMPEdge Solution | Powering the Edge of Tomorrow.</span>
+            <span>Page 2 of 3</span>
+        </div>
+    `;
+    pagesContainer.appendChild(page2);
+
+    // =========================================================================
+    // PAGE 3: COMMERCIAL SUMMARY, PAYMENT MILESTONES & DUAL SIGNATURES
+    // =========================================================================
+    const page3 = document.createElement('div');
+    page3.className = 'pdf-page page-summary-3p page-summary-commercial';
+
+    const ms1Amount = (grandTotal * ms1Pct) / 100;
+    const ms2Amount = (grandTotal * ms2Pct) / 100;
+    const ms3Amount = (grandTotal * ms3Pct) / 100;
+
+    const termsLines = termsText.split('\n').filter(l => l.trim().length > 0);
+    let termsListHtml = '';
+    termsLines.forEach(line => {
+        let t = line.trim();
+        if (t.startsWith('•') || t.startsWith('-') || t.startsWith('*')) t = t.substring(1).trim();
+        const colonIdx = t.indexOf(':');
+        if (colonIdx > 0 && colonIdx < 50) {
+            termsListHtml += `<li style="margin-bottom:5px;"><strong>${escapeHtml(t.substring(0, colonIdx + 1))}</strong> ${escapeHtml(t.substring(colonIdx + 1))}</li>`;
+        } else {
+            termsListHtml += `<li style="margin-bottom:5px;">${escapeHtml(t)}</li>`;
+        }
+    });
+
+    page3.innerHTML = `
+        <div class="pdf-page-header-repeat">
+            <img src="logo.png" alt="AMPEdge" class="pdf-logo-sm">
+            <span class="pdf-header-company">AMPEdge Solution</span>
+            <span class="pdf-header-tag">Powering the Edge of Tomorrow.</span>
+        </div>
+
+        <div class="pdf-section-strip">
+            <h2>3. COMMERCIAL SUMMARY, PAYMENT MILESTONES &amp; AUTHORIZATION</h2>
+        </div>
+
+        <!-- Commercial Total Box -->
+        <div style="background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:8px;padding:12px 16px;margin-bottom:14px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:.82rem;">
+                <span style="color:#64748b;font-weight:600;">Gross Labour Contract Total (${totalPointsCount} Points):</span>
+                <span style="font-family:monospace;font-weight:700;color:#1e293b;">${formatCurrency(grossTotal)}</span>
+            </div>
+            ${totalDiscount > 0 ? `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:.82rem;color:#d97706;">
+                <span style="font-weight:600;"><i class="fa-solid fa-tags"></i> Special Package Discount Applied (${discPct}%):</span>
+                <span style="font-family:monospace;font-weight:700;">-${formatCurrency(totalDiscount)}</span>
+            </div>` : ''}
+            <div class="pdf-grand-total-banner" style="margin-top:4px;">
+                <span>GRAND TOTAL CONFIRMED LABOUR COST:</span>
+                <span class="pdf-grand-value">${formatCurrency(grandTotal)}</span>
+            </div>
+        </div>
+
+        <!-- Payment Milestones Schedule -->
+        <div style="font-size:.76rem;font-weight:800;color:#0f172a;text-transform:uppercase;margin-bottom:8px;letter-spacing:.3px;">
+            <i class="fa-solid fa-calendar-check" style="color:#0284c7;margin-right:4px;"></i> Staged Payment Milestones Schedule
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
+            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:10px;text-align:center;">
+                <div style="font-size:.68rem;font-weight:800;color:#166534;text-transform:uppercase;letter-spacing:.3px;">Milestone 1 (${ms1Pct}%)</div>
+                <div style="font-size:.78rem;font-weight:700;color:#1e293b;margin:3px 0;">Advance Mobilization</div>
+                <div style="font-size:1.05rem;font-weight:800;font-family:monospace;color:#15803d;">${formatCurrency(ms1Amount)}</div>
+                <div style="font-size:.65rem;color:#64748b;margin-top:2px;">At site start &amp; chasing</div>
+            </div>
+            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:10px;text-align:center;">
+                <div style="font-size:.68rem;font-weight:800;color:#1e40af;text-transform:uppercase;letter-spacing:.3px;">Milestone 2 (${ms2Pct}%)</div>
+                <div style="font-size:.78rem;font-weight:700;color:#1e293b;margin:3px 0;">Piping &amp; Wire Pulling</div>
+                <div style="font-size:1.05rem;font-weight:800;font-family:monospace;color:#1d4ed8;">${formatCurrency(ms2Amount)}</div>
+                <div style="font-size:.65rem;color:#64748b;margin-top:2px;">After wiring completion</div>
+            </div>
+            <div style="background:#fefce8;border:1px solid #fef08a;border-radius:6px;padding:10px;text-align:center;">
+                <div style="font-size:.68rem;font-weight:800;color:#854d0e;text-transform:uppercase;letter-spacing:.3px;">Milestone 3 (${ms3Pct}%)</div>
+                <div style="font-size:.78rem;font-weight:700;color:#1e293b;margin:3px 0;">Final Testing &amp; DB</div>
+                <div style="font-size:1.05rem;font-weight:800;font-family:monospace;color:#a16207;">${formatCurrency(ms3Amount)}</div>
+                <div style="font-size:.65rem;color:#64748b;margin-top:2px;">On commissioning &amp; handover</div>
+            </div>
+        </div>
+
+        <!-- Terms & Conditions List -->
+        <div style="font-size:.74rem;font-weight:800;color:#0f172a;text-transform:uppercase;margin-bottom:6px;letter-spacing:.3px;">
+            <i class="fa-solid fa-file-shield" style="color:#0284c7;margin-right:4px;"></i> Terms &amp; Execution Conditions
+        </div>
+        <ul style="margin:0 0 16px 18px;padding:0;font-size:.73rem;color:#334155;line-height:1.5;">
+            ${termsListHtml}
+        </ul>
+
+        <!-- Dual Director Signatures & Client Acceptance -->
+        <div style="margin-top:auto;border-top:1.5px solid #cbd5e1;padding-top:14px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+                <!-- Director 1 -->
+                <div style="text-align:center;">
+                    <div style="height:48px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:4px;">
+                        <img src="sig1.png" alt="Sayantam Pal Signature" style="max-height:44px;object-fit:contain;">
+                    </div>
+                    <div style="border-top:1px solid #94a3b8;padding-top:4px;">
+                        <div style="font-size:.78rem;font-weight:800;color:#0f172a;">Sayantam Pal</div>
+                        <div style="font-size:.68rem;color:#64748b;">Managing Director &bull; Technical</div>
+                        <div style="font-size:.64rem;color:#0284c7;font-weight:700;">AMPEdge Solution</div>
+                    </div>
+                </div>
+
+                <!-- Director 2 -->
+                <div style="text-align:center;">
+                    <div style="height:48px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:4px;">
+                        <img src="sig2.png" alt="Rittick Das Signature" style="max-height:44px;object-fit:contain;">
+                    </div>
+                    <div style="border-top:1px solid #94a3b8;padding-top:4px;">
+                        <div style="font-size:.78rem;font-weight:800;color:#0f172a;">Rittick Das</div>
+                        <div style="font-size:.68rem;color:#64748b;">Director &bull; Project Operations</div>
+                        <div style="font-size:.64rem;color:#0284c7;font-weight:700;">AMPEdge Solution</div>
+                    </div>
+                </div>
+
+                <!-- Client Acceptance -->
+                <div style="text-align:center;">
+                    <div style="height:48px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:4px;">
+                        <span style="font-size:.72rem;color:#94a3b8;font-style:italic;">Customer Signature &amp; Date</span>
+                    </div>
+                    <div style="border-top:1px solid #94a3b8;padding-top:4px;">
+                        <div style="font-size:.78rem;font-weight:800;color:#0f172a;">${escapeHtml(client)}</div>
+                        <div style="font-size:.68rem;color:#64748b;">Client Acceptance &bull; Authorized</div>
+                        <div style="font-size:.64rem;color:#10b981;font-weight:700;">Confirmed Work Order</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pdf-page-footer">
+            <span>AMPEdge Solution | Powering the Edge of Tomorrow.</span>
+            <span>Page 3 of 3</span>
+        </div>
+    `;
+    pagesContainer.appendChild(page3);
+
+    // Save to history
+    if (!fromHistory) {
+        saveToHistory({
+            type: 'summary3p',
+            client: client,
+            project: project,
+            date: dateVal,
+            docNo: quoteno,
+            total: grandTotal,
+            itemCount: totalPointsCount,
+            items: summaryItems,
+            formData: {
+                client: client,
+                project: project,
+                address: address,
+                quoteno: quoteno,
+                date: dateVal,
+                units: units,
+                ms1: ms1Pct,
+                ms2: ms2Pct,
+                ms3: ms3Pct,
+                terms: termsText
+            }
+        });
+    }
+
+    goToStep('summary-pdf');
+}
+
+function downloadThreePageSummaryPDF() {
+    const el = document.getElementById('summary-pdf-document');
+    const btn = document.getElementById('summary-download-btn');
+    const orig = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Generating...';
+        btn.disabled = true;
+    }
+
+    const client = (document.getElementById('summary-inp-client') ? document.getElementById('summary-inp-client').value : 'Client').replace(/[^\w-]/g, '_');
+    el.classList.add('pdf-rendering');
+
+    html2pdf().set({
+        margin: 0,
+        filename: 'AMPEdge_Executive_Summary_Quotation_' + client + '.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['css', 'legacy'], after: '.page-summary-3p:not(:last-child)' }
     }).from(el).save().then(() => {
         if (btn) {
             btn.innerHTML = orig;
