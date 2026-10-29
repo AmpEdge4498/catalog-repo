@@ -4609,9 +4609,9 @@ function generateThreePageSummaryQuotation(fromHistory) {
     const dateVal = document.getElementById('summary-inp-date').value || new Date().toISOString().split('T')[0];
     const units = parseInt(document.getElementById('summary-inp-units').value) || 1;
 
-    const ms1Pct = parseFloat(document.getElementById('summary-inp-ms1').value) || 30;
-    const ms2Pct = parseFloat(document.getElementById('summary-inp-ms2').value) || 50;
-    const ms3Pct = parseFloat(document.getElementById('summary-inp-ms3').value) || 20;
+    const ms1Pct = parseFloat(document.getElementById('summary-inp-ms1').value) || 40;
+    const ms2Pct = parseFloat(document.getElementById('summary-inp-ms2').value) || 30;
+    const ms3Pct = parseFloat(document.getElementById('summary-inp-ms3').value) || 30;
     const termsText = document.getElementById('summary-inp-terms').value || '';
 
     const activeItems = summaryItems.filter(i => (i.qty || 0) > 0);
@@ -4663,105 +4663,39 @@ function generateThreePageSummaryQuotation(fromHistory) {
     pagesContainer.innerHTML = '';
 
     // =========================================================================
-    // PAGE 1: OFFICIAL COVER PAGE (A4 Strict Budget)
+    // PAGE 1: EXACT STANDARD COVER PAGE (.page-cover)
     // =========================================================================
     const page1 = document.createElement('div');
     page1.className = 'pdf-page page-summary-3p page-cover';
     page1.innerHTML = `
         <div class="pdf-brand-header">
             <div class="pdf-brand-left">
-                <img src="logo.png" alt="AMPEdge Solution" class="pdf-logo-img">
+                <img src="logo.png" alt="AMPEdge" class="pdf-logo-img">
                 <div>
-                    <div class="pdf-brand-title">AMPEdge Solution</div>
-                    <div class="pdf-brand-tagline">Powering the Edge of Tomorrow.</div>
+                    <h1 class="pdf-brand-title">AMPEdge Solution</h1>
+                    <p class="pdf-brand-tagline">Powering the Edge of Tomorrow.</p>
                 </div>
             </div>
-            <div class="pdf-doc-badge" style="background:#e0e7ff;color:#4338ca;">EXECUTIVE QUOTATION</div>
+            <span class="pdf-doc-badge">COMMERCIAL PROPOSAL</span>
         </div>
-
-        <div style="text-align:center;margin:18px 0 24px;">
-            <span style="display:inline-block;background:#eff6ff;border:1.5px solid #0284c7;color:#0369a1;font-size:.76rem;font-weight:800;letter-spacing:1px;padding:4px 14px;border-radius:20px;text-transform:uppercase;margin-bottom:8px;">
-                <i class="fa-solid fa-file-contract"></i> Executive Summary Quotation
-            </span>
-            <h1 style="font-family:'Outfit',sans-serif;font-size:1.6rem;font-weight:800;color:#0f172a;line-height:1.2;margin:0 0 6px;">
-                ELECTRICAL SERVICE WORK &amp; COMMERCIAL SCHEDULE
-            </h1>
-            <p style="font-size:.82rem;color:#64748b;margin:0;">
-                Condensed 3-Page Project Overview &bull; Point Breakdown &bull; Commercial Milestone Agreement
-            </p>
-        </div>
-
-        <div class="pdf-meta-grid" style="display:grid;grid-template-columns:1.2fr 0.8fr;gap:16px;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px;padding:14px 18px;margin-bottom:20px;">
-            <div style="border-right:1px solid #e2e8f0;padding-right:16px;">
-                <div style="font-size:.68rem;font-weight:800;color:#0284c7;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">PREPARED FOR (CLIENT):</div>
-                <div style="font-size:1.1rem;font-weight:800;color:#0f172a;margin-bottom:4px;">${escapeHtml(client)}</div>
-                <div style="font-size:.82rem;color:#334155;margin-bottom:2px;"><i class="fa-solid fa-building" style="color:#64748b;width:14px;"></i> <strong>Project:</strong> ${escapeHtml(project)}</div>
-                <div style="font-size:.8rem;color:#64748b;"><i class="fa-solid fa-location-dot" style="color:#64748b;width:14px;"></i> <strong>Site:</strong> ${escapeHtml(address)}</div>
+        <div class="pdf-cover-body">
+            <div class="pdf-cover-title-block">
+                <h2>ELECTRICAL WIRING LABOUR SERVICE &amp; BOQ PROPOSAL</h2>
+                <p>Detailed point allocation schedule, commercial assessment and Terms of Agreement</p>
             </div>
-            <div>
-                <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:.78rem;">
-                    <span style="color:#64748b;font-weight:600;">Quotation No:</span>
-                    <span style="font-weight:800;font-family:monospace;color:#0369a1;">${escapeHtml(quoteno)}</span>
-                    <span style="color:#64748b;font-weight:600;">Date:</span>
-                    <span style="font-weight:700;color:#1e293b;">${formattedDate}</span>
-                    <span style="color:#64748b;font-weight:600;">Validity:</span>
-                    <span style="font-weight:700;color:#10b981;">${formattedValidity}</span>
-                    <span style="color:#64748b;font-weight:600;">Scope Units:</span>
-                    <span style="font-weight:700;color:#1e293b;">${units} Unit${units > 1 ? 's' : ''}</span>
-                </div>
+            <div class="pdf-meta-grid">
+                <div class="pdf-meta-card"><span class="pdf-meta-label">PREPARED FOR</span><span class="pdf-meta-value highlight">${escapeHtml(client)}</span></div>
+                <div class="pdf-meta-card"><span class="pdf-meta-label">PROJECT NAME</span><span class="pdf-meta-value">${escapeHtml(project)}</span></div>
+                <div class="pdf-meta-card"><span class="pdf-meta-label">SITE ADDRESS</span><span class="pdf-meta-value">${escapeHtml(address)}</span></div>
+                <div class="pdf-meta-card"><span class="pdf-meta-label">QUOTATION NO.</span><span class="pdf-meta-value mono">${escapeHtml(quoteno)}</span></div>
+                <div class="pdf-meta-card"><span class="pdf-meta-label">DATE OF ISSUE</span><span class="pdf-meta-value">${formattedDate}</span></div>
+                <div class="pdf-meta-card"><span class="pdf-meta-label">TOTAL UNITS</span><span class="pdf-meta-value">${units} Unit${units > 1 ? 's' : ''}</span></div>
+            </div>
+            <div class="pdf-summary-box">
+                <h3>1. Executive Summary</h3>
+                <p>AMPEdge Solution is pleased to submit this proposal for the complete electrical point wiring and installation labour for the upcoming construction project. Our proposed model ensures strict compliance with IS 732, IS 3043, and National Electrical Code guidelines, high quality workmanship, and transparent billing.</p>
             </div>
         </div>
-
-        <div class="summary-exec-box" style="margin-bottom:18px;">
-            <div style="font-size:.72rem;font-weight:800;color:#4338ca;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px;">
-                <i class="fa-solid fa-briefcase"></i> Executive Scope Summary &bull; Project Overview
-            </div>
-            <p style="font-size:.8rem;color:#334155;line-height:1.55;margin:0 0 10px;">
-                AMPEdge Solution is pleased to present this condensed 3-page Executive Quotation for the electrical installation and point wiring work for <strong>${escapeHtml(project)}</strong>. This schedule condenses complete site execution into verified total point counts, highlighted major dedicated power lines, and approved commercial milestones.
-            </p>
-            <div class="summary-kpi-grid" style="margin-bottom:0;">
-                <div class="summary-kpi-card highlight">
-                    <div class="summary-kpi-val" style="color:#0369a1;">${totalPointsCount}</div>
-                    <div class="summary-kpi-lbl">Total Electrical Points</div>
-                </div>
-                <div class="summary-kpi-card amber">
-                    <div class="summary-kpi-val" style="color:#b45309;">${highValuePtsCount}</div>
-                    <div class="summary-kpi-lbl">Major Dedicated Points</div>
-                </div>
-                <div class="summary-kpi-card">
-                    <div class="summary-kpi-val" style="color:#475569;">${genPointsCount}</div>
-                    <div class="summary-kpi-lbl">General Utility Points</div>
-                </div>
-                <div class="summary-kpi-card green">
-                    <div class="summary-kpi-val" style="color:#047857;">${formatCurrency(grandTotal)}</div>
-                    <div class="summary-kpi-lbl">Confirmed Contract Total</div>
-                </div>
-            </div>
-        </div>
-
-        <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;padding:12px 16px;margin-bottom:20px;">
-            <div style="font-size:.72rem;font-weight:800;color:#0f172a;text-transform:uppercase;margin-bottom:8px;letter-spacing:.4px;">
-                <i class="fa-solid fa-shield-halved" style="color:#10b981;"></i> Standard Workmanship &amp; Safety Compliance
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px 14px;font-size:.73rem;color:#475569;">
-                <div><i class="fa-solid fa-check" style="color:#10b981;margin-right:4px;"></i> Heavy Duty Rigid PVC Conduits</div>
-                <div><i class="fa-solid fa-check" style="color:#10b981;margin-right:4px;"></i> IS 732 Wiring Code Compliance</div>
-                <div><i class="fa-solid fa-check" style="color:#10b981;margin-right:4px;"></i> Continuous Earth Loop Continuity</div>
-                <div><i class="fa-solid fa-check" style="color:#10b981;margin-right:4px;"></i> Dedicated AC/Geyser Circuits</div>
-                <div><i class="fa-solid fa-check" style="color:#10b981;margin-right:4px;"></i> Modular Switchboard Fitting</div>
-                <div><i class="fa-solid fa-check" style="color:#10b981;margin-right:4px;"></i> DB Assembly &amp; Load Balancing</div>
-            </div>
-        </div>
-
-        <div style="margin-top:auto;border-top:1px solid #e2e8f0;padding-top:10px;display:flex;justify-content:space-between;align-items:center;font-size:.75rem;color:#64748b;">
-            <div>
-                <strong>AMPEdge Solution</strong> &bull; West Bauria, Chackasi, Palpara, Howrah 711307 &bull; +91 91236 67258
-            </div>
-            <div style="font-weight:600;color:#0284c7;">
-                ampedge.info@gmail.com
-            </div>
-        </div>
-
         <div class="pdf-page-footer">
             <span>AMPEdge Solution | Powering the Edge of Tomorrow.</span>
             <span>Page 1 of 3</span>
@@ -4770,10 +4704,10 @@ function generateThreePageSummaryQuotation(fromHistory) {
     pagesContainer.appendChild(page1);
 
     // =========================================================================
-    // PAGE 2: MIDDLE POINT SCHEDULE & HIGH-VALUE HIGHLIGHTS
+    // PAGE 2: MIDDLE CONDENSED SUMMARY PAGE (BOQ & MAIN POINTS HIGHLIGHTED)
     // =========================================================================
     const page2 = document.createElement('div');
-    page2.className = 'pdf-page page-summary-3p page-summary-middle';
+    page2.className = 'pdf-page page-summary-3p page-boq';
 
     let highRowsHtml = '';
     highValue.forEach((item, rIdx) => {
@@ -4783,24 +4717,19 @@ function generateThreePageSummaryQuotation(fromHistory) {
         const amt = effectiveRate * itemQty;
 
         highRowsHtml += `
-            <tr class="row-highval">
+            <tr>
                 <td class="text-center font-bold">${rIdx + 1}</td>
                 <td>
                     <strong>${escapeHtml(item.name)}</strong>
-                    <span class="high-val-badge" style="margin-left:6px;"><i class="fa-solid fa-bolt"></i> ${escapeHtml(item.tag || 'Dedicated')}</span>
                 </td>
                 <td class="text-center">${escapeHtml(item.unit || 'Point')}</td>
                 <td class="text-right">${RUPEE}${(item.rate || 0).toLocaleString('en-IN')}</td>
                 <td class="text-center font-bold">${itemQty}</td>
                 <td class="text-right" style="color:#d97706;">${itemDisc > 0 ? RUPEE + itemDisc.toLocaleString('en-IN') : EMDASH}</td>
-                <td class="text-right font-mono font-bold" style="color:#0369a1;">${formatCurrency(amt)}</td>
+                <td class="text-right font-mono font-bold">${formatCurrency(amt)}</td>
             </tr>
         `;
     });
-
-    if (highValue.length === 0) {
-        highRowsHtml = '<tr><td colspan="7" style="text-align:center;padding:12px;color:#64748b;">No high-value dedicated circuits identified in this quotation.</td></tr>';
-    }
 
     page2.innerHTML = `
         <div class="pdf-page-header-repeat">
@@ -4810,93 +4739,60 @@ function generateThreePageSummaryQuotation(fromHistory) {
         </div>
 
         <div class="pdf-section-strip">
-            <h2>2. EXECUTIVE POINT SCHEDULE &amp; HIGH-VALUE HIGHLIGHTS</h2>
+            <h2>2. BILL OF QUANTITIES (BOQ) &amp; HIGH-VALUE POINT SCHEDULE</h2>
         </div>
 
-        <div class="summary-kpi-grid">
-            <div class="summary-kpi-card highlight">
-                <div class="summary-kpi-val">${totalPointsCount}</div>
-                <div class="summary-kpi-lbl">Total Points (${units} Unit${units > 1 ? 's' : ''})</div>
+        <!-- Total Points Count Prominent Banner -->
+        <div style="background:#f0f9ff;border:1.5px solid #0284c7;border-radius:6px;padding:9px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
+            <div>
+                <span style="font-size:0.75rem;font-weight:700;color:#0369a1;text-transform:uppercase;letter-spacing:0.5px;">TOTAL ELECTRICAL INSTALLATION POINTS:</span>
+                <span style="font-size:1.25rem;font-weight:800;color:#0f172a;margin-left:8px;font-family:'Outfit',sans-serif;">${totalPointsCount} Points</span>
+                <span style="font-size:0.75rem;color:#64748b;margin-left:6px;">(${units} Unit${units > 1 ? 's' : ''})</span>
             </div>
-            <div class="summary-kpi-card amber">
-                <div class="summary-kpi-val" style="color:#b45309;">${highValuePtsCount}</div>
-                <div class="summary-kpi-lbl">High-Value / Major Points</div>
-            </div>
-            <div class="summary-kpi-card">
-                <div class="summary-kpi-val" style="color:#475569;">${genPointsCount}</div>
-                <div class="summary-kpi-lbl">General Electrical Points</div>
-            </div>
-            <div class="summary-kpi-card green">
-                <div class="summary-kpi-val" style="color:#047857;">${formatCurrency(grandTotal)}</div>
-                <div class="summary-kpi-lbl">Total Estimated Labour</div>
+            <div style="font-size:0.76rem;font-weight:700;color:#0369a1;background:#fff;padding:4px 10px;border-radius:4px;border:1px solid #bae6fd;">
+                <i class="fa-solid fa-star" style="color:#f59e0b;"></i> ${highValue.length} Main High-Rate Points Highlighted
             </div>
         </div>
 
-        <!-- High-Value Highlighted Points Section -->
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <div style="font-size:.76rem;font-weight:800;color:#0f172a;text-transform:uppercase;letter-spacing:.3px;">
-                <i class="fa-solid fa-star" style="color:#f59e0b;margin-right:4px;"></i> Highlighted Main / Dedicated Power Points (AC, Geyser, DB, Chimney)
-            </div>
-            <span style="font-size:.7rem;font-weight:700;color:#b45309;background:#fef3c7;padding:2px 8px;border-radius:4px;border:1px solid #fde68a;">
-                ${highValue.length} Dedicated Items &bull; Subtotal: ${formatCurrency(highValueTotal)}
-            </span>
-        </div>
-
-        <table class="summary-highval-table">
+        <!-- Highlighted Table of Main / High-Rate Points -->
+        <table class="pdf-boq-table">
             <thead>
                 <tr>
-                    <th style="width:30px;" class="text-center">#</th>
-                    <th>Major Point / Dedicated System Description</th>
-                    <th style="width:50px;" class="text-center">Unit</th>
-                    <th style="width:70px;" class="text-right">Rate</th>
-                    <th style="width:45px;" class="text-center">Qty</th>
-                    <th style="width:65px;" class="text-right">Disc</th>
-                    <th style="width:85px;" class="text-right">Total (${RUPEE})</th>
+                    <th style="width:35px" class="text-center">ITEM</th>
+                    <th>DESCRIPTION OF WORK (MAIN / HIGH-VALUE POINTS)</th>
+                    <th class="text-center" style="width:55px">UNIT</th>
+                    <th class="text-right" style="width:75px">RATE (${RUPEE})</th>
+                    <th class="text-center" style="width:50px">QTY</th>
+                    <th class="text-right" style="width:70px">DISC (${RUPEE})</th>
+                    <th class="text-right" style="width:85px">AMOUNT (${RUPEE})</th>
                 </tr>
             </thead>
             <tbody>
                 ${highRowsHtml}
-                <tr style="background:#f1f5f9;font-weight:800;border-top:2px solid #cbd5e1;">
-                    <td colspan="4" class="text-right" style="color:#334155;">SUBTOTAL &mdash; HIGHLIGHTED MAJOR POINTS:</td>
-                    <td class="text-center font-bold" style="color:#0f172a;">${highValuePtsCount}</td>
-                    <td></td>
-                    <td class="text-right font-mono" style="color:#0369a1;">${formatCurrency(highValueTotal)}</td>
+                <tr style="background:#f8fafc;">
+                    <td class="text-center font-bold" style="color:#64748b;">—</td>
+                    <td>
+                        <strong>All Other General Electrical &amp; Lighting Points</strong><br>
+                        <small style="color:#64748b;">Consolidated regular lighting, ceiling fan, and 5A utility socket points (${genPointsCount} Points)</small>
+                    </td>
+                    <td class="text-center">Lump</td>
+                    <td class="text-right">—</td>
+                    <td class="text-center font-bold">${genPointsCount}</td>
+                    <td class="text-right">—</td>
+                    <td class="text-right font-mono font-bold" style="color:#0369a1;">${formatCurrency(genPointsTotal)}</td>
                 </tr>
             </tbody>
         </table>
 
-        <!-- General Points Summary Section -->
-        <div style="font-size:.74rem;font-weight:800;color:#0f172a;text-transform:uppercase;margin:8px 0 6px;letter-spacing:.3px;">
-            <i class="fa-solid fa-bolt" style="color:#0284c7;margin-right:4px;"></i> General Utility &amp; Lighting Points Consolidated Summary
-        </div>
-
-        <div class="summary-gen-box">
-            <div class="summary-gen-grid">
-                <div class="summary-gen-item">
-                    <span class="summary-gen-lbl"><i class="fa-regular fa-lightbulb" style="color:#f59e0b;"></i> Lighting Points (Ceiling, Wall, Spot, Profile):</span>
-                    <span class="summary-gen-val">${genSummary.lighting.count * units} pts &bull; ${formatCurrency(genSummary.lighting.amount * units)}</span>
-                </div>
-                <div class="summary-gen-item">
-                    <span class="summary-gen-lbl"><i class="fa-solid fa-fan" style="color:#06b6d4;"></i> Ceiling &amp; Exhaust Fan Points:</span>
-                    <span class="summary-gen-val">${genSummary.fans.count * units} pts &bull; ${formatCurrency(genSummary.fans.amount * units)}</span>
-                </div>
-                <div class="summary-gen-item">
-                    <span class="summary-gen-lbl"><i class="fa-solid fa-plug" style="color:#3b82f6;"></i> 5A Utility Sockets, TV &amp; Network Outlets:</span>
-                    <span class="summary-gen-val">${genSummary.sockets.count * units} pts &bull; ${formatCurrency(genSummary.sockets.amount * units)}</span>
-                </div>
-                <div class="summary-gen-item">
-                    <span class="summary-gen-lbl"><i class="fa-solid fa-layer-group" style="color:#8b5cf6;"></i> Other General Utility Points &amp; Accessories:</span>
-                    <span class="summary-gen-val">${genSummary.other.count * units} pts &bull; ${formatCurrency(genSummary.other.amount * units)}</span>
-                </div>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #cbd5e1;margin-top:6px;padding-top:6px;font-size:.74rem;font-weight:800;">
-                <span style="color:#334155;">SUBTOTAL &mdash; GENERAL ELECTRICAL POINTS (${genPointsCount} Points):</span>
-                <span style="font-family:monospace;color:#0369a1;">${formatCurrency(genPointsTotal)}</span>
-            </div>
-        </div>
-
-        <div style="margin-top:auto;background:#f8fafc;border-left:3px solid #0284c7;padding:6px 12px;font-size:.72rem;color:#475569;line-height:1.45;">
-            <strong>Execution Note:</strong> All highlighted dedicated circuits (AC, Geyser, Oven, DB) are pulled as continuous home-runs directly from the Main Distribution Board using certified 4.0 sq mm / 2.5 sq mm FRLS copper wires without mid-pipe jointing. Complete point-by-point architectural schedule is documented in master contract.
+        <!-- Discount Summary and Grand Total Confirmed Labour Cost Banner -->
+        ${totalDiscount > 0 ? `
+        <div class="pdf-discount-summary" style="margin-top:10px;">
+            <div class="discount-row"><span>Gross Total (Before Discount):</span><span class="font-mono">${formatCurrency(grossTotal)}</span></div>
+            <div class="discount-row highlight"><span><i class="fa-solid fa-tags"></i> Discount Applied (${discPct}%):</span><span class="font-mono" style="color:#f59e0b">-${formatCurrency(totalDiscount)}</span></div>
+        </div>` : ''}
+        <div class="pdf-grand-total-banner" style="margin-top:10px;">
+            <span>GRAND TOTAL CONFIRMED LABOUR COST:</span>
+            <span class="pdf-grand-value">${formatCurrency(grandTotal)}</span>
         </div>
 
         <div class="pdf-page-footer">
@@ -4907,10 +4803,10 @@ function generateThreePageSummaryQuotation(fromHistory) {
     pagesContainer.appendChild(page2);
 
     // =========================================================================
-    // PAGE 3: COMMERCIAL SUMMARY, PAYMENT MILESTONES & DUAL SIGNATURES
+    // PAGE 3: EXACT STANDARD TERMS & SIGNATURES PAGE (.page-terms)
     // =========================================================================
     const page3 = document.createElement('div');
-    page3.className = 'pdf-page page-summary-3p page-summary-commercial';
+    page3.className = 'pdf-page page-summary-3p page-terms';
 
     const ms1Amount = (grandTotal * ms1Pct) / 100;
     const ms2Amount = (grandTotal * ms2Pct) / 100;
@@ -4922,10 +4818,10 @@ function generateThreePageSummaryQuotation(fromHistory) {
         let t = line.trim();
         if (t.startsWith('•') || t.startsWith('-') || t.startsWith('*')) t = t.substring(1).trim();
         const colonIdx = t.indexOf(':');
-        if (colonIdx > 0 && colonIdx < 50) {
-            termsListHtml += `<li style="margin-bottom:5px;"><strong>${escapeHtml(t.substring(0, colonIdx + 1))}</strong> ${escapeHtml(t.substring(colonIdx + 1))}</li>`;
+        if (colonIdx > 0 && colonIdx < 60) {
+            termsListHtml += `<li><strong>${escapeHtml(t.substring(0, colonIdx + 1))}</strong> ${escapeHtml(t.substring(colonIdx + 1))}</li>`;
         } else {
-            termsListHtml += `<li style="margin-bottom:5px;">${escapeHtml(t)}</li>`;
+            termsListHtml += `<li>${escapeHtml(t)}</li>`;
         }
     });
 
@@ -4937,98 +4833,53 @@ function generateThreePageSummaryQuotation(fromHistory) {
         </div>
 
         <div class="pdf-section-strip">
-            <h2>3. COMMERCIAL SUMMARY, PAYMENT MILESTONES &amp; AUTHORIZATION</h2>
+            <h2>3. COMMERCIAL TERMS, INCLUSIONS &amp; PAYMENT SCHEDULE</h2>
         </div>
 
-        <!-- Commercial Total Box -->
-        <div style="background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:8px;padding:12px 16px;margin-bottom:14px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:.82rem;">
-                <span style="color:#64748b;font-weight:600;">Gross Labour Contract Total (${totalPointsCount} Points):</span>
-                <span style="font-family:monospace;font-weight:700;color:#1e293b;">${formatCurrency(grossTotal)}</span>
+        <div class="pdf-terms-grid">
+            <div class="pdf-terms-card">
+                <h3><i class="fa-solid fa-list-ul"></i> SCOPE CONDITIONS &amp; STANDARD INCLUSIONS</h3>
+                <ul id="summary-pdf-terms-list">
+                    ${termsListHtml}
+                </ul>
             </div>
-            ${totalDiscount > 0 ? `
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:.82rem;color:#d97706;">
-                <span style="font-weight:600;"><i class="fa-solid fa-tags"></i> Special Package Discount Applied (${discPct}%):</span>
-                <span style="font-family:monospace;font-weight:700;">-${formatCurrency(totalDiscount)}</span>
-            </div>` : ''}
-            <div class="pdf-grand-total-banner" style="margin-top:4px;">
-                <span>GRAND TOTAL CONFIRMED LABOUR COST:</span>
-                <span class="pdf-grand-value">${formatCurrency(grandTotal)}</span>
-            </div>
-        </div>
-
-        <!-- Payment Milestones Schedule -->
-        <div style="font-size:.76rem;font-weight:800;color:#0f172a;text-transform:uppercase;margin-bottom:8px;letter-spacing:.3px;">
-            <i class="fa-solid fa-calendar-check" style="color:#0284c7;margin-right:4px;"></i> Staged Payment Milestones Schedule
-        </div>
-
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
-            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:10px;text-align:center;">
-                <div style="font-size:.68rem;font-weight:800;color:#166534;text-transform:uppercase;letter-spacing:.3px;">Milestone 1 (${ms1Pct}%)</div>
-                <div style="font-size:.78rem;font-weight:700;color:#1e293b;margin:3px 0;">Advance Mobilization</div>
-                <div style="font-size:1.05rem;font-weight:800;font-family:monospace;color:#15803d;">${formatCurrency(ms1Amount)}</div>
-                <div style="font-size:.65rem;color:#64748b;margin-top:2px;">At site start &amp; chasing</div>
-            </div>
-            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:10px;text-align:center;">
-                <div style="font-size:.68rem;font-weight:800;color:#1e40af;text-transform:uppercase;letter-spacing:.3px;">Milestone 2 (${ms2Pct}%)</div>
-                <div style="font-size:.78rem;font-weight:700;color:#1e293b;margin:3px 0;">Piping &amp; Wire Pulling</div>
-                <div style="font-size:1.05rem;font-weight:800;font-family:monospace;color:#1d4ed8;">${formatCurrency(ms2Amount)}</div>
-                <div style="font-size:.65rem;color:#64748b;margin-top:2px;">After wiring completion</div>
-            </div>
-            <div style="background:#fefce8;border:1px solid #fef08a;border-radius:6px;padding:10px;text-align:center;">
-                <div style="font-size:.68rem;font-weight:800;color:#854d0e;text-transform:uppercase;letter-spacing:.3px;">Milestone 3 (${ms3Pct}%)</div>
-                <div style="font-size:.78rem;font-weight:700;color:#1e293b;margin:3px 0;">Final Testing &amp; DB</div>
-                <div style="font-size:1.05rem;font-weight:800;font-family:monospace;color:#a16207;">${formatCurrency(ms3Amount)}</div>
-                <div style="font-size:.65rem;color:#64748b;margin-top:2px;">On commissioning &amp; handover</div>
+            <div class="pdf-terms-card">
+                <h3><i class="fa-solid fa-receipt"></i> PAYMENT SCHEDULE &amp; VALIDITY</h3>
+                <table class="pdf-payment-table">
+                    <thead><tr><th>Milestone</th><th class="text-right">%</th><th class="text-right">Amount</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>1. Advance Mobilization</strong><br><small id="summary-pdf-ms1-label">${ms1Pct}% of contract</small></td><td class="text-right" id="summary-pdf-ms1-pct-cell">${ms1Pct}%</td><td class="text-right font-mono" id="summary-pdf-ms1">${formatCurrency(ms1Amount)}</td></tr>
+                        <tr><td><strong>2. Running Progress</strong><br><small id="summary-pdf-ms2-label">Piping &amp; wire pulling</small></td><td class="text-right" id="summary-pdf-ms2-pct-cell">${ms2Pct}%</td><td class="text-right font-mono" id="summary-pdf-ms2">${formatCurrency(ms2Amount)}</td></tr>
+                        <tr><td><strong>3. Testing &amp; Handover</strong><br><small id="summary-pdf-ms3-label">Final testing &amp; DB</small></td><td class="text-right" id="summary-pdf-ms3-pct-cell">${ms3Pct}%</td><td class="text-right font-mono" id="summary-pdf-ms3">${formatCurrency(ms3Amount)}</td></tr>
+                    </tbody>
+                </table>
+                <div class="pdf-validity-box"><strong>Proposal Validity:</strong> 30 Days from date of issue (Valid until <span id="summary-pdf-validity">${formattedValidity}</span>).</div>
             </div>
         </div>
 
-        <!-- Terms & Conditions List -->
-        <div style="font-size:.74rem;font-weight:800;color:#0f172a;text-transform:uppercase;margin-bottom:6px;letter-spacing:.3px;">
-            <i class="fa-solid fa-file-shield" style="color:#0284c7;margin-right:4px;"></i> Terms &amp; Execution Conditions
+        <div class="pdf-section-strip sig-strip">
+            <h2>4. ACCEPTANCE &amp; WORK ORDER AUTHORIZATION</h2>
         </div>
-        <ul style="margin:0 0 16px 18px;padding:0;font-size:.73rem;color:#334155;line-height:1.5;">
-            ${termsListHtml}
-        </ul>
 
-        <!-- Dual Director Signatures & Client Acceptance -->
-        <div style="margin-top:auto;border-top:1.5px solid #cbd5e1;padding-top:14px;">
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
-                <!-- Director 1 -->
-                <div style="text-align:center;">
-                    <div style="height:48px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:4px;">
-                        <img src="sig1.png" alt="Sayantam Pal Signature" style="max-height:44px;object-fit:contain;">
-                    </div>
-                    <div style="border-top:1px solid #94a3b8;padding-top:4px;">
-                        <div style="font-size:.78rem;font-weight:800;color:#0f172a;">Sayantam Pal</div>
-                        <div style="font-size:.68rem;color:#64748b;">Managing Director &bull; Technical</div>
-                        <div style="font-size:.64rem;color:#0284c7;font-weight:700;">AMPEdge Solution</div>
-                    </div>
+        <div class="pdf-sig-grid">
+            <div class="pdf-sig-card">
+                <h4>PREPARED &amp; ISSUED BY</h4>
+                <p class="sig-company">AMPEdge Solution</p>
+                <p class="sig-dept">Electrical Contracting &amp; Engineering Division</p>
+                <div class="sig-images-row">
+                    <img src="sig1.png" alt="Signature 1" class="sig-img">
+                    <img src="sig2.png" alt="Signature 2" class="sig-img">
                 </div>
-
-                <!-- Director 2 -->
-                <div style="text-align:center;">
-                    <div style="height:48px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:4px;">
-                        <img src="sig2.png" alt="Rittick Das Signature" style="max-height:44px;object-fit:contain;">
-                    </div>
-                    <div style="border-top:1px solid #94a3b8;padding-top:4px;">
-                        <div style="font-size:.78rem;font-weight:800;color:#0f172a;">Rittick Das</div>
-                        <div style="font-size:.68rem;color:#64748b;">Director &bull; Project Operations</div>
-                        <div style="font-size:.64rem;color:#0284c7;font-weight:700;">AMPEdge Solution</div>
-                    </div>
-                </div>
-
-                <!-- Client Acceptance -->
-                <div style="text-align:center;">
-                    <div style="height:48px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:4px;">
-                        <span style="font-size:.72rem;color:#94a3b8;font-style:italic;">Customer Signature &amp; Date</span>
-                    </div>
-                    <div style="border-top:1px solid #94a3b8;padding-top:4px;">
-                        <div style="font-size:.78rem;font-weight:800;color:#0f172a;">${escapeHtml(client)}</div>
-                        <div style="font-size:.68rem;color:#64748b;">Client Acceptance &bull; Authorized</div>
-                        <div style="font-size:.64rem;color:#10b981;font-weight:700;">Confirmed Work Order</div>
-                    </div>
-                </div>
+                <div class="sig-line"></div>
+                <p class="sig-detail"><strong>Authorized Signatories</strong><br>Sayantam Pal &amp; Rittick Das<br>AMPEdge Solution, Howrah</p>
+            </div>
+            <div class="pdf-sig-card">
+                <h4>ACCEPTED &amp; CONFIRMED BY</h4>
+                <p class="sig-company" id="summary-pdf-sig-client">${escapeHtml(client)}</p>
+                <p class="sig-dept">Client Approval &amp; Work Order Stamp</p>
+                <div class="sig-stamp empty"></div>
+                <div class="sig-line"></div>
+                <p class="sig-detail"><strong>Authorized Client Signature &amp; Company Seal</strong><br>Designation / Title: ___________________________<br>Date of Acceptance: __________________________</p>
             </div>
         </div>
 
