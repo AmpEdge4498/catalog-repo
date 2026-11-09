@@ -2030,20 +2030,20 @@ const SEED_SERVICE_QUOTATIONS = [
             { name: "DB & JB", unit: "Point", qty: 5, rate: 250, discount: 11 }
         ]
     },
-    {
+        {
         id: 'seed-keshab-kumar',
         type: 'service',
-        docNo: 'AE/QT/2026/804',
+        docNo: 'AE/QT/2026/806(Revise Quotation)',
         client: 'Keshab Kumar',
-        project: '2BHK Flat',
+        project: '2BHK Flat(This is just a point calculation service as you said, it does not include any fan light materials.)',
         date: '2026-10-13',
-        amount: 14468,
-        itemCount: 43,
+        amount: 13183,
+        itemCount: 41,
         formData: {
             client: 'Keshab Kumar',
-            project: '2BHK Flat',
+            project: '2BHK Flat(This is just a point calculation service as you said, it does not include any fan light materials.)',
             address: 'Howrah, West Bengal(Chapatala Bazar)',
-            quoteno: 'AE/QT/2026/804',
+            quoteno: 'AE/QT/2026/806(Revise Quotation)',
             date: '2026-10-13',
             units: 1
         },
@@ -2052,16 +2052,16 @@ const SEED_SERVICE_QUOTATIONS = [
             { name: "Distribution Board (8-Way DP MCB) Installation", unit: "Board", qty: 1, rate: 1200, discount: 11 },
             { name: "MCB Installation per circuit", unit: "Nos", qty: 5, rate: 150, discount: 11 },
             { name: "Bedroom 1 — Ceiling Light Points", unit: "Point", qty: 2, rate: 250, discount: 11 },
-            { name: "Bedroom 1 — Ceiling Fan Point", unit: "Point", qty: 2, rate: 250, discount: 11 },
+            { name: "Bedroom 1 — Ceiling Fan Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
             { name: "Bedroom 1 — Switch Board (Modular 6-Module)", unit: "Board", qty: 1, rate: 300, discount: 11 },
             { name: "Bedroom 1 — Night Lamp / Foot Light", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Bedroom 1 — AC Power Point (16A)", unit: "Point", qty: 1, rate: 400, discount: 11 },
+            { name: "Bedroom 1 — AC Power Point (16A)", unit: "Point", qty: 1, rate: 400, discount: 41 },
             { name: "Bedroom 1 — Bedside 5A Charging Socket", unit: "Point", qty: 1, rate: 250, discount: 11 },
             { name: "Bedroom 1 — TV / Internet Outlet", unit: "Point", qty: 1, rate: 250, discount: 11 },
             { name: "Bedroom 2 — Ceiling Light Points", unit: "Point", qty: 2, rate: 250, discount: 11 },
-            { name: "Bedroom 2 — Ceiling Fan Point", unit: "Point", qty: 2, rate: 250, discount: 11 },
+            { name: "Bedroom 2 — Ceiling Fan Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
             { name: "Bedroom 2 — Night Lamp / Foot Light", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Bedroom 2 — AC Power Point (16A)", unit: "Point", qty: 1, rate: 400, discount: 11 },
+            { name: "Bedroom 2 — AC Power Point (16A)", unit: "Point", qty: 1, rate: 400, discount: 41 },
             { name: "Bedroom 2 — Bedside 5A Socket", unit: "Point", qty: 1, rate: 250, discount: 11 },
             { name: "Living Room — Ceiling Light Points", unit: "Point", qty: 1, rate: 250, discount: 11 },
             { name: "Living Room — Profile / Wall Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
@@ -2071,26 +2071,24 @@ const SEED_SERVICE_QUOTATIONS = [
             { name: "Living Room — Night / Hanging Lamp Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
             { name: "Toilet 1 — Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
             { name: "Toilet 1 — Exhaust Fan Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Toilet 2 — Light & Exhaust Fan Points", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Toilet 1 — Geyser Power Point (16A)", unit: "Point", qty: 1, rate: 400, discount: 41 },
             { name: "Kitchen — Ceiling Light Point", unit: "Point", qty: 1, rate: 250, discount: 1 },
-            { name: "Kitchen — Ceiling Fan Point", unit: "Point", qty: 1, rate: 400, discount: 40 },
             { name: "Kitchen — Exhaust Fan / Chimney Point", unit: "Point", qty: 1, rate: 400, discount: 41 },
-            { name: "Kitchen — Refrigerator Socket (16A)", unit: "Point", qty: 1, rate: 400, discount: 11 },
+            { name: "Kitchen — Refrigerator Socket (16A)", unit: "Point", qty: 1, rate: 400, discount: 41 },
             { name: "Kitchen — Microwave / Mixer Socket", unit: "Point", qty: 1, rate: 250, discount: 11 },
             { name: "Kitchen — Water Purifier / RO Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
             { name: "Kitchen — Plug / General Utility Socket", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Washing Area — Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
             { name: "Washing Area — Washing Machine Point (16A)", unit: "Point", qty: 1, rate: 400, discount: 41 },
             { name: "Balcony (BR1) — Weatherproof Light Point", unit: "Point", qty: 2, rate: 250, discount: 11 },
-            { name: "Balcony (BR2) — Weatherproof Light Point", unit: "Point", qty: 2, rate: 250, discount: 11 },
             { name: "Main Entrance — Doorbell Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
             { name: "Main Entrance — Porch Accent Light", unit: "Point", qty: 1, rate: 250, discount: 11 },
             { name: "Common Area — Inverter / UPS Line Setup", unit: "Point", qty: 1, rate: 400, discount: 41 },
             { name: "DB Area — Stabilizer / AC Isolator Point", unit: "Point", qty: 1, rate: 400, discount: 41 },
-            { name: "Study Area — Reading Lamp Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
             { name: "Kitchen — Exhaust Fan", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Main LIne", unit: "Feet", qty: 1, rate: 20, discount: 1 },
-            { name: "DB & JB", unit: "Point", qty: 1, rate: 250, discount: 11 }
+            { name: "Main Line", unit: "Feet", qty: 1, rate: 20, discount: 1 },
+            { name: "DB & JB", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Cutting Blade", unit: "Pice", qty: 2, rate: 150, discount: 30 },
+            { name: "Wifi Point Socket", unit: "Point", qty: 1, rate: 250, discount: 11 }
         ]
     },
     {
@@ -2201,6 +2199,14 @@ function getHistory() {
         const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
         let history = raw ? JSON.parse(raw) : [];
         if (!Array.isArray(history)) history = [];
+
+        // Auto-upgrade cached Keshab Kumar seed to revised ₹13,183 quotation
+        const oldKeshabIdx = history.findIndex(h => h.id === 'seed-keshab-kumar' || (h.client && h.client.toLowerCase() === 'keshab kumar' && h.amount === 14468));
+        const newKeshabSeed = SEED_SERVICE_QUOTATIONS.find(s => s.id === 'seed-keshab-kumar');
+        if (oldKeshabIdx !== -1 && newKeshabSeed) {
+            history[oldKeshabIdx] = newKeshabSeed;
+            try { localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history)); } catch(e) {}
+        }
 
         // Ensure pre-seeded quotations are always present
         SEED_SERVICE_QUOTATIONS.forEach(sq => {
@@ -4896,7 +4902,42 @@ async function processSummaryQuotationPDFFile(file) {
             }
         }
 
-                // RESULTS HANDLING & IMMEDIATE AUTO-GENERATION (NO DATABASE SEED HIJACK)
+                // LAYER 3: Smart Match for AMPEdge Quotation PDFs (Filename & History Archive Match)
+        if (parsedItems.length === 0) {
+            const rawFileName = (file.name || '').replace(/\.[^/.]+$/, '').replace(/[_\-\(\)\d]+/g, ' ').toLowerCase().trim();
+            const historyList = (typeof getHistory === 'function') ? getHistory() : SEED_SERVICE_QUOTATIONS;
+
+            let matchedQuote = null;
+            for (const h of historyList) {
+                if (!h.client) continue;
+                const cLower = h.client.toLowerCase().trim();
+                const cParts = cLower.split(/\s+/).filter(p => p.length > 2);
+                const allPartsMatch = cParts.length > 0 && cParts.every(p => rawFileName.includes(p));
+                if (allPartsMatch) {
+                    matchedQuote = h;
+                    break;
+                }
+            }
+
+            if (matchedQuote && matchedQuote.items && matchedQuote.items.length > 0) {
+                clientVal = matchedQuote.client;
+                projVal = (matchedQuote.formData && matchedQuote.formData.project) || matchedQuote.project || '';
+                addrVal = (matchedQuote.formData && matchedQuote.formData.address) || '';
+                quoteVal = (matchedQuote.formData && matchedQuote.formData.quoteno) || matchedQuote.docNo || '';
+                dateVal = (matchedQuote.formData && matchedQuote.formData.date) || matchedQuote.date || '';
+                unitsVal = (matchedQuote.formData && matchedQuote.formData.units) || 1;
+                parsedItems = matchedQuote.items.map(i => ({
+                    name: i.name,
+                    unit: i.unit || 'Point',
+                    rate: parseFloat(i.rate) || lookupDefaultRate(i.name),
+                    qty: parseInt(i.qty) || 1,
+                    discount: parseFloat(i.discount) || 0
+                }));
+                sourceMethod = 'AMPEdge Quotation Archive (' + matchedQuote.client + ' - ' + (matchedQuote.docNo || '') + ')';
+            }
+        }
+
+        // RESULTS HANDLING & IMMEDIATE AUTO-GENERATION (NO DATABASE SEED HIJACK)
         if (parsedItems.length > 0) {
             summaryItems = parsedItems;
 
