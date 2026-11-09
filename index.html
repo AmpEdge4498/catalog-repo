@@ -17,7 +17,14 @@
             window.pdfjsLib = window['pdfjs-dist/build/pdf'];
         }
         if (window.pdfjsLib) {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            try {
+                // Cross-origin Blob worker wrapper to bypass file:// and CDN worker origin restrictions
+                const workerUrl = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                const workerBlob = new Blob(['importScripts("' + workerUrl + '");'], { type: 'application/javascript' });
+                pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
+            } catch(e) {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            }
         }
     </script>
 </head>
@@ -1234,12 +1241,12 @@
             </div>
 
             <!-- PRIMARY ACTION: HERO DRAG & DROP PDF UPLOAD ZONE -->
+            <input type="file" id="elec-file-input" accept=".pdf" style="display:none;" onchange="handlePDFUpload(this)" onclick="event.stopPropagation()">
             <div class="elec-upload-hero" id="elec-dropzone" 
                  onclick="document.getElementById('elec-file-input').click()"
                  ondragover="handleDragOver(event)"
                  ondragleave="handleDragLeave(event)"
                  ondrop="handleFileDrop(event)">
-                <input type="file" id="elec-file-input" accept=".pdf" style="display:none;" onchange="handlePDFUpload(this)">
                 
                 <div class="elec-upload-icon-circle">
                     <i class="fa-solid fa-cloud-arrow-up"></i>
@@ -1399,12 +1406,12 @@
             </div>
 
             <!-- PRIMARY ACTION: HERO DRAG & DROP PDF UPLOAD ZONE -->
+            <input type="file" id="summary-file-input" accept=".pdf" style="display:none;" onchange="handleSummaryPDFUpload(this)" onclick="event.stopPropagation()">
             <div class="summary-upload-hero" id="summary-dropzone" 
                  onclick="document.getElementById('summary-file-input').click()"
                  ondragover="handleSummaryDragOver(event)"
                  ondragleave="handleSummaryDragLeave(event)"
                  ondrop="handleSummaryFileDrop(event)">
-                <input type="file" id="summary-file-input" accept=".pdf" style="display:none;" onchange="handleSummaryPDFUpload(this)">
                 
                 <div class="summary-upload-icon-circle">
                     <i class="fa-solid fa-file-circle-check"></i>
@@ -1588,6 +1595,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=20261029_SUMMARY_3P"></script>
+    <script src="app.js?v=20261109_PDF_UPLOAD_FIX"></script>
 </body>
 </html>

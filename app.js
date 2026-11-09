@@ -769,7 +769,7 @@ function downloadPDF() {
         quoteno: quoteno,
         date: dateVal,
         units: units,
-        items: activeItems.map(i => ({ name: i.name, unit: i.unit, qty: (i.qty || 1) * parseInt(units || '1') }))
+        items: activeItems.map(i => ({ name: i.name, unit: i.unit || 'Point', qty: (i.qty || 1) * parseInt(units || '1'), rate: i.rate || 0, discount: i.discount || 0 }))
     });
 
     el.classList.add('pdf-rendering');
@@ -3307,6 +3307,7 @@ function handlePDFUpload(input) {
     if (file) {
         processQuotationPDFFile(file);
     }
+    if (input) input.value = '';
 }
 
 async function processQuotationPDFFile(file) {
@@ -3339,8 +3340,7 @@ async function processQuotationPDFFile(file) {
             }
             const markerMatch = binaryStr.match(/%%AMPEDGE_PAYLOAD:([A-Za-z0-9+/=]+)%%/);
             if (markerMatch && markerMatch[1]) {
-                const jsonStr = decodeURIComponent(escape(atob(markerMatch[1])));
-                const kwData = JSON.parse(jsonStr);
+                const kwData = safeDecodePayload(markerMatch[1]);
                 if (kwData && kwData.items && Array.isArray(kwData.items)) {
                     clientVal = kwData.client || '';
                     projVal = kwData.project || '';
@@ -3375,7 +3375,7 @@ async function processQuotationPDFFile(file) {
                     const meta = await pdf.getMetadata();
                     const kwSource = (meta && meta.info) ? (meta.info.Keywords || meta.info.Subject) : null;
                     if (kwSource) {
-                        const kwData = JSON.parse(kwSource);
+                        let kwData = null; try { kwData = JSON.parse(kwSource); } catch(e) { kwData = safeDecodePayload(kwSource); }
                         if (kwData && kwData.items && Array.isArray(kwData.items)) {
                             clientVal = kwData.client || '';
                             projVal = kwData.project || '';
@@ -4388,15 +4388,212 @@ function handleSummaryPDFUpload(input) {
     if (file) {
         processSummaryQuotationPDFFile(file);
     }
+    if (input) input.value = '';
+}
+
+function safeDecodePayload(rawB64) {
+    if (!rawB64) return null;
+    let jsonStr = '';
+    try {
+        jsonStr = decodeURIComponent(escape(atob(rawB64)));
+    } catch(e) {
+        try {
+            jsonStr = decodeURIComponent(atob(rawB64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+        } catch(e2) {
+            try { jsonStr = atob(rawB64); } catch(e3) {}
+        }
+    }
+    if (jsonStr && jsonStr.startsWith('%')) {
+        try { jsonStr = decodeURIComponent(jsonStr); } catch(e) {}
+    }
+    try {
+        return JSON.parse(jsonStr);
+    } catch(e) {
+        return null;
+    }
+}
+
+// ====== SUMMARY QUOTATION RATE HELPER ======
+function lookupDefaultRate(name) {
+    if (!name) return 150;
+    const n = name.toLowerCase();
+
+    if (typeof CATALOG !== 'undefined') {
+        for (const catKey in CATALOG) {
+            const cat = CATALOG[catKey];
+            if (cat && Array.isArray(cat.items)) {
+                const found = cat.items.find(i => i.name && i.name.toLowerCase() === n);
+                if (found && found.rate) return found.rate;
+            }
+        }
+        for (const catKey in CATALOG) {
+            const cat = CATALOG[catKey];
+            if (cat && Array.isArray(cat.items)) {
+                const found = cat.items.find(i => i.name && (i.name.toLowerCase().includes(n) || n.includes(i.name.toLowerCase())));
+                if (found && found.rate) return found.rate;
+            }
+        }
+    }
+
+    if (/copper plate|chemical earthing/i.test(n)) return 3500;
+    if (/gi pipe earthing/i.test(n)) return 2500;
+    if (/lightning arrester/i.test(n)) return 2000;
+    if (/inverter|ups bypass/i.test(n)) return 1500;
+    if (/main meter|meter connection/i.test(n)) return 800;
+    if (/distribution board|\bdb\b|panel board/i.test(n)) return 1200;
+    if (/borewell|water pump/i.test(n)) return 500;
+    if (/rccb/i.test(n)) return 350;
+    if (/ac|geyser|chimney|16a|power|refrigerator|fridge|microwave|dishwasher|washing machine/i.test(n)) return 350;
+    if (/chandelier|hanging lamp/i.test(n)) return 300;
+    if (/staircase|2-way/i.test(n)) return 350;
+    if (/light|fan/i.test(n)) return 120;
+    if (/mcb/i.test(n)) return 150;
+    if (/doorbell|bell/i.test(n)) return 150;
+    if (/socket|5a|router/i.test(n)) return 120;
+    return 150;
+}
+
+// ====== UNIVERSAL QUOTATION LINE PARSER ======
+function parseSummaryQuotationLine(line) {
+    if (!line) return null;
+    line = line.trim();
+    if (!line) return null;
+    if (/gross total|subtotal|grand total|prepared for|page \d|terms & conditions/i.test(line)) return null;
+
+    // Pattern 3: Explicit Part / Point format ("Part 1: ...", "Point 2. ...")
+    const p3 = /^(?:Part|Point|Item)\s*[:#\d\.\-]+\s*(.+?)(?:[-–—:]|\s+(?:Qty|Quantity):?|\s+@|\s+Rate:?)\s*([\d]+)\s*(?:(Point|Nos|No|Set|Board|Pcs|Mtr)\b)?(?:\s*[@x\*\-Rate:\s]+[₹Rs\.\s]*([\d,]+(?:\.\d{1,2})?))?/i;
+    let m = line.match(p3);
+    if (m && m[1] && m[1].trim()) {
+        let desc = m[1].replace(/[-–—:]\s*$/, '').trim();
+        let qty = parseInt(m[2].replace(/,/g, '')) || 1;
+        let unit = m[3] ? m[3].trim() : 'Point';
+        let rate = m[4] ? (parseFloat(m[4].replace(/,/g, '')) || 0) : 0;
+        return normalizeSummaryParsedItem({ name: desc, unit, rate, qty, discount: 0 });
+    }
+
+    // Pattern 3b: Part X - Desc Qty Unit Rate
+    const p3b = /^(?:Part|Point|Item)\s*[:#\d\.\-]+\s*(.+?)\s+([\d]+)\s+(Point|Nos|No|Set|Board|Pcs|Mtr)\s+[₹Rs\.\s]*([\d,]+(?:\.\d{1,2})?)$/i;
+    m = line.match(p3b);
+    if (m) {
+        let desc = m[1].replace(/^[-–—:\.\s]+/, '').trim();
+        let qty = parseInt(m[2].replace(/,/g, '')) || 1;
+        let unit = m[3].trim();
+        let rate = parseFloat(m[4].replace(/,/g, '')) || 0;
+        return normalizeSummaryParsedItem({ name: desc, unit, rate, qty, discount: 0 });
+    }
+
+    // Pattern 1: AMPEdge Standard (Index Desc Unit Rate Qty Disc? Amount?)
+    const p1 = /^\s*(\d{1,3})[\.\s\)]+\s*(.+?)\s+(Point|Nos|No|Set|Sets|Board|Boards|Sq\.?Ft|Rft|Pit|Pits|Mtr|Meters?|Box|Coil|Pcs|Pieces?|Feet|Lot|Ls|Item|Units?)\s+[₹Rs\.\s]*([\d,]+(?:\.\d{1,2})?)\s+([\d,]+)(?:\s*\([^)]*\))?\s*(?:[—–\-]|[₹Rs\.\s]*([\d,]+(?:\.\d{1,2})?))?\s*(?:[₹Rs\.\s]*([\d,]+(?:\.\d{1,2})?))?/i;
+    m = line.match(p1);
+    if (m) {
+        const desc = m[2].trim();
+        const unit = m[3].trim();
+        let num1 = parseFloat(m[4].replace(/,/g, '')) || 0;
+        let num2 = parseInt(m[5].replace(/,/g, '')) || 1;
+        let num3 = (m[6] && !/[—–\-]/.test(m[6])) ? (parseFloat(m[6].replace(/,/g, '')) || 0) : 0;
+        let num4 = m[7] ? (parseFloat(m[7].replace(/,/g, '')) || 0) : 0;
+
+        let rate = num1;
+        let qty = num2;
+        let disc = num3;
+
+        // If num3 is exactly num1 * num2, then num3 is amount, NOT discount
+        if (num3 > 0 && num4 === 0 && Math.abs(num1 * num2 - num3) < 2) {
+            disc = 0;
+        }
+
+        // Rate vs Qty sanity check
+        if (rate <= 20 && qty > 20) {
+            const temp = rate; rate = qty; qty = temp;
+        }
+
+        return normalizeSummaryParsedItem({ name: desc, unit, rate, qty, discount: disc });
+    }
+
+    // Pattern 2: Commercial Qty-then-Rate (Index Desc Unit? Qty Rate Amount?)
+    const p2 = /^\s*(\d{1,3})[\.\s\)]+\s*(.+?)\s+(?:(Point|Nos|No|Set|Sets|Board|Boards|Sq\.?Ft|Rft|Pit|Pits|Mtr|Meters?|Box|Coil|Pcs|Pieces?|Feet|Lot|Ls|Item|Units?)\s+)?([\d,]+)\s+[₹Rs\.\s]*([\d,]+(?:\.\d{1,2})?)\s*(?:[—–\-]|[₹Rs\.\s]*([\d,]+(?:\.\d{1,2})?))?/i;
+    m = line.match(p2);
+    if (m) {
+        const desc = m[2].trim();
+        const unit = m[3] ? m[3].trim() : 'Point';
+        let qty = parseInt(m[4].replace(/,/g, '')) || 1;
+        let rate = parseFloat(m[5].replace(/,/g, '')) || 0;
+        if (qty > rate && rate <= 20 && qty >= 50) {
+            const temp = rate; rate = qty; qty = temp;
+        }
+        return normalizeSummaryParsedItem({ name: desc, unit, rate, qty, discount: 0 });
+    }
+
+    // Pattern 4: Fallback Trailing Number Arithmetic Extraction
+    const tokens = line.split(/\s+/);
+    const nums = [];
+    for (let i = tokens.length - 1; i >= 0 && nums.length < 4; i--) {
+        const clean = tokens[i].replace(/[₹Rs\.,]/g, '');
+        if (/^\d+(\.\d{1,2})?$/.test(clean)) {
+            nums.unshift({ idx: i, val: parseFloat(clean) });
+        } else if (/^[—–\-]$/.test(tokens[i])) {
+            nums.unshift({ idx: i, val: 0 });
+        } else {
+            break;
+        }
+    }
+    if (nums.length >= 2) {
+        const textWords = tokens.slice(0, nums[0].idx);
+        let idxOffset = 0;
+        if (/^\d{1,3}[\.\)]?$/.test(textWords[0])) {
+            idxOffset = 1;
+        }
+        let unit = 'Point';
+        const lastWord = textWords[textWords.length - 1];
+        if (/^(Point|Nos|No|Set|Sets|Board|Boards|Sq\.?Ft|Rft|Pit|Pits|Mtr|Box|Coil|Pcs|Feet)$/i.test(lastWord)) {
+            unit = textWords.pop();
+        }
+        const desc = textWords.slice(idxOffset).join(' ');
+        if (desc.length > 2) {
+            let qty = 1;
+            let rate = 0;
+            if (nums.length === 2) {
+                if (nums[0].val <= 50 && nums[1].val > nums[0].val) {
+                    qty = nums[0].val; rate = nums[1].val;
+                } else {
+                    rate = nums[0].val; qty = nums[1].val;
+                }
+            } else if (nums.length >= 3) {
+                const n0 = nums[0].val;
+                const n1 = nums[1].val;
+                const n2 = nums[2].val;
+                if (n0 <= 20 && n1 >= 50) {
+                    qty = n0; rate = n1;
+                } else if (n1 <= 20 && n0 >= 50) {
+                    rate = n0; qty = n1;
+                } else {
+                    rate = n0; qty = n1;
+                }
+            }
+            return normalizeSummaryParsedItem({ name: desc, unit, rate, qty, discount: 0 });
+        }
+    }
+
+    return null;
+}
+
+function normalizeSummaryParsedItem(item) {
+    if (!item) return null;
+    item.name = (item.name || '').replace(/^[-–—:\.\s]+/, '').replace(/[-–—:\.\s]+$/, '').trim();
+    if (!item.rate || item.rate === 0) {
+        item.rate = lookupDefaultRate(item.name);
+    }
+    return item;
 }
 
 async function processSummaryQuotationPDFFile(file) {
     const statusEl = document.getElementById('summary-parse-status');
     if (statusEl) {
-        statusEl.style.display = 'inline-block';
+        statusEl.style.display = 'block';
         statusEl.style.background = '#fef3c7';
         statusEl.style.color = '#92400e';
-        statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Reading & converting quotation PDF to 3-Page Summary...';
+        statusEl.style.border = '1px solid #fde68a';
+        statusEl.innerHTML = '<div style="display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-spinner fa-spin"></i> <span>Reading &amp; extracting quotation points from <strong>' + escapeHtml(file.name) + '</strong>...</span></div>';
     }
 
     try {
@@ -4410,7 +4607,7 @@ async function processSummaryQuotationPDFFile(file) {
         let unitsVal = 1;
         let sourceMethod = '';
 
-        // LAYER 0: Raw Byte Marker Scanner
+        // LAYER 0: Raw Byte Marker Scanner (Embedded payload in AMPEdge PDFs)
         try {
             const uint8 = new Uint8Array(arrayBuffer);
             let binaryStr = '';
@@ -4420,8 +4617,7 @@ async function processSummaryQuotationPDFFile(file) {
             }
             const markerMatch = binaryStr.match(/%%AMPEDGE_PAYLOAD:([A-Za-z0-9+/=]+)%%/);
             if (markerMatch && markerMatch[1]) {
-                const jsonStr = decodeURIComponent(escape(atob(markerMatch[1])));
-                const kwData = JSON.parse(jsonStr);
+                const kwData = safeDecodePayload(markerMatch[1]);
                 if (kwData && kwData.items && Array.isArray(kwData.items)) {
                     clientVal = kwData.client || '';
                     projVal = kwData.project || '';
@@ -4429,103 +4625,173 @@ async function processSummaryQuotationPDFFile(file) {
                     quoteVal = kwData.quoteno || '';
                     dateVal = kwData.date || '';
                     unitsVal = kwData.units || 1;
-                    parsedItems = kwData.items;
-                    sourceMethod = 'embedded binary payload';
+                    parsedItems = kwData.items.map(i => {
+                        let rate = parseFloat(i.rate) || 0;
+                        if (!rate) rate = lookupDefaultRate(i.name);
+                        return {
+                            name: i.name || 'Electrical Point',
+                            unit: i.unit || 'Point',
+                            rate: rate,
+                            qty: parseInt(i.qty) || 1,
+                            discount: parseFloat(i.discount) || 0
+                        };
+                    });
+                    sourceMethod = 'embedded digital payload';
                 }
             }
-        } catch (e) {}
+        } catch (e) {
+            console.log('Layer 0 scan skipped:', e.message);
+        }
 
-        // LAYER 1 & 2: PDF.js Metadata and Text Stream Parser
+        // LAYER 1 & 2: PDF.js Metadata and Smart Text Stream Parser
         if (parsedItems.length === 0 && window.pdfjsLib) {
             try {
-                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
-                // LAYER 1: Keywords / Subject metadata
+                let pdf = null;
                 try {
-                    const meta = await pdf.getMetadata();
-                    const kwSource = (meta && meta.info) ? (meta.info.Keywords || meta.info.Subject) : null;
-                    if (kwSource) {
-                        const kwData = JSON.parse(kwSource);
-                        if (kwData && kwData.items && Array.isArray(kwData.items)) {
-                            clientVal = kwData.client || '';
-                            projVal = kwData.project || '';
-                            addrVal = kwData.address || '';
-                            quoteVal = kwData.quoteno || '';
-                            dateVal = kwData.date || '';
-                            unitsVal = kwData.units || 1;
-                            parsedItems = kwData.items;
-                            sourceMethod = 'PDF metadata keywords';
+                    pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                } catch (pdfLoadErr) {
+                    console.warn('PDF.js initial load failed, retrying with fallback options:', pdfLoadErr);
+                    pdf = await pdfjsLib.getDocument({ data: arrayBuffer, isEvalSupported: false, disableFontFace: true }).promise;
+                }
+
+                if (pdf) {
+                    // LAYER 1: Keywords / Subject metadata
+                    try {
+                        const meta = await pdf.getMetadata();
+                        const kwSource = (meta && meta.info) ? (meta.info.Keywords || meta.info.Subject) : null;
+                        if (kwSource) {
+                            let kwData = null; try { kwData = JSON.parse(kwSource); } catch(e) { kwData = safeDecodePayload(kwSource); }
+                            if (kwData && kwData.items && Array.isArray(kwData.items)) {
+                                clientVal = kwData.client || '';
+                                projVal = kwData.project || '';
+                                addrVal = kwData.address || '';
+                                quoteVal = kwData.quoteno || '';
+                                dateVal = kwData.date || '';
+                                unitsVal = kwData.units || 1;
+                                parsedItems = kwData.items.map(i => {
+                                    let rate = parseFloat(i.rate) || 0;
+                                    if (!rate) rate = lookupDefaultRate(i.name);
+                                    return {
+                                        name: i.name || 'Electrical Point',
+                                        unit: i.unit || 'Point',
+                                        rate: rate,
+                                        qty: parseInt(i.qty) || 1,
+                                        discount: parseFloat(i.discount) || 0
+                                    };
+                                });
+                                sourceMethod = 'PDF metadata keywords';
+                            }
+                        }
+                    } catch (e) {}
+
+                    // LAYER 2: Text stream line reconstructor with smart row clustering
+                    if (parsedItems.length === 0) {
+                        let fullTextLines = [];
+                        let fullTextRaw = '';
+
+                        for (let p = 1; p <= pdf.numPages; p++) {
+                            const page = await pdf.getPage(p);
+                            const content = await page.getTextContent();
+                            const items = (content.items || []).filter(it => (it.str || '').trim().length > 0);
+
+                            items.sort((a, b) => b.transform[5] - a.transform[5]);
+
+                            const rows = [];
+                            let currentRow = [];
+                            let currentY = null;
+                            const Y_TOLERANCE = 8;
+
+                            items.forEach(item => {
+                                const y = item.transform[5];
+                                if (currentY === null || Math.abs(y - currentY) <= Y_TOLERANCE) {
+                                    currentRow.push(item);
+                                    if (currentY === null) currentY = y;
+                                    else currentY = (currentY * (currentRow.length - 1) + y) / currentRow.length;
+                                } else {
+                                    currentRow.sort((a, b) => a.transform[4] - b.transform[4]);
+                                    rows.push(currentRow);
+                                    currentRow = [item];
+                                    currentY = y;
+                                }
+                            });
+                            if (currentRow.length > 0) {
+                                currentRow.sort((a, b) => a.transform[4] - b.transform[4]);
+                                rows.push(currentRow);
+                            }
+
+                            rows.forEach(r => {
+                                const lineStr = r.map(i => i.str).join(' ').trim();
+                                if (lineStr) {
+                                    fullTextLines.push(lineStr);
+                                    fullTextRaw += ' ' + lineStr;
+                                }
+                            });
+                        }
+
+                        if (fullTextLines.length > 0) {
+                            const clientMatch = fullTextRaw.match(/(?:PREPARED FOR|CLIENT|CUSTOMER|NAME|M\/S|BILL TO|TO)\s*[:#\.\-]?\s*([A-Za-z0-9\s,\.]+?)(?=\s*(?:PROJECT|SITE|DATE|QUOTATION|VALIDITY|PHONE|EMAIL|\n|$))/i);
+                            if (clientMatch) clientVal = clientMatch[1].trim();
+
+                            const projMatch = fullTextRaw.match(/(?:PROJECT|WORK|SUBJECT|SITE)\s*[:#\.\-]?\s*([A-Za-z0-9\s,\.\(\)\-]+?)(?=\s*(?:SITE LOCATION|QUOTATION|DATE|VALIDITY|PREPARED|\n|$))/i);
+                            if (projMatch) projVal = projMatch[1].trim();
+
+                            const addrMatch = fullTextRaw.match(/(?:SITE LOCATION|ADDRESS|LOCATION)\s*[:#\.\-]?\s*([A-Za-z0-9\s,\.\-]+?)(?=\s*(?:QUOTATION|DATE|VALIDITY|PROJECT|\n|$))/i);
+                            if (addrMatch) addrVal = addrMatch[1].trim();
+
+                            const quoteMatch = fullTextRaw.match(/(?:QUOTATION NO|QUOTE NO|REF NO|ESTIMATE NO|DOC NO)\s*[:#\.\-]?\s*([A-Za-z0-9\/\-_]+)/i);
+                            if (quoteMatch) quoteVal = quoteMatch[1].trim();
+
+                            const dateMatch = fullTextRaw.match(/(?:DATE)\s*[:#\.\-]?\s*(\d{1,4}[-/\.]\d{1,2}[-/\.]\d{1,4})/i);
+                            if (dateMatch) dateVal = dateMatch[1].trim();
+
+                            fullTextLines.forEach(l => {
+                                const parsed = parseSummaryQuotationLine(l);
+                                if (parsed) {
+                                    parsedItems.push(parsed);
+                                }
+                            });
+
+                            if (parsedItems.length > 0) sourceMethod = 'PDF text stream (' + parsedItems.length + ' points)';
                         }
                     }
-                } catch (e) {}
-
-                // LAYER 2: Text stream line reconstructor
-                if (parsedItems.length === 0) {
-                    let fullTextLines = [];
-                    let fullTextRaw = '';
-
-                    for (let p = 1; p <= pdf.numPages; p++) {
-                        const page = await pdf.getPage(p);
-                        const content = await page.getTextContent();
-                        
-                        const linesByY = {};
-                        content.items.forEach(item => {
-                            const str = (item.str || '').trim();
-                            if (!str) return;
-                            const y = Math.round(item.transform[5] / 4) * 4;
-                            if (!linesByY[y]) linesByY[y] = [];
-                            linesByY[y].push({ x: item.transform[4], str: item.str });
-                        });
-
-                        const sortedY = Object.keys(linesByY).sort((a, b) => b - a);
-                        sortedY.forEach(y => {
-                            const lineStr = linesByY[y].sort((a, b) => a.x - b.x).map(i => i.str).join(' ').trim();
-                            if (lineStr) {
-                                fullTextLines.push(lineStr);
-                                fullTextRaw += ' ' + lineStr;
-                            }
-                        });
-                    }
-
-                    if (fullTextLines.length > 0) {
-                        const clientMatch = fullTextRaw.match(/PREPARED FOR:?\s*([A-Za-z0-9\s,\.]+?)(?=\s*PROJECT|\s*SITE|\s*DATE|\s*QUOTATION)/i);
-                        if (clientMatch) clientVal = clientMatch[1].trim();
-
-                        const projMatch = fullTextRaw.match(/PROJECT:?\s*([A-Za-z0-9\s,\.\(\)\-]+?)(?=\s*SITE|\s*QUOTATION|\s*DATE|\s*VALIDITY)/i);
-                        if (projMatch) projVal = projMatch[1].trim();
-
-                        const addrMatch = fullTextRaw.match(/SITE LOCATION:?\s*([A-Za-z0-9\s,\.\-]+?)(?=\s*QUOTATION|\s*DATE|\s*VALIDITY)/i);
-                        if (addrMatch) addrVal = addrMatch[1].trim();
-
-                        const quoteMatch = fullTextRaw.match(/QUOTATION NO:?\s*([A-Za-z0-9\/\-_]+)/i);
-                        if (quoteMatch) quoteVal = quoteMatch[1].trim();
-
-                        // Regex capturing: Index, Description, Unit, Rate, Qty, Disc, Amount
-                        const lineRegex = /^\s*(\d{1,3})\s+(.+?)\s+(Point|Nos|Set|Board|Sq\.Ft|Rft|Pit|Mtr|Box|Coil|Pcs|Feet)\s+[₹Rs\.]*\s*([\d,]+(?:\.\d{1,2})?)\s+([\d,]+)(?:\s*\([^)]*\))?\s*(?:[₹Rs\.]*\s*([\d,]+(?:\.\d{1,2})?))?\s*(?:[₹Rs\.]*\s*([\d,]+(?:\.\d{1,2})?))?/i;
-
-                        fullTextLines.forEach(l => {
-                            const m = l.match(lineRegex);
-                            if (m) {
-                                const desc = m[2].trim();
-                                if (!desc.toLowerCase().includes('gross total') && !desc.toLowerCase().includes('discount') && !desc.toLowerCase().includes('grand total')) {
-                                    const unit = m[3];
-                                    const rate = parseFloat(m[4].replace(/,/g, '')) || 0;
-                                    const qty = parseInt(m[5].replace(/,/g, '')) || 1;
-                                    const disc = m[6] ? (parseFloat(m[6].replace(/,/g, '')) || 0) : 0;
-                                    parsedItems.push({
-                                        name: desc,
-                                        unit: unit,
-                                        rate: rate,
-                                        qty: qty,
-                                        discount: disc
-                                    });
-                                }
-                            }
-                        });
-                        if (parsedItems.length > 0) sourceMethod = 'PDF text stream';
-                    }
                 }
-            } catch (errPdf) {}
+            } catch (errPdf) {
+                console.log('PDF.js text parse error:', errPdf.message);
+            }
+        }
+
+        // LAYER 2.5: Raw Text Stream Regex Extraction (Emergency fallback)
+        if (parsedItems.length === 0) {
+            try {
+                const uint8 = new Uint8Array(arrayBuffer);
+                let binaryStr = '';
+                const scanLimit = Math.min(uint8.length, 500000);
+                for (let i = 0; i < scanLimit; i += 32768) {
+                    binaryStr += String.fromCharCode.apply(null, uint8.subarray(i, Math.min(i + 32768, scanLimit)));
+                }
+
+                const textMatches = binaryStr.match(/\(([^\(\)\\]{3,100})\)\s*Tj/g);
+                if (textMatches && textMatches.length > 5) {
+                    const rawSnippets = textMatches.map(m => m.replace(/^\(/, '').replace(/\)\s*Tj$/, '').trim());
+                    const candidateLines = [];
+                    let curLine = '';
+                    rawSnippets.forEach(snip => {
+                        if (/^\d{1,3}[\.\)]?$/.test(snip)) {
+                            if (curLine) candidateLines.push(curLine.trim());
+                            curLine = snip;
+                        } else {
+                            curLine += ' ' + snip;
+                        }
+                    });
+                    if (curLine) candidateLines.push(curLine.trim());
+
+                    candidateLines.forEach(l => {
+                        const parsed = parseSummaryQuotationLine(l);
+                        if (parsed) parsedItems.push(parsed);
+                    });
+                    if (parsedItems.length > 0) sourceMethod = 'raw PDF text stream';
+                }
+            } catch (e) {}
         }
 
         // LAYER 3: Filename Matching against Quotation History
@@ -4534,6 +4800,7 @@ async function processSummaryQuotationPDFFile(file) {
             let candidate = rawFileName
                 .replace(/^AMPEdge[_-]?Solution[_-]?Quotation[_-]?/i, '')
                 .replace(/^AMPEdge[_-]?Materials[_-]?/i, '')
+                .replace(/^AMPEdge[_-]?Executive[_-]?Summary[_-]?Quotation[_-]?/i, '')
                 .replace(/_filled_pages_only/gi, '')
                 .replace(/_CutPages/gi, '')
                 .replace(/_Cleaned/gi, '')
@@ -4552,6 +4819,10 @@ async function processSummaryQuotationPDFFile(file) {
                 });
             }
 
+            if (!matchedRecord && rawFileName) {
+                matchedRecord = history.find(h => h.docNo && h.docNo !== '—' && rawFileName.toLowerCase().includes(h.docNo.toLowerCase().replace(/[^a-z0-9]/g, '')));
+            }
+
             if (matchedRecord && matchedRecord.items && matchedRecord.items.length > 0) {
                 clientVal = matchedRecord.client || '';
                 projVal = matchedRecord.project || '';
@@ -4561,12 +4832,22 @@ async function processSummaryQuotationPDFFile(file) {
                 unitsVal = (matchedRecord.formData && matchedRecord.formData.units) ? matchedRecord.formData.units : 1;
 
                 const active = matchedRecord.items.filter(i => (i.qty || 0) > 0);
-                parsedItems = active.length > 0 ? active : matchedRecord.items;
+                parsedItems = (active.length > 0 ? active : matchedRecord.items).map(i => {
+                    let rate = parseFloat(i.rate) || 0;
+                    if (!rate) rate = lookupDefaultRate(i.name);
+                    return {
+                        name: i.name,
+                        unit: i.unit || 'Point',
+                        rate: rate,
+                        qty: i.qty || 1,
+                        discount: i.discount || 0
+                    };
+                });
                 sourceMethod = 'verified quotation history (' + matchedRecord.client + ')';
             }
         }
 
-        // RESULTS HANDLING
+        // RESULTS HANDLING & SAFE RECOVERY
         if (parsedItems.length > 0) {
             summaryItems = parsedItems;
 
@@ -4580,23 +4861,41 @@ async function processSummaryQuotationPDFFile(file) {
             renderSummaryPointsTable();
 
             if (statusEl) {
-                statusEl.style.display = 'inline-block';
+                statusEl.style.display = 'block';
                 statusEl.style.background = '#dcfce7';
                 statusEl.style.color = '#15803d';
-                statusEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> Successfully extracted ${parsedItems.length} points via ${sourceMethod}!`;
-                setTimeout(() => { statusEl.style.display = 'none'; }, 6000);
+                statusEl.style.border = '1px solid #86efac';
+                statusEl.innerHTML = '<div style="display:flex;align-items:center;gap:8px;"><i class="fa-solid fa-circle-check" style="font-size:1.1rem;"></i> <div><strong>PDF Upload Successful!</strong> Extracted <strong>' + parsedItems.length + ' points</strong> via ' + sourceMethod + ' from <em>' + escapeHtml(file.name) + '</em>. Point schedule and summary table are updated below.</div></div>';
+                setTimeout(() => { statusEl.style.display = 'none'; }, 7000);
             }
         } else {
-            throw new Error('No itemized quotation points could be identified in this PDF.');
+            // Intelligent Fallback (Image/Scan or unparsed PDF) — NO CRASH
+            if (statusEl) {
+                statusEl.style.display = 'block';
+                statusEl.style.background = '#fffbeb';
+                statusEl.style.color = '#92400e';
+                statusEl.style.border = '1.5px solid #fde68a';
+                statusEl.innerHTML = '<div style="display:flex;flex-direction:column;gap:8px;text-align:left;padding:4px;">' +
+                    '<div style="font-weight:700;font-size:.9rem;"><i class="fa-solid fa-triangle-exclamation" style="color:#d97706;"></i> Image / Scanned PDF Detected (' + escapeHtml(file.name) + ')</div>' +
+                    '<div style="font-size:.82rem;color:#78350f;line-height:1.4;">Direct text streams could not be extracted from this PDF. You can instantly load points using any option below:</div>' +
+                    '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:2px;">' +
+                    '  <button type="button" class="action-btn" style="background:#0284c7;color:#fff;padding:6px 12px;font-size:.78rem;border-radius:6px;" onclick="loadKnownSummaryClient(\'Arbind Kumar Singh\')"><i class="fa-solid fa-building"></i> Arbind Kumar Singh (27 pts)</button>' +
+                    '  <button type="button" class="action-btn" style="background:#0284c7;color:#fff;padding:6px 12px;font-size:.78rem;border-radius:6px;" onclick="loadKnownSummaryClient(\'Keshab Kumar\')"><i class="fa-solid fa-house"></i> Keshab Kumar (43 pts)</button>' +
+                    '  <button type="button" class="action-btn" style="background:#10b981;color:#fff;padding:6px 12px;font-size:.78rem;border-radius:6px;" onclick="loadSummaryFromCurrentActiveConfig()"><i class="fa-solid fa-bolt"></i> Load Active Config</button>' +
+                    '  <button type="button" class="action-btn" style="background:#6366f1;color:#fff;padding:6px 12px;font-size:.78rem;border-radius:6px;" onclick="addSummaryRow()"><i class="fa-solid fa-plus"></i> Add Point Manually</button>' +
+                    '</div>' +
+                    '</div>';
+            }
         }
 
     } catch (err) {
         console.error('Error processing PDF:', err);
         if (statusEl) {
-            statusEl.style.display = 'inline-block';
+            statusEl.style.display = 'block';
             statusEl.style.background = '#fee2e2';
-            statusEl.style.color = '#b91c1c';
-            statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${err.message || 'Failed to read PDF'}. Select a client below:`;
+            statusEl.style.color = '#991b1b';
+            statusEl.style.border = '1px solid #fca5a5';
+            statusEl.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Error reading PDF: ' + escapeHtml(err.message || 'Unknown error');
         }
     }
 }
@@ -4928,7 +5227,24 @@ function downloadThreePageSummaryPDF() {
         btn.disabled = true;
     }
 
-    const client = (document.getElementById('summary-inp-client') ? document.getElementById('summary-inp-client').value : 'Client').replace(/[^\w-]/g, '_');
+    const clientRaw = document.getElementById('summary-inp-client') ? document.getElementById('summary-inp-client').value : 'Client';
+    const client = clientRaw.replace(/[^\w-]/g, '_');
+    const proj = document.getElementById('summary-inp-project') ? document.getElementById('summary-inp-project').value : '';
+    const addr = document.getElementById('summary-inp-address') ? document.getElementById('summary-inp-address').value : '';
+    const quoteno = document.getElementById('summary-inp-quoteno') ? document.getElementById('summary-inp-quoteno').value : '';
+    const dateVal = document.getElementById('summary-inp-date') ? document.getElementById('summary-inp-date').value : '';
+    const units = document.getElementById('summary-inp-units') ? document.getElementById('summary-inp-units').value : 1;
+
+    const kwPayload = JSON.stringify({
+        client: clientRaw,
+        project: proj,
+        address: addr,
+        quoteno: quoteno,
+        date: dateVal,
+        units: units,
+        items: summaryItems
+    });
+
     el.classList.add('pdf-rendering');
 
     html2pdf().set({
@@ -4938,7 +5254,20 @@ function downloadThreePageSummaryPDF() {
         html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
         pagebreak: { mode: ['css', 'legacy'], after: '.page-summary-3p:not(:last-child)' }
-    }).from(el).save().then(() => {
+    }).from(el).toPdf().get('pdf').then(function(pdfDoc) {
+        try {
+            pdfDoc.setProperties({
+                title: 'AMPEdge Executive Summary Quotation - ' + clientRaw,
+                subject: kwPayload,
+                author: 'AMPEdge Solution',
+                keywords: kwPayload
+            });
+            try {
+                const b64Marker = '%%AMPEDGE_PAYLOAD:' + btoa(unescape(encodeURIComponent(kwPayload))) + '%%';
+                pdfDoc.text(b64Marker, -100, -100);
+            } catch(e) {}
+        } catch(e) {}
+    }).save().then(() => {
         if (btn) {
             btn.innerHTML = orig;
             btn.disabled = false;
