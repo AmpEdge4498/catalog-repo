@@ -12,19 +12,15 @@
     <link rel="stylesheet" href="style.css?v=20261024_ELEC_UPLOAD_FIX">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="pdf.worker.min.js"></script>
     <script>
         if (window['pdfjs-dist/build/pdf']) {
             window.pdfjsLib = window['pdfjs-dist/build/pdf'];
         }
         if (window.pdfjsLib) {
             try {
-                // Cross-origin Blob worker wrapper to bypass file:// and CDN worker origin restrictions
-                const workerUrl = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-                const workerBlob = new Blob(['importScripts("' + workerUrl + '");'], { type: 'application/javascript' });
-                pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
-            } catch(e) {
-                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-            }
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
+            } catch(e) {}
         }
     </script>
 </head>

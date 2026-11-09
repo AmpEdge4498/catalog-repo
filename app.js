@@ -783,15 +783,16 @@ function downloadPDF() {
         pagebreak: { mode: ['css', 'legacy'], after: '.pdf-page:not(:last-child)' }
     }).from(el).toPdf().get('pdf').then(function(pdfDoc) {
         try {
+            const b64Data = btoa(unescape(encodeURIComponent(kwPayload)));
             pdfDoc.setProperties({
                 title: 'AMPEdge Service Quotation - ' + client,
-                subject: kwPayload,
+                subject: 'AMPEDGE_JSON:' + kwPayload,
                 author: 'AMPEdge Solution',
-                keywords: kwPayload
+                keywords: 'AMPEDGE_B64:' + b64Data
             });
             // Embed offscreen text marker into PDF content stream for 100% extraction reliability
             try {
-                const b64Marker = '%%AMPEDGE_PAYLOAD:' + btoa(unescape(encodeURIComponent(kwPayload))) + '%%';
+                const b64Marker = '%%AMPEDGE_PAYLOAD:' + b64Data + '%%';
                 pdfDoc.text(b64Marker, -100, -100);
             } catch(e) {}
         } catch(e) {}
@@ -4033,7 +4034,31 @@ function downloadElectricianPDF() {
         html2canvas: { scale:2, useCORS:true, letterRendering:true, scrollY:0 },
         jsPDF: { unit:'mm', format:'a4', orientation:'portrait' },
         pagebreak: { mode: ['css', 'legacy'], after: '.page-elec:not(:last-child)' }
-    }).from(el).save().then(() => {
+    }).from(el).toPdf().get('pdf').then(function(pdfDoc) {
+        try {
+            const elecClient = (document.getElementById('elec-inp-client') ? document.getElementById('elec-inp-client').value : 'Client');
+            const elecProj = (document.getElementById('elec-inp-project') ? document.getElementById('elec-inp-project').value : '');
+            const elecWo = (document.getElementById('elec-inp-wo-no') ? document.getElementById('elec-inp-wo-no').value : '');
+            const elecDate = (document.getElementById('elec-inp-date') ? document.getElementById('elec-inp-date').value : '');
+            const kwPayload = JSON.stringify({
+                client: elecClient,
+                project: elecProj,
+                quoteno: elecWo,
+                date: elecDate,
+                items: elecItems.map(i => ({ name: i.name, unit: i.unit || 'Point', qty: i.qty || 1, rate: i.rate || 0, discount: 0 }))
+            });
+            const b64Data = btoa(unescape(encodeURIComponent(kwPayload)));
+            pdfDoc.setProperties({
+                title: 'AMPEdge Work Order - ' + elecClient,
+                subject: 'AMPEDGE_JSON:' + kwPayload,
+                author: 'AMPEdge Solution',
+                keywords: 'AMPEDGE_B64:' + b64Data
+            });
+            try {
+                pdfDoc.text('%%AMPEDGE_PAYLOAD:' + b64Data + '%%', -100, -100);
+            } catch(e) {}
+        } catch(e) {}
+    }).save().then(() => {
         if (btn) {
             btn.innerHTML = orig;
             btn.disabled = false;
@@ -4620,125 +4645,135 @@ async function processSummaryQuotationPDFFile(file) {
         let unitsVal = 1;
         let sourceMethod = '';
 
-        // LAYER 0A: Base64 Marker Scanner (%%AMPEDGE_PAYLOAD:...)
-        const markerMatch = binaryStr.match(/%%AMPEDGE_PAYLOAD:([A-Za-z0-9+/=]+)%%/);
-        if (markerMatch && markerMatch[1]) {
-            const kwData = safeDecodePayload(markerMatch[1]);
-            if (kwData && kwData.items && Array.isArray(kwData.items) && kwData.items.length > 0) {
-                clientVal = kwData.client || '';
-                projVal = kwData.project || '';
-                addrVal = kwData.address || '';
-                quoteVal = kwData.quoteno || '';
-                dateVal = kwData.date || '';
-                unitsVal = kwData.units || 1;
-                parsedItems = kwData.items.map(i => {
-                    let rate = parseFloat(i.rate) || 0;
-                    if (!rate) rate = lookupDefaultRate(i.name);
-                    return {
-                        name: i.name || 'Electrical Point',
-                        unit: i.unit || 'Point',
-                        rate: rate,
-                        qty: parseInt(i.qty) || 1,
-                        discount: parseFloat(i.discount) || 0
-                    };
-                });
-                sourceMethod = 'embedded digital payload';
-            }
-        }
-
-        // LAYER 0B: Direct PDF Info Dictionary (/Keywords or /Subject JSON metadata)
-        if (parsedItems.length === 0) {
-            const kwMatches = binaryStr.match(/\/(?:Keywords|Subject)\s*\(([\s\S]*?)\)\s*(?:\/|>>|\r|\n)/gi);
-            if (kwMatches) {
-                for (let k = 0; k < kwMatches.length; k++) {
-                    const rawInner = kwMatches[k].replace(/^\/(?:Keywords|Subject)\s*\(/i, '').replace(/\)\s*(?:\/|>>|\r|\n)?$/i, '');
-                    const cleanStr = rawInner.replace(/\\([\\()])/g, '$1').trim();
-
-                    // Check if it's base64 marker
-                    const innerMarker = cleanStr.match(/%%AMPEDGE_PAYLOAD:([A-Za-z0-9+/=]+)%%/);
-                    if (innerMarker) {
-                        const kwData = safeDecodePayload(innerMarker[1]);
-                        if (kwData && kwData.items && Array.isArray(kwData.items) && kwData.items.length > 0) {
-                            clientVal = kwData.client || '';
-                            projVal = kwData.project || '';
-                            addrVal = kwData.address || '';
-                            quoteVal = kwData.quoteno || '';
-                            dateVal = kwData.date || '';
-                            unitsVal = kwData.units || 1;
-                            parsedItems = kwData.items.map(i => {
-                                let rate = parseFloat(i.rate) || 0;
-                                if (!rate) rate = lookupDefaultRate(i.name);
-                                return {
-                                    name: i.name || 'Electrical Point',
-                                    unit: i.unit || 'Point',
-                                    rate: rate,
-                                    qty: parseInt(i.qty) || 1,
-                                    discount: parseFloat(i.discount) || 0
-                                };
-                            });
-                            sourceMethod = 'PDF Info metadata payload';
-                            break;
+        // Helper: Extract PDF dictionary literal strings tracking balanced parentheses
+        function extractPdfDictStrings(str, keys) {
+            const list = [];
+            keys.forEach(key => {
+                const keyPattern = new RegExp('/' + key + '\\s*\\(', 'g');
+                let match;
+                while ((match = keyPattern.exec(str)) !== null) {
+                    let idx = keyPattern.lastIndex;
+                    let depth = 1;
+                    let escaped = false;
+                    let inner = '';
+                    for (; idx < str.length; idx++) {
+                        const ch = str[idx];
+                        if (escaped) {
+                            inner += ch;
+                            escaped = false;
+                        } else if (ch === '\\') {
+                            inner += ch;
+                            escaped = true;
+                        } else if (ch === '(') {
+                            depth++;
+                            inner += ch;
+                        } else if (ch === ')') {
+                            depth--;
+                            if (depth === 0) break;
+                            inner += ch;
+                        } else {
+                            inner += ch;
                         }
                     }
+                    if (inner) list.push({ key, raw: inner });
+                }
+            });
+            return list;
+        }
 
-                    // Check if it's raw JSON
-                    if (cleanStr.startsWith('{') && cleanStr.includes('"items"')) {
+        // Helper: Decode a PDF literal string (unescapes slashes, decodes UTF-16 BE / LE BOM)
+        function decodePdfLitString(raw) {
+            if (!raw) return '';
+            const unescaped = raw.replace(/\\([\\()])/g, '$1');
+            // Check UTF-16 BE BOM
+            if (unescaped.charCodeAt(0) === 0xFE && unescaped.charCodeAt(1) === 0xFF) {
+                let s = '';
+                for (let i = 2; i < unescaped.length; i += 2) {
+                    const h = unescaped.charCodeAt(i);
+                    const l = (i + 1 < unescaped.length) ? unescaped.charCodeAt(i + 1) : 0;
+                    s += String.fromCharCode((h << 8) | l);
+                }
+                return s;
+            }
+            // Check UTF-16 LE BOM
+            if (unescaped.charCodeAt(0) === 0xFF && unescaped.charCodeAt(1) === 0xFE) {
+                let s = '';
+                for (let i = 2; i < unescaped.length; i += 2) {
+                    const l = unescaped.charCodeAt(i);
+                    const h = (i + 1 < unescaped.length) ? unescaped.charCodeAt(i + 1) : 0;
+                    s += String.fromCharCode((h << 8) | l);
+                }
+                return s;
+            }
+            return unescaped;
+        }
+
+        // Helper: Extract items and metadata from a parsed object
+        function applyExtractedPayload(kwData, method) {
+            if (!kwData || !kwData.items || !Array.isArray(kwData.items) || kwData.items.length === 0) return false;
+            clientVal = kwData.client || clientVal;
+            projVal = kwData.project || projVal;
+            addrVal = kwData.address || addrVal;
+            quoteVal = kwData.quoteno || quoteVal;
+            dateVal = kwData.date || dateVal;
+            unitsVal = kwData.units || unitsVal || 1;
+            parsedItems = kwData.items.map(i => {
+                let rate = parseFloat(i.rate) || 0;
+                if (!rate) rate = lookupDefaultRate(i.name);
+                return {
+                    name: i.name || 'Electrical Point',
+                    unit: i.unit || 'Point',
+                    rate: rate,
+                    qty: parseInt(i.qty) || 1,
+                    discount: parseFloat(i.discount) || 0
+                };
+            });
+            sourceMethod = method;
+            return true;
+        }
+
+        // LAYER 0A: Base64 Payload Marker anywhere in binary stream
+        const b64MarkerMatch = binaryStr.match(/(?:AMPEDGE_B64:|%%AMPEDGE_PAYLOAD:|%AMPEDGE_PAYLOAD:)([A-Za-z0-9+/=]{20,})/);
+        if (b64MarkerMatch && b64MarkerMatch[1]) {
+            const kwData = safeDecodePayload(b64MarkerMatch[1]);
+            applyExtractedPayload(kwData, 'embedded digital payload');
+        }
+
+        // LAYER 0B: Direct PDF Info Dictionary (/Keywords, /Subject, /Title) with balanced parens & UTF-16 BE
+        if (parsedItems.length === 0) {
+            const dictItems = extractPdfDictStrings(binaryStr, ['Keywords', 'Subject', 'Title']);
+            for (let d = 0; d < dictItems.length; d++) {
+                const decoded = decodePdfLitString(dictItems[d].raw).trim();
+
+                // Check Base64 inside dictionary string
+                const innerB64 = decoded.match(/(?:AMPEDGE_B64:|%%AMPEDGE_PAYLOAD:|%AMPEDGE_PAYLOAD:)?([A-Za-z0-9+/=]{30,})/);
+                if (innerB64) {
+                    const kwData = safeDecodePayload(innerB64[1]);
+                    if (applyExtractedPayload(kwData, 'PDF Info metadata payload (' + dictItems[d].key + ')')) break;
+                }
+
+                // Check raw JSON inside dictionary string
+                if (decoded.includes('"items"')) {
+                    const jsonStart = decoded.indexOf('{');
+                    const jsonEnd = decoded.lastIndexOf('}');
+                    if (jsonStart !== -1 && jsonEnd > jsonStart) {
                         try {
-                            const kwData = JSON.parse(cleanStr);
-                            if (kwData && kwData.items && Array.isArray(kwData.items) && kwData.items.length > 0) {
-                                clientVal = kwData.client || '';
-                                projVal = kwData.project || '';
-                                addrVal = kwData.address || '';
-                                quoteVal = kwData.quoteno || '';
-                                dateVal = kwData.date || '';
-                                unitsVal = kwData.units || 1;
-                                parsedItems = kwData.items.map(i => {
-                                    let rate = parseFloat(i.rate) || 0;
-                                    if (!rate) rate = lookupDefaultRate(i.name);
-                                    return {
-                                        name: i.name || 'Electrical Point',
-                                        unit: i.unit || 'Point',
-                                        rate: rate,
-                                        qty: parseInt(i.qty) || 1,
-                                        discount: parseFloat(i.discount) || 0
-                                    };
-                                });
-                                sourceMethod = 'PDF Info metadata';
-                                break;
-                            }
+                            const kwData = JSON.parse(decoded.slice(jsonStart, jsonEnd + 1));
+                            if (applyExtractedPayload(kwData, 'PDF Info metadata (' + dictItems[d].key + ')')) break;
                         } catch(e) {}
                     }
                 }
             }
         }
 
-        // LAYER 0C: Any embedded JSON object containing "client" and "items" in raw stream
+        // LAYER 0C: Any embedded JSON object containing "items" in raw binary stream
         if (parsedItems.length === 0) {
-            const rawJsonMatch = binaryStr.match(/\{"client"\s*:\s*"[^"]+"\s*,\s*"project"[\s\S]*?"items"\s*:\s*\[[\s\S]*?\]\s*\}/);
+            const rawJsonMatch = binaryStr.match(/\{[^{}]*"items"\s*:\s*\[[\s\S]*?\][^{}]*\}/);
             if (rawJsonMatch) {
                 try {
                     const clean = rawJsonMatch[0].replace(/\\([\\()])/g, '$1');
                     const kwData = JSON.parse(clean);
-                    if (kwData && kwData.items && Array.isArray(kwData.items) && kwData.items.length > 0) {
-                        clientVal = kwData.client || '';
-                        projVal = kwData.project || '';
-                        addrVal = kwData.address || '';
-                        quoteVal = kwData.quoteno || '';
-                        dateVal = kwData.date || '';
-                        unitsVal = kwData.units || 1;
-                        parsedItems = kwData.items.map(i => {
-                            let rate = parseFloat(i.rate) || 0;
-                            if (!rate) rate = lookupDefaultRate(i.name);
-                            return {
-                                name: i.name || 'Electrical Point',
-                                unit: i.unit || 'Point',
-                                rate: rate,
-                                qty: parseInt(i.qty) || 1,
-                                discount: parseFloat(i.discount) || 0
-                            };
-                        });
-                        sourceMethod = 'PDF stream JSON';
-                    }
+                    applyExtractedPayload(kwData, 'PDF stream JSON');
                 } catch(e) {}
             }
         }
@@ -4748,11 +4783,11 @@ async function processSummaryQuotationPDFFile(file) {
             try {
                 let pdf = null;
                 try {
-                    pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    pdf = await pdfjsLib.getDocument({ data: uint8, isEvalSupported: false, disableFontFace: true }).promise;
                 } catch (pdfLoadErr) {
                     try {
                         if (pdfjsLib.GlobalWorkerOptions) pdfjsLib.GlobalWorkerOptions.workerSrc = '';
-                        pdf = await pdfjsLib.getDocument({ data: arrayBuffer, isEvalSupported: false, disableFontFace: true }).promise;
+                        pdf = await pdfjsLib.getDocument({ data: uint8, isEvalSupported: false, disableFontFace: true }).promise;
                     } catch (e2) {}
                 }
 
@@ -4763,27 +4798,14 @@ async function processSummaryQuotationPDFFile(file) {
                         const kwSource = (meta && meta.info) ? (meta.info.Keywords || meta.info.Subject) : null;
                         if (kwSource) {
                             let kwData = null;
-                            try { kwData = JSON.parse(kwSource); }
-                            catch(e) { kwData = safeDecodePayload(kwSource); }
-                            if (kwData && kwData.items && Array.isArray(kwData.items)) {
-                                clientVal = kwData.client || '';
-                                projVal = kwData.project || '';
-                                addrVal = kwData.address || '';
-                                quoteVal = kwData.quoteno || '';
-                                dateVal = kwData.date || '';
-                                unitsVal = kwData.units || 1;
-                                parsedItems = kwData.items.map(i => {
-                                    let rate = parseFloat(i.rate) || 0;
-                                    if (!rate) rate = lookupDefaultRate(i.name);
-                                    return {
-                                        name: i.name || 'Electrical Point',
-                                        unit: i.unit || 'Point',
-                                        rate: rate,
-                                        qty: parseInt(i.qty) || 1,
-                                        discount: parseFloat(i.discount) || 0
-                                    };
-                                });
-                                sourceMethod = 'PDF metadata keywords';
+                            const innerB64 = String(kwSource).match(/(?:AMPEDGE_B64:|%%AMPEDGE_PAYLOAD:|%AMPEDGE_PAYLOAD:)?([A-Za-z0-9+/=]{30,})/);
+                            if (innerB64) kwData = safeDecodePayload(innerB64[1]);
+                            if (!kwData) {
+                                try { kwData = JSON.parse(kwSource); }
+                                catch(e) { kwData = safeDecodePayload(kwSource); }
+                            }
+                            if (applyExtractedPayload(kwData, 'PDF metadata keywords')) {
+                                // parsed successfully via PDF.js metadata
                             }
                         }
                     } catch (e) {}
@@ -4800,26 +4822,10 @@ async function processSummaryQuotationPDFFile(file) {
 
                             // Check if payload marker is in text items
                             for (let it = 0; it < items.length; it++) {
-                                const m = (items[it].str || '').match(/%%AMPEDGE_PAYLOAD:([A-Za-z0-9+/=]+)%%/);
+                                const m = (items[it].str || '').match(/(?:AMPEDGE_B64:|%%AMPEDGE_PAYLOAD:|%AMPEDGE_PAYLOAD:)([A-Za-z0-9+/=]{20,})/);
                                 if (m) {
                                     const kwData = safeDecodePayload(m[1]);
-                                    if (kwData && kwData.items && Array.isArray(kwData.items)) {
-                                        clientVal = kwData.client || '';
-                                        projVal = kwData.project || '';
-                                        addrVal = kwData.address || '';
-                                        quoteVal = kwData.quoteno || '';
-                                        dateVal = kwData.date || '';
-                                        unitsVal = kwData.units || 1;
-                                        parsedItems = kwData.items.map(i => ({
-                                            name: i.name,
-                                            unit: i.unit || 'Point',
-                                            rate: parseFloat(i.rate) || lookupDefaultRate(i.name),
-                                            qty: parseInt(i.qty) || 1,
-                                            discount: parseFloat(i.discount) || 0
-                                        }));
-                                        sourceMethod = 'PDF page content payload';
-                                        break;
-                                    }
+                                    if (applyExtractedPayload(kwData, 'PDF page content payload')) break;
                                 }
                             }
                             if (parsedItems.length > 0) break;
@@ -4890,7 +4896,7 @@ async function processSummaryQuotationPDFFile(file) {
             }
         }
 
-        // RESULTS HANDLING & IMMEDIATE AUTO-GENERATION (NO DATABASE SEED HIJACK)
+                // RESULTS HANDLING & IMMEDIATE AUTO-GENERATION (NO DATABASE SEED HIJACK)
         if (parsedItems.length > 0) {
             summaryItems = parsedItems;
 
@@ -5310,14 +5316,15 @@ function downloadThreePageSummaryPDF() {
         pagebreak: { mode: ['css', 'legacy'], after: '.page-summary-3p:not(:last-child)' }
     }).from(el).toPdf().get('pdf').then(function(pdfDoc) {
         try {
+            const b64Data = btoa(unescape(encodeURIComponent(kwPayload)));
             pdfDoc.setProperties({
                 title: 'AMPEdge Executive Summary Quotation - ' + clientRaw,
-                subject: kwPayload,
+                subject: 'AMPEDGE_JSON:' + kwPayload,
                 author: 'AMPEdge Solution',
-                keywords: kwPayload
+                keywords: 'AMPEDGE_B64:' + b64Data
             });
             try {
-                const b64Marker = '%%AMPEDGE_PAYLOAD:' + btoa(unescape(encodeURIComponent(kwPayload))) + '%%';
+                const b64Marker = '%%AMPEDGE_PAYLOAD:' + b64Data + '%%';
                 pdfDoc.text(b64Marker, -100, -100);
             } catch(e) {}
         } catch(e) {}
