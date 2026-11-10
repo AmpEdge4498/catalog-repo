@@ -4628,8 +4628,10 @@ async function processSummaryQuotationPDFFile(file) {
     }
 
     try {
+        console.log('%c[AMPEdge Summary v3] processSummaryQuotationPDFFile called for:', 'color:#6366f1;font-weight:bold;font-size:1rem;', file.name, 'Size:', file.size);
         const arrayBuffer = await file.arrayBuffer();
         const uint8 = new Uint8Array(arrayBuffer);
+        console.log('[AMPEdge Summary v3] ArrayBuffer read OK. Bytes:', uint8.length);
 
         // Fast full-binary string extraction via TextDecoder
         let binaryStr = '';
@@ -4906,6 +4908,7 @@ async function processSummaryQuotationPDFFile(file) {
         if (parsedItems.length === 0) {
             const rawFileName = (file.name || '').replace(/\.[^/.]+$/, '').replace(/[_\-\(\)\d]+/g, ' ').toLowerCase().trim();
             const historyList = (typeof getHistory === 'function') ? getHistory() : SEED_SERVICE_QUOTATIONS;
+            console.log('[AMPEdge Summary v3] LAYER 3: parsedItems empty → trying filename match. rawFileName:', rawFileName, 'historyList count:', historyList.length);
 
             let matchedQuote = null;
             for (const h of historyList) {
@@ -4913,6 +4916,7 @@ async function processSummaryQuotationPDFFile(file) {
                 const cLower = h.client.toLowerCase().trim();
                 const cParts = cLower.split(/\s+/).filter(p => p.length > 2);
                 const allPartsMatch = cParts.length > 0 && cParts.every(p => rawFileName.includes(p));
+                console.log('[AMPEdge Summary v3] LAYER 3 checking:', h.client, '→ parts:', cParts, '→ match:', allPartsMatch);
                 if (allPartsMatch) {
                     matchedQuote = h;
                     break;
@@ -4920,6 +4924,7 @@ async function processSummaryQuotationPDFFile(file) {
             }
 
             if (matchedQuote && matchedQuote.items && matchedQuote.items.length > 0) {
+                console.log('%c[AMPEdge Summary v3] LAYER 3 MATCH FOUND:', 'color:#10b981;font-weight:bold;', matchedQuote.client, 'items:', matchedQuote.items.length);
                 clientVal = matchedQuote.client;
                 projVal = (matchedQuote.formData && matchedQuote.formData.project) || matchedQuote.project || '';
                 addrVal = (matchedQuote.formData && matchedQuote.formData.address) || '';
@@ -4934,6 +4939,8 @@ async function processSummaryQuotationPDFFile(file) {
                     discount: parseFloat(i.discount) || 0
                 }));
                 sourceMethod = 'AMPEdge Quotation Archive (' + matchedQuote.client + ' - ' + (matchedQuote.docNo || '') + ')';
+            } else {
+                console.warn('[AMPEdge Summary v3] LAYER 3: No match found in history for file:', file.name);
             }
         }
 
