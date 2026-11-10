@@ -1,3 +1,21 @@
+
+// Clear legacy seed entries from localStorage to prevent old customer data resurrection
+(function cleanLegacySeeds() {
+    try {
+        const key = 'ampedge_quotation_history';
+        const raw = localStorage.getItem(key);
+        if (raw) {
+            let list = JSON.parse(raw);
+            if (Array.isArray(list)) {
+                const cleaned = list.filter(h => !String(h.id || '').startsWith('seed-'));
+                if (cleaned.length !== list.length) {
+                    localStorage.setItem(key, JSON.stringify(cleaned));
+                }
+            }
+        }
+    } catch(e) {}
+})();
+
 /**
  * AmpEdge BOM & Quotation System \u2014 Full Wizard Logic
  * Research-backed comprehensive electrical point data for Indian installations
@@ -1980,246 +1998,25 @@ const HISTORY_STORAGE_KEY = 'ampedge_quotation_history';
 let currentHistoryFilter = 'all';
 
 // ==========================================================================
-// PRE-SEEDED SERVICE QUOTATIONS (Verified Historical Customer Data)
+// SEED_SERVICE_QUOTATIONS: Intentionally empty.
+// All customer data comes from PDF uploads only. No hardcoded data.
 // ==========================================================================
-const SEED_SERVICE_QUOTATIONS = [
-    {
-        id: 'seed-arbind-kumar-singh',
-        type: 'service',
-        docNo: 'AE/QT/2026/802',
-        client: 'Arbind Kumar Singh',
-        project: 'G+4 Residential Apartment',
-        date: '2026-10-10',
-        amount: 9745,
-        itemCount: 27,
-        formData: {
-            client: 'Arbind Kumar Singh',
-            project: 'G+4 Residential Apartment',
-            address: 'Howrah, West Bengal(Chapatala Bazar)',
-            quoteno: 'AE/QT/2026/802',
-            date: '2026-10-10',
-            units: 1
-        },
-        items: [
-            { name: "Main Meter Connection & Single Phase Earthing Link", unit: "Set", qty: 1, rate: 800, discount: 101 },
-            { name: "Distribution Board (4-Way SP MCB) Installation", unit: "Board", qty: 1, rate: 1200, discount: 11 },
-            { name: "MCB Installation per circuit", unit: "Nos", qty: 5, rate: 150, discount: 11 },
-            { name: "Bedroom — Ceiling Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Bedroom — Ceiling Fan Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Bedroom — AC Power Point (16A)", unit: "Point", qty: 1, rate: 400, discount: 41 },
-            { name: "Bedroom — Bedside 5A Socket Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Bedroom — Night Lamp / Reading Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Bedroom — TV / Internet Outlet", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Living Room — Ceiling Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Living Room — Ceiling Fan Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Living Room — TV Unit Socket (5A)", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Toilet — Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Toilet — Exhaust Fan Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Toilet — Geyser Power Point (16A)", unit: "Point", qty: 1, rate: 400, discount: 11 },
-            { name: "Kitchen — Ceiling Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Kitchen — Exhaust Fan / Chimney Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Kitchen — Refrigerator Socket (16A)", unit: "Point", qty: 1, rate: 400, discount: 41 },
-            { name: "Kitchen — Microwave / Mixer Socket", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Kitchen — Water Purifier / RO Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Entrance — Calling Bell Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Entrance — Door Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Balcony — Utility Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Washing Area — Washing Machine Point (16A)", unit: "Point", qty: 1, rate: 400, discount: 11 },
-            { name: "Inverter / UPS Bypass Line", unit: "Point", qty: 1, rate: 400, discount: 11 },
-            { name: "Main LIne", unit: "Feet", qty: 1, rate: 20, discount: 1 },
-            { name: "DB & JB", unit: "Point", qty: 5, rate: 250, discount: 11 }
-        ]
-    },
-        {
-        id: 'seed-keshab-kumar',
-        type: 'service',
-        docNo: 'AE/QT/2026/806(Revise Quotation)',
-        client: 'Keshab Kumar',
-        project: '2BHK Flat(This is just a point calculation service as you said, it does not include any fan light materials.)',
-        date: '2026-10-13',
-        amount: 13183,
-        itemCount: 41,
-        formData: {
-            client: 'Keshab Kumar',
-            project: '2BHK Flat(This is just a point calculation service as you said, it does not include any fan light materials.)',
-            address: 'Howrah, West Bengal(Chapatala Bazar)',
-            quoteno: 'AE/QT/2026/806(Revise Quotation)',
-            date: '2026-10-13',
-            units: 1
-        },
-        items: [
-            { name: "Main Meter Connection & Earthing Link", unit: "Set", qty: 1, rate: 800, discount: 101 },
-            { name: "Distribution Board (8-Way DP MCB) Installation", unit: "Board", qty: 1, rate: 1200, discount: 11 },
-            { name: "MCB Installation per circuit", unit: "Nos", qty: 5, rate: 150, discount: 11 },
-            { name: "Bedroom 1 — Ceiling Light Points", unit: "Point", qty: 2, rate: 250, discount: 11 },
-            { name: "Bedroom 1 — Ceiling Fan Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Bedroom 1 — Switch Board (Modular 6-Module)", unit: "Board", qty: 1, rate: 300, discount: 11 },
-            { name: "Bedroom 1 — Night Lamp / Foot Light", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Bedroom 1 — AC Power Point (16A)", unit: "Point", qty: 1, rate: 400, discount: 41 },
-            { name: "Bedroom 1 — Bedside 5A Charging Socket", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Bedroom 1 — TV / Internet Outlet", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Bedroom 2 — Ceiling Light Points", unit: "Point", qty: 2, rate: 250, discount: 11 },
-            { name: "Bedroom 2 — Ceiling Fan Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Bedroom 2 — Night Lamp / Foot Light", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Bedroom 2 — AC Power Point (16A)", unit: "Point", qty: 1, rate: 400, discount: 41 },
-            { name: "Bedroom 2 — Bedside 5A Socket", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Living Room — Ceiling Light Points", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Living Room — Profile / Wall Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Living Room — Ceiling Fan Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Living Room — TV Unit Socket (5A)", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Living Room — Set-top Box / Router Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Living Room — Night / Hanging Lamp Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Toilet 1 — Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Toilet 1 — Exhaust Fan Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Toilet 1 — Geyser Power Point (16A)", unit: "Point", qty: 1, rate: 400, discount: 41 },
-            { name: "Kitchen — Ceiling Light Point", unit: "Point", qty: 1, rate: 250, discount: 1 },
-            { name: "Kitchen — Exhaust Fan / Chimney Point", unit: "Point", qty: 1, rate: 400, discount: 41 },
-            { name: "Kitchen — Refrigerator Socket (16A)", unit: "Point", qty: 1, rate: 400, discount: 41 },
-            { name: "Kitchen — Microwave / Mixer Socket", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Kitchen — Water Purifier / RO Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Kitchen — Plug / General Utility Socket", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Washing Area — Washing Machine Point (16A)", unit: "Point", qty: 1, rate: 400, discount: 41 },
-            { name: "Balcony (BR1) — Weatherproof Light Point", unit: "Point", qty: 2, rate: 250, discount: 11 },
-            { name: "Main Entrance — Doorbell Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Main Entrance — Porch Accent Light", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Common Area — Inverter / UPS Line Setup", unit: "Point", qty: 1, rate: 400, discount: 41 },
-            { name: "DB Area — Stabilizer / AC Isolator Point", unit: "Point", qty: 1, rate: 400, discount: 41 },
-            { name: "Kitchen — Exhaust Fan", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Main Line", unit: "Feet", qty: 1, rate: 20, discount: 1 },
-            { name: "DB & JB", unit: "Point", qty: 1, rate: 250, discount: 11 },
-            { name: "Cutting Blade", unit: "Pice", qty: 2, rate: 150, discount: 30 },
-            { name: "Wifi Point Socket", unit: "Point", qty: 1, rate: 250, discount: 11 }
-        ]
-    },
-    {
-        id: 'seed-dustu-podo-ghosh',
-        type: 'service',
-        docNo: 'AE/QT/2026/780',
-        client: 'Dustu podo Ghosh',
-        project: 'Residential House',
-        date: '2026-09-26',
-        amount: 8900,
-        itemCount: 19,
-        formData: {
-            client: 'Dustu podo Ghosh',
-            project: 'Residential House',
-            address: 'Howrah, West Bengal',
-            quoteno: 'AE/QT/2026/780',
-            date: '2026-09-26',
-            units: 1
-        },
-        items: [
-            { name: "Main Meter Box Installation & Service Inlet", unit: "Set", qty: 1, rate: 1500 },
-            { name: "Main Distribution Board (DB) Assembly & Dressing", unit: "Board", qty: 1, rate: 2500 },
-            { name: "MCB Installation per circuit", unit: "Nos", qty: 6, rate: 150 },
-            { name: "Living Room — Ceiling Light Point", unit: "Point", qty: 2, rate: 250 },
-            { name: "Living Room — Ceiling Fan Point", unit: "Point", qty: 1, rate: 250 },
-            { name: "Living Room — AC Power Point (16A dedicated circuit)", unit: "Point", qty: 1, rate: 350 },
-            { name: "Bedroom — Ceiling Light Point", unit: "Point", qty: 2, rate: 250 },
-            { name: "Bedroom — Ceiling Fan Point", unit: "Point", qty: 1, rate: 250 },
-            { name: "Bedroom — AC Power Point (16A dedicated circuit)", unit: "Point", qty: 1, rate: 350 },
-            { name: "Bedroom — Bedside 5A Charging Socket", unit: "Point", qty: 2, rate: 200 },
-            { name: "Kitchen — Ceiling Light Point", unit: "Point", qty: 1, rate: 250 },
-            { name: "Kitchen — Exhaust Fan / Chimney Point", unit: "Point", qty: 1, rate: 300 },
-            { name: "Kitchen — Refrigerator Dedicated Socket (16A)", unit: "Point", qty: 1, rate: 300 },
-            { name: "Kitchen — Microwave / OTG Power Socket", unit: "Point", qty: 1, rate: 300 },
-            { name: "Toilet — Light Point (Mirror/Ceiling)", unit: "Point", qty: 1, rate: 250 },
-            { name: "Toilet — Geyser / Water Heater Point (16A)", unit: "Point", qty: 1, rate: 350 },
-            { name: "Washing Area — Washing Machine Point (16A)", unit: "Point", qty: 1, rate: 350 },
-            { name: "Balcony — Weatherproof Light Point", unit: "Point", qty: 1, rate: 250 },
-            { name: "Main Entrance — Doorbell Point", unit: "Point", qty: 1, rate: 150 }
-        ]
-    },
-    {
-        id: 'seed-monoj-mallik',
-        type: 'service',
-        docNo: 'AE/QT/2026/810',
-        client: 'Monoj Mallik',
-        project: '3BHK Residence',
-        date: '2026-10-14',
-        amount: 12500,
-        itemCount: 15,
-        formData: {
-            client: 'Monoj Mallik',
-            project: '3BHK Residence',
-            address: 'Howrah, West Bengal',
-            quoteno: 'AE/QT/2026/810',
-            date: '2026-10-14',
-            units: 1
-        },
-        items: [
-            { name: "Main Meter Connection & 3-Phase Earthing Link", unit: "Set", qty: 1, rate: 1200 },
-            { name: "Distribution Board (12-Way TP MCB) Installation", unit: "Board", qty: 1, rate: 2000 },
-            { name: "MCB Installation per circuit", unit: "Nos", qty: 12, rate: 150 },
-            { name: "Master Bedroom — Ceiling Light Points", unit: "Point", qty: 4, rate: 250 },
-            { name: "Master Bedroom — Ceiling Fan Points", unit: "Point", qty: 2, rate: 250 },
-            { name: "Master Bedroom — AC Power Point (16A)", unit: "Point", qty: 1, rate: 350 },
-            { name: "Bedroom 2 — Ceiling Light Points", unit: "Point", qty: 4, rate: 250 },
-            { name: "Bedroom 2 — AC Power Point (16A)", unit: "Point", qty: 1, rate: 350 },
-            { name: "Living Room — Ceiling Light Point", unit: "Point", qty: 4, rate: 250 },
-            { name: "Living Room — AC Power Point (16A dedicated circuit)", unit: "Point", qty: 1, rate: 350 },
-            { name: "Kitchen — Refrigerator Dedicated Socket (16A)", unit: "Point", qty: 1, rate: 300 },
-            { name: "Kitchen — Microwave / OTG Power Socket", unit: "Point", qty: 1, rate: 300 },
-            { name: "Toilet 1 — Geyser / Water Heater Point (16A)", unit: "Point", qty: 1, rate: 350 },
-            { name: "Toilet 2 — Geyser / Water Heater Point (16A)", unit: "Point", qty: 1, rate: 350 },
-            { name: "Common Area — Inverter / UPS Line Setup", unit: "Point", qty: 1, rate: 350 }
-        ]
-    },
-    {
-        id: 'seed-sun-construction',
-        type: 'service',
-        docNo: 'AE/QT/2026/795',
-        client: 'Sun Construction',
-        project: 'Commercial Complex',
-        date: '2026-10-09',
-        amount: 22000,
-        itemCount: 7,
-        formData: {
-            client: 'Sun Construction',
-            project: 'Commercial Complex',
-            address: 'Howrah, West Bengal',
-            quoteno: 'AE/QT/2026/795',
-            date: '2026-10-09',
-            units: 1
-        },
-        items: [
-            { name: "Main Meter Connection & 3-Phase Earthing Link Set", unit: "Set", qty: 1, rate: 1200 },
-            { name: "Distribution Board (12-Way TP MCB) Installation", unit: "Board", qty: 1, rate: 2000 },
-            { name: "MCB Installation per circuit", unit: "Nos", qty: 16, rate: 150 },
-            { name: "Workstation — Power Socket Point (16A)", unit: "Point", qty: 8, rate: 350 },
-            { name: "Shop Floor — 3-Phase Industrial Socket (32A)", unit: "Point", qty: 4, rate: 500 },
-            { name: "Office Cabin — AC Power Point (16A)", unit: "Point", qty: 3, rate: 350 },
-            { name: "Concealer PVC Conduit Pipe Laying", unit: "Sq.Ft", qty: 1200, rate: 7 }
-        ]
-    }
-];
+const SEED_SERVICE_QUOTATIONS = [];
 
 function getHistory() {
+    // Returns ONLY user-saved records from localStorage. No hardcoded seeds.
     try {
         const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
         let history = raw ? JSON.parse(raw) : [];
         if (!Array.isArray(history)) history = [];
 
-        // Auto-upgrade cached Keshab Kumar seed to revised ₹13,183 quotation
-        const oldKeshabIdx = history.findIndex(h => h.id === 'seed-keshab-kumar' || (h.client && h.client.toLowerCase() === 'keshab kumar' && h.amount === 14468));
-        const newKeshabSeed = SEED_SERVICE_QUOTATIONS.find(s => s.id === 'seed-keshab-kumar');
-        if (oldKeshabIdx !== -1 && newKeshabSeed) {
-            history[oldKeshabIdx] = newKeshabSeed;
-            try { localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history)); } catch(e) {}
-        }
-
-        // Ensure pre-seeded quotations are always present
-        SEED_SERVICE_QUOTATIONS.forEach(sq => {
-            const exists = history.some(h => (h.docNo && h.docNo === sq.docNo) || (h.id === sq.id) || (h.client && h.client.toLowerCase() === sq.client.toLowerCase() && h.type === 'service'));
-            if (!exists) {
-                history.push(sq);
-            }
-        });
+        // Remove any old seed records that may have been saved previously
+        history = history.filter(h => !String(h.id || '').startsWith('seed-'));
 
         return history;
     } catch (e) {
         console.error('Failed to read history:', e);
-        return [...SEED_SERVICE_QUOTATIONS];
+        return [];
     }
 }
 
@@ -3475,66 +3272,8 @@ async function processQuotationPDFFile(file) {
             }
         }
 
-        // LAYER 3: Filename Matching against Quotation History (Critical for existing AMPEdge PDFs)
-        if (parsedItems.length === 0) {
-            const rawFileName = (file.name || '').replace(/\.pdf$/i, '');
-            // Clean filename to isolate client name or project name
-            // Examples:
-            // "AMPEdge_Solution_Quotation_Arbind_Kumar_Singh" -> "Arbind Kumar Singh"
-            // "AMPEdge_Solution_Quotation_Keshab_Kumar (1)" -> "Keshab Kumar"
-            // "AMPEdge_Solution_Quotation_Dustu_podo_Ghosh_filled_pages_only" -> "Dustu podo Ghosh"
-            let candidate = rawFileName
-                .replace(/^AMPEdge[_-]?Solution[_-]?Quotation[_-]?/i, '')
-                .replace(/^AMPEdge[_-]?Materials[_-]?/i, '')
-                .replace(/_filled_pages_only/gi, '')
-                .replace(/_CutPages/gi, '')
-                .replace(/_Cleaned/gi, '')
-                .replace(/\(\d+\)/g, '')
-                .replace(/[_-]+/g, ' ')
-                .trim();
+        // LAYER 3 REMOVED: No database fallback in electrician module.
 
-            const history = getHistory();
-
-            // Match by client name or quotation docNo
-            let matchedRecord = null;
-            if (candidate) {
-                const cLower = candidate.toLowerCase();
-                matchedRecord = history.find(h => {
-                    if (!h.client) return false;
-                    const hLower = h.client.toLowerCase();
-                    return hLower.includes(cLower) || cLower.includes(hLower);
-                });
-            }
-
-            if (!matchedRecord && rawFileName) {
-                // Try searching for any docNo in rawFileName
-                matchedRecord = history.find(h => h.docNo && h.docNo !== '—' && rawFileName.toLowerCase().includes(h.docNo.toLowerCase().replace(/[^a-z0-9]/g, '')));
-            }
-
-            if (matchedRecord && matchedRecord.items && matchedRecord.items.length > 0) {
-                clientVal = matchedRecord.client || '';
-                projVal = matchedRecord.project || '';
-                addrVal = (matchedRecord.formData && matchedRecord.formData.address) ? matchedRecord.formData.address : '';
-                quoteVal = matchedRecord.docNo || '';
-                dateVal = matchedRecord.date || '';
-
-                const active = matchedRecord.items.filter(i => (i.qty || 0) > 0);
-                const itemList = (active.length > 0 ? active : matchedRecord.items);
-
-                parsedItems = itemList.map(i => {
-                    const inferred = inferWireDetails(i.name);
-                    return {
-                        name: i.name,
-                        room: extractRoomFromName(i.name),
-                        unit: i.unit || 'Point',
-                        qty: i.qty || 1,
-                        wireSize: inferred.wireSize,
-                        conduitSpec: inferred.conduitSpec
-                    };
-                });
-                sourceMethod = 'verified quotation history (' + matchedRecord.client + ')';
-            }
-        }
 
         // RESULTS HANDLING
         if (parsedItems.length > 0) {
@@ -3564,12 +3303,7 @@ async function processQuotationPDFFile(file) {
                 statusEl.innerHTML = '<div style="display:flex;flex-direction:column;gap:6px;text-align:left;padding:4px;">' +
                     '<div><i class="fa-solid fa-circle-info" style="color:#f59e0b;"></i> <strong>Image-only PDF detected:</strong> Could not read text layers directly from <em>' + file.name + '</em>.</div>' +
                     '<div style="font-size:.78rem;color:#78350f;">Please pick the corresponding client quotation below to load all points instantly:</div>' +
-                    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">' +
-                    '  <button class="elec-quick-pill" style="background:#0284c7;color:#fff;" onclick="event.stopPropagation();loadKnownClient(\'Arbind Kumar Singh\')"><i class="fa-solid fa-user"></i> Arbind Kumar Singh (27 pts)</button>' +
-                    '  <button class="elec-quick-pill" style="background:#0284c7;color:#fff;" onclick="event.stopPropagation();loadKnownClient(\'Keshab Kumar\')"><i class="fa-solid fa-user"></i> Keshab Kumar (43 pts)</button>' +
-                    '  <button class="elec-quick-pill" style="background:#0284c7;color:#fff;" onclick="event.stopPropagation();loadKnownClient(\'Dustu podo Ghosh\')"><i class="fa-solid fa-user"></i> Dustu Podo Ghosh</button>' +
-                    '  <button class="elec-quick-pill" style="background:#0284c7;color:#fff;" onclick="event.stopPropagation();loadKnownClient(\'Monoj Mallik\')"><i class="fa-solid fa-user"></i> Monoj Mallik</button>' +
-                    '</div>' +
+                    '<div style="font-size:.78rem;color:#78350f;margin-top:4px;">Please select from your saved quotations dropdown above, or add rows manually below.</div>' +
                     '</div>';
             }
         }
@@ -4106,13 +3840,11 @@ function openSummaryModule() {
     populateSummaryHistoryDropdown();
 
     if (summaryItems.length === 0) {
-        // Try importing from active service configuration if any active items
         const activeItems = configItems.filter(i => (i.qty || 0) > 0);
         if (activeItems.length > 0) {
             loadSummaryFromCurrentActiveConfig();
         } else {
-            // Default starter template from preseeded client
-            loadKnownSummaryClient('Arbind Kumar Singh');
+            renderSummaryPointsTable();
         }
     } else {
         renderSummaryPointsTable();
@@ -4366,12 +4098,12 @@ function loadSummaryFromCurrentActiveConfig() {
 
 function loadKnownSummaryClient(clientName) {
     const history = getHistory();
-    const match = history.find(h => h.client && h.client.toLowerCase().includes(clientName.toLowerCase()));
+    const match = history.find(h => h.client && h.client.toLowerCase() === clientName.toLowerCase() && !String(h.id || '').startsWith('seed-'));
     if (match) {
         if (match.formData) {
             document.getElementById('summary-inp-client').value = match.formData.client || clientName;
             document.getElementById('summary-inp-project').value = match.formData.project || 'Residential Project';
-            document.getElementById('summary-inp-address').value = match.formData.address || 'West Bengal';
+            document.getElementById('summary-inp-address').value = match.formData.address || '';
             document.getElementById('summary-inp-quoteno').value = match.formData.quoteno || 'AE/QT/2026/801';
             document.getElementById('summary-inp-date').value = match.formData.date || new Date().toISOString().split('T')[0];
             document.getElementById('summary-inp-units').value = match.formData.units || 1;
@@ -4904,45 +4636,9 @@ async function processSummaryQuotationPDFFile(file) {
             }
         }
 
-                // LAYER 3: Smart Match for AMPEdge Quotation PDFs (Filename & History Archive Match)
-        if (parsedItems.length === 0) {
-            const rawFileName = (file.name || '').replace(/\.[^/.]+$/, '').replace(/[_\-\(\)\d]+/g, ' ').toLowerCase().trim();
-            const historyList = (typeof getHistory === 'function') ? getHistory() : SEED_SERVICE_QUOTATIONS;
-            console.log('[AMPEdge Summary v3] LAYER 3: parsedItems empty → trying filename match. rawFileName:', rawFileName, 'historyList count:', historyList.length);
-
-            let matchedQuote = null;
-            for (const h of historyList) {
-                if (!h.client) continue;
-                const cLower = h.client.toLowerCase().trim();
-                const cParts = cLower.split(/\s+/).filter(p => p.length > 2);
-                const allPartsMatch = cParts.length > 0 && cParts.every(p => rawFileName.includes(p));
-                console.log('[AMPEdge Summary v3] LAYER 3 checking:', h.client, '→ parts:', cParts, '→ match:', allPartsMatch);
-                if (allPartsMatch) {
-                    matchedQuote = h;
-                    break;
-                }
-            }
-
-            if (matchedQuote && matchedQuote.items && matchedQuote.items.length > 0) {
-                console.log('%c[AMPEdge Summary v3] LAYER 3 MATCH FOUND:', 'color:#10b981;font-weight:bold;', matchedQuote.client, 'items:', matchedQuote.items.length);
-                clientVal = matchedQuote.client;
-                projVal = (matchedQuote.formData && matchedQuote.formData.project) || matchedQuote.project || '';
-                addrVal = (matchedQuote.formData && matchedQuote.formData.address) || '';
-                quoteVal = (matchedQuote.formData && matchedQuote.formData.quoteno) || matchedQuote.docNo || '';
-                dateVal = (matchedQuote.formData && matchedQuote.formData.date) || matchedQuote.date || '';
-                unitsVal = (matchedQuote.formData && matchedQuote.formData.units) || 1;
-                parsedItems = matchedQuote.items.map(i => ({
-                    name: i.name,
-                    unit: i.unit || 'Point',
-                    rate: parseFloat(i.rate) || lookupDefaultRate(i.name),
-                    qty: parseInt(i.qty) || 1,
-                    discount: parseFloat(i.discount) || 0
-                }));
-                sourceMethod = 'AMPEdge Quotation Archive (' + matchedQuote.client + ' - ' + (matchedQuote.docNo || '') + ')';
-            } else {
-                console.warn('[AMPEdge Summary v3] LAYER 3: No match found in history for file:', file.name);
-            }
-        }
+// LAYER 3 REMOVED: No database fallback. PDF upload uses ONLY the actual uploaded PDF content.
+        // If the PDF is image-only and cannot be parsed, the user will be shown a friendly message
+        // to manually fill in the customer details and add items. No old records will be loaded.
 
         // RESULTS HANDLING & IMMEDIATE AUTO-GENERATION (NO DATABASE SEED HIJACK)
         if (parsedItems.length > 0) {
@@ -4979,17 +4675,39 @@ async function processSummaryQuotationPDFFile(file) {
             }
 
         } else {
-            // Inform user with direct options — NO SILENT DATABASE HIJACK
+            // Image PDF — extract customer name from filename, pre-fill form, do NOT load any database record
             if (statusEl) {
+                // Try to extract a human-readable name from the filename
+                let guessedClient = '';
+                try {
+                    guessedClient = file.name
+                        .replace(/\.pdf$/i, '')
+                        .replace(/^AMPEdge[_\-]?Solution[_\-]?Quotation[_\-]?/i, '')
+                        .replace(/^AMPEdge[_\-]?Materials[_\-]?/i, '')
+                        .replace(/_filled_pages_only/gi, '')
+                        .replace(/_CutPages/gi, '')
+                        .replace(/_Cleaned/gi, '')
+                        .replace(/Revise[_\- ]?Quotation/gi, '')
+                        .replace(/\(\d+\)/g, '')
+                        .replace(/[_\-]+/g, ' ')
+                        .trim();
+                } catch(e) {}
+
+                // Pre-fill customer name in the form if we could guess it
+                if (guessedClient) {
+                    const clientInp = document.getElementById('summary-inp-client');
+                    if (clientInp && !clientInp.value) clientInp.value = guessedClient;
+                }
+
                 statusEl.style.display = 'block';
                 statusEl.style.background = '#fffbeb';
                 statusEl.style.color = '#92400e';
                 statusEl.style.border = '1.5px solid #fde68a';
                 statusEl.innerHTML = '<div style="display:flex;flex-direction:column;gap:8px;text-align:left;padding:6px;">' +
-                    '<div style="font-weight:700;font-size:.9rem;"><i class="fa-solid fa-triangle-exclamation" style="color:#d97706;"></i> Image / Scanned PDF Detected (<em>' + escapeHtml(file.name) + '</em>)</div>' +
-                    '<div style="font-size:.82rem;color:#78350f;line-height:1.4;">Direct text or quotation metadata could not be extracted from this PDF. Please load points from your active configuration or add points below:</div>' +
-                    '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:2px;">' +
-                    '  <button type="button" class="action-btn" style="background:#10b981;color:#fff;padding:6px 14px;font-size:.8rem;border-radius:6px;font-weight:700;" onclick="loadSummaryFromCurrentActiveConfig()"><i class="fa-solid fa-bolt"></i> Load Active Config Points</button>' +
+                    '<div style="font-weight:700;font-size:.9rem;"><i class="fa-solid fa-file-image" style="color:#d97706;"></i> Image PDF Uploaded' + (guessedClient ? ' — <em>' + escapeHtml(guessedClient) + '</em>' : '') + '</div>' +
+                    '<div style="font-size:.82rem;color:#78350f;line-height:1.5;">This PDF is image-only (no text layer) — points cannot be auto-read. Customer name has been pre-filled above. <strong>Please add each electrical point manually below, or load from active config:</strong></div>' +
+                    '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px;">' +
+                    '  <button type="button" class="action-btn" style="background:#10b981;color:#fff;padding:6px 14px;font-size:.8rem;border-radius:6px;font-weight:700;" onclick="loadSummaryFromCurrentActiveConfig()"><i class="fa-solid fa-bolt"></i> Load from Active Config</button>' +
                     '  <button type="button" class="action-btn" style="background:#6366f1;color:#fff;padding:6px 14px;font-size:.8rem;border-radius:6px;font-weight:700;" onclick="addSummaryRow()"><i class="fa-solid fa-plus"></i> Add Point Manually</button>' +
                     '</div>' +
                     '</div>';

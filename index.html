@@ -1254,13 +1254,7 @@
                     Click to browse or drag &amp; drop your Service Quotation PDF here. The system automatically reads all parts, points, locations, and quantities &mdash; then calculates the exact wire requirement in mm² with zero commercial rates.
                 </p>
                 <!-- Quick Pick Pills for Recent Quotations -->
-                <div class="elec-quick-row" onclick="event.stopPropagation();">
-                    <span style="font-size:.76rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;"><i class="fa-solid fa-clock-rotate-left"></i> Quick Load Quotation:</span>
-                    <button type="button" class="elec-quick-pill" onclick="loadKnownClient('Arbind Kumar Singh')"><i class="fa-solid fa-building"></i> Arbind Kumar Singh (27 pts)</button>
-                    <button type="button" class="elec-quick-pill" onclick="loadKnownClient('Keshab Kumar')"><i class="fa-solid fa-house"></i> Keshab Kumar (41 pts - ₹13,183)</button>
-                    <button type="button" class="elec-quick-pill" onclick="loadKnownClient('Dustu podo Ghosh')"><i class="fa-solid fa-user-check"></i> Dustu Podo Ghosh</button>
-                    <button type="button" class="elec-quick-pill" onclick="loadKnownClient('Monoj Mallik')"><i class="fa-solid fa-user-check"></i> Monoj Mallik</button>
-                </div>
+                
                 <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;margin-top:10px;">
                     <button class="action-btn" style="background:linear-gradient(135deg,#0284c7,#0369a1);color:#fff;padding:10px 20px;font-size:.9rem;font-weight:700;border-radius:8px;" onclick="event.stopPropagation();document.getElementById('elec-file-input').click();">
                         <i class="fa-solid fa-file-pdf"></i> Browse Quotation PDF
@@ -1419,13 +1413,7 @@
                     Drop your detailed service quotation PDF here. The system will convert it into a strictly <strong>3-Page Executive Quotation</strong>: Page 1 Cover, Page 2 Point Schedule with High-Value Points Highlighted (AC, Geyser, DB, Chimney, 16A Power), and Page 3 Commercial Terms &amp; Dual Signatures.
                 </p>
                 <!-- Quick Pick Pills for Recent Quotations -->
-                <div class="summary-quick-row" onclick="event.stopPropagation();">
-                    <span style="font-size:.76rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;"><i class="fa-solid fa-clock-rotate-left"></i> Quick Load Quotation:</span>
-                    <button type="button" class="summary-quick-pill" onclick="loadKnownSummaryClient('Arbind Kumar Singh')"><i class="fa-solid fa-building"></i> Arbind Kumar Singh (27 pts)</button>
-                    <button type="button" class="summary-quick-pill" onclick="loadKnownSummaryClient('Keshab Kumar')"><i class="fa-solid fa-house"></i> Keshab Kumar (41 pts - ₹13,183)</button>
-                    <button type="button" class="summary-quick-pill" onclick="loadKnownSummaryClient('Dustu podo Ghosh')"><i class="fa-solid fa-user-check"></i> Dustu Podo Ghosh</button>
-                    <button type="button" class="summary-quick-pill" onclick="loadKnownSummaryClient('Monoj Mallik')"><i class="fa-solid fa-user-check"></i> Monoj Mallik</button>
-                </div>
+                
                 <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;margin-top:14px;">
                     <button class="action-btn" style="background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;padding:10px 20px;font-size:.9rem;font-weight:700;border-radius:8px;" onclick="event.stopPropagation();document.getElementById('summary-file-input').click();">
                         <i class="fa-solid fa-file-pdf"></i> Browse Quotation PDF
@@ -1452,7 +1440,7 @@
                 <div class="client-form-grid" style="grid-template-columns:repeat(3,1fr);">
                     <div class="form-field">
                         <label>Client Name</label>
-                        <input type="text" id="summary-inp-client" placeholder="e.g. Arbind Kumar Singh">
+                        <input type="text" id="summary-inp-client" placeholder="e.g. Ritick Das">
                     </div>
                     <div class="form-field">
                         <label>Project / Building Name</label>
@@ -1591,6 +1579,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=20261110_LAYER3_FIXED_V3"></script>
+    <script src="app.js?v=20261110_ZERO_SEEDS_V4"></script>
 </body>
 </html>
