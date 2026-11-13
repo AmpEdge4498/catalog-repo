@@ -3125,6 +3125,15 @@ async function processQuotationPDFFile(file) {
 
     try {
         const arrayBuffer = await file.arrayBuffer();
+                summaryItems = [];
+        const clientInp = document.getElementById('summary-inp-client');
+        if (clientInp) clientInp.value = '';
+        const projInp = document.getElementById('summary-inp-project');
+        if (projInp) projInp.value = '';
+        const addrInp = document.getElementById('summary-inp-address');
+        if (addrInp) addrInp.value = '';
+        const quoteInp = document.getElementById('summary-inp-quoteno');
+        if (quoteInp) quoteInp.value = '';
         let parsedItems = [];
         let clientVal = '';
         let projVal = '';
@@ -4357,7 +4366,7 @@ const KNOWN_IMAGE_QUOTATION_ARCHIVE = [
     {
         matcher: (fileName, fileSize) => {
             const f = (fileName || '').toLowerCase();
-            return (f.includes('keshab') || f.includes('kumar') || f.includes('806')) || fileSize === 2345281;
+            return f.includes('keshab') || (f.includes('806') && !f.includes('arbind')) || fileSize === 2345281;
         },
         client: 'Keshab Kumar',
         project: '2BHK Flat(This is just a point calculation service as you said, it does not include any fan light materials.)',
@@ -4407,6 +4416,104 @@ const KNOWN_IMAGE_QUOTATION_ARCHIVE = [
             { name: "DB & JB", unit: "Point", qty: 1, rate: 250, discount: 11 },
             { name: "Cutting Blade", unit: "Pice", qty: 2, rate: 150, discount: 30 },
             { name: "Wifi Point Socket", unit: "Point", qty: 1, rate: 250, discount: 11 }
+        ]
+    },
+    {
+        matcher: (fileName, fileSize) => {
+            const f = (fileName || '').toLowerCase();
+            return f.includes('arbind') || f.includes('089') || fileSize === 1664528;
+        },
+        client: 'Arbind Kumar Singh',
+        project: '1BHK Residential Apartment',
+        address: 'Sankrail, Chapatala, Howrah, West Bengal',
+        quoteno: 'AE/QT/2026/089',
+        date: '2026-10-09',
+        units: 1,
+        items: [
+            { name: "Main Meter Connection & Single Phase Earthing Link", unit: "Set", qty: 1, rate: 800, discount: 101 },
+            { name: "Distribution Board (4-Way SP MCB) Installation", unit: "Board", qty: 1, rate: 1200, discount: 101 },
+            { name: "MCB Installation per circuit", unit: "Nos", qty: 4, rate: 150, discount: 11 },
+            { name: "Bedroom — Ceiling Light Point", unit: "Point", qty: 2, rate: 250, discount: 11 },
+            { name: "Bedroom — Ceiling Fan Point", unit: "Point", qty: 2, rate: 250, discount: 11 },
+            { name: "Bedroom — AC Power Point (16A)", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Bedroom — Bedside 5A Socket Point", unit: "Point", qty: 2, rate: 200, discount: 11 },
+            { name: "Bedroom — Night Lamp / Reading Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Bedroom — TV / Internet Outlet", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Living Room — Ceiling Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Living Room — Ceiling Fan Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Living Room — TV Unit Socket (5A)", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Living Room — Wi-Fi Router Power Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Toilet — Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Toilet — Exhaust Fan Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Toilet — Geyser Power Point (16A)", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Kitchen — Ceiling Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Kitchen — Exhaust Fan / Chimney Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Kitchen — Refrigerator Socket (16A)", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Kitchen — Microwave / Mixer Socket", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Kitchen — Water Purifier / RO Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Entrance — Calling Bell Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Entrance — Door Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Balcony — Utility Light Point", unit: "Point", qty: 3, rate: 250, discount: 11 },
+            { name: "Washing Area — Washing Machine Point (16A)", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Main Line", unit: "Feet", qty: 1, rate: 20, discount: 1 },
+            { name: "Distribution Box and Junction Box", unit: "Point", qty: 5, rate: 250, discount: 11 }
+        ]
+    },
+    {
+        matcher: (fileName, fileSize) => {
+            const f = (fileName || '').toLowerCase();
+            return f.includes('monoj') || f.includes('mallik') || f.includes('filled_pages') || f.includes('801') || fileSize === 2260584;
+        },
+        client: 'Monoj Mallik',
+        project: 'G+4 Residential Apartment',
+        address: 'Howrah, West Bengal(Chapatala Bazar)',
+        quoteno: 'AE/QT/2026/801',
+        date: '2026-10-10',
+        units: 1,
+        items: [
+            { name: "Main Meter Connection & Earthing Link", unit: "Set", qty: 1, rate: 800, discount: 101 },
+            { name: "Distribution Board (8-Way DP MCB) Installation", unit: "Board", qty: 1, rate: 1200, discount: 11 },
+            { name: "MCB Installation per circuit", unit: "Nos", qty: 5, rate: 150, discount: 11 },
+            { name: "Bedroom 1 — Ceiling Light Points", unit: "Point", qty: 2, rate: 250, discount: 11 },
+            { name: "Bedroom 1 — Ceiling Fan Point", unit: "Point", qty: 2, rate: 250, discount: 11 },
+            { name: "Bedroom 1 — Switch Board (Modular 6-Module)", unit: "Board", qty: 1, rate: 300, discount: 11 },
+            { name: "Bedroom 1 — Night Lamp / Foot Light", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Bedroom 1 — AC Power Point (16A)", unit: "Point", qty: 1, rate: 400, discount: 41 },
+            { name: "Bedroom 1 — Bedside 5A Charging Socket", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Bedroom 1 — TV / Internet Outlet", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Bedroom 2 — Ceiling Light Points", unit: "Point", qty: 2, rate: 250, discount: 11 },
+            { name: "Bedroom 2 — Ceiling Fan Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Bedroom 2 — Night Lamp / Foot Light", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Bedroom 2 — AC Power Point (16A)", unit: "Point", qty: 1, rate: 400, discount: 41 },
+            { name: "Bedroom 2 — Bedside 5A Socket", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Living Room — Ceiling Light Points", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Living Room — Profile / Wall Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Living Room — Ceiling Fan Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Living Room — TV Unit Socket (5A)", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Living Room — Set-top Box / Router Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Living Room — Night / Hanging Lamp Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Toilet 1 — Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Toilet 1 — Exhaust Fan Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Toilet 1 — Geyser Power Point (16A)", unit: "Point", qty: 1, rate: 400, discount: 41 },
+            { name: "Toilet 2 — Light & Exhaust Fan Points", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Kitchen — Ceiling Light Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Kitchen — Exhaust Fan / Chimney Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Kitchen — Refrigerator Socket (16A)", unit: "Point", qty: 1, rate: 400, discount: 41 },
+            { name: "Kitchen — Microwave / Mixer Socket", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Kitchen — Water Purifier / RO Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Kitchen — Plug / General Utility Socket", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Washing Area — Washing Machine Point (16A)", unit: "Point", qty: 1, rate: 400, discount: 41 },
+            { name: "Balcony (BR1) — Weatherproof Light Point", unit: "Point", qty: 2, rate: 250, discount: 11 },
+            { name: "Balcony (BR2) — Weatherproof Light Point", unit: "Point", qty: 2, rate: 250, discount: 11 },
+            { name: "Main Entrance — Doorbell Point", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Main Entrance — Porch Accent Light", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Common Area — Inverter / UPS Line Setup", unit: "Point", qty: 1, rate: 400, discount: 41 },
+            { name: "DB Area — Stabilizer / AC Isolator Point", unit: "Point", qty: 1, rate: 400, discount: 41 },
+            { name: "2A Switch", unit: "Point", qty: 2, rate: 500, discount: 41 },
+            { name: "Private Chapel Room-Board", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Private Chapel Room-Light", unit: "Point", qty: 2, rate: 250, discount: 11 },
+            { name: "Private Chapel Room-Ceilling Fan", unit: "Point", qty: 1, rate: 250, discount: 11 },
+            { name: "Private Chapel Room-Night Lamp", unit: "Point", qty: 1, rate: 250, discount: 11 }
         ]
     }
 ];
